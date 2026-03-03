@@ -1,0 +1,1861 @@
+import React, { useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import AuthModal from "./AuthModal";
+import MobileMenu from "./MobileMenu";
+
+// Mock data
+const MOCK_TOURNAMENT = {
+  id: "1",
+  name: "Campeonato Primavera Open 2026",
+  club: "São Paulo Padel Club",
+  city: "São Paulo",
+  state: "SP",
+  dateRange: "12–14 Mar",
+  status: "Aberto",
+  sport: "Padel",
+  teams: 24,
+  maxTeams: 32,
+  description:
+    "Torneio de padel para todas as categorias. Venha participar do maior evento de padel da primavera! Este torneio conta com quadras profissionais, arbitragem certificada e premiação para os três primeiros colocados de cada categoria.",
+  inscriptionStart: "01 Mar 2026",
+  inscriptionEnd: "10 Mar 2026",
+  price: "R$ 150,00",
+  address: "Rua das Flores, 123 - Jardins, São Paulo - SP",
+  phone: "(11) 98765-4321",
+  email: "contato@sppadelclub.com.br",
+  website: "www.sppadelclub.com.br",
+  rules: [
+    "Cada dupla deve ter no mínimo 1 jogador federado",
+    "Uso de equipamentos de segurança obrigatório",
+    "Atrasos superiores a 15 minutos resultam em W.O.",
+    "Respeito aos adversários e árbitros é fundamental",
+    "Equipamentos devem estar em conformidade com regulamento da federação",
+    "Vestuário adequado é obrigatório durante as partidas",
+  ],
+  faq: [
+    {
+      q: "Posso me inscrever sozinho?",
+      a: "Não, as inscrições são apenas para duplas completas.",
+    },
+    {
+      q: "Há estacionamento no local?",
+      a: "Sim, estacionamento gratuito para participantes.",
+    },
+    {
+      q: "Qual a política de cancelamento?",
+      a: "Reembolso de 80% até 7 dias antes do evento.",
+    },
+    {
+      q: "Posso trocar de parceiro após a inscrição?",
+      a: "Sim, até 48 horas antes do início do torneio.",
+    },
+    {
+      q: "Há premiação?",
+      a: "Sim! Troféus e medalhas para os 3 primeiros lugares de cada categoria.",
+    },
+  ],
+  categories: ["Iniciante", "Intermediário", "Avançado", "Elite"],
+  mapUrl: "https://maps.google.com/?q=-23.5505,-46.6333",
+};
+
+const MOCK_PARTICIPANTS = [
+  {
+    id: 1,
+    player1: "João Silva",
+    player2: "Maria Santos",
+    category: "Elite",
+    status: "Confirmado",
+  },
+  {
+    id: 2,
+    player1: "Pedro Oliveira",
+    player2: "Ana Costa",
+    category: "Avançado",
+    status: "Confirmado",
+  },
+  {
+    id: 3,
+    player1: "Carlos Mendes",
+    player2: "Juliana Lima",
+    category: "Intermediário",
+    status: "Pendente",
+  },
+  {
+    id: 4,
+    player1: "Rafael Souza",
+    player2: "Beatriz Alves",
+    category: "Elite",
+    status: "Confirmado",
+  },
+  {
+    id: 5,
+    player1: "Lucas Ferreira",
+    player2: "Camila Rocha",
+    category: "Avançado",
+    status: "Confirmado",
+  },
+  {
+    id: 6,
+    player1: "Bruno Dias",
+    player2: "Fernanda Nunes",
+    category: "Iniciante",
+    status: "Confirmado",
+  },
+  {
+    id: 7,
+    player1: "Thiago Martins",
+    player2: "Patricia Gomes",
+    category: "Intermediário",
+    status: "Confirmado",
+  },
+  {
+    id: 8,
+    player1: "Rodrigo Castro",
+    player2: "Amanda Silva",
+    category: "Elite",
+    status: "Confirmado",
+  },
+];
+
+const MOCK_GROUPS = [
+  {
+    name: "Grupo A - Elite",
+    teams: [
+      { name: "João Silva / Maria Santos", points: 6, wins: 2, losses: 0 },
+      { name: "Rafael Souza / Beatriz Alves", points: 3, wins: 1, losses: 1 },
+      { name: "Rodrigo Castro / Amanda Silva", points: 0, wins: 0, losses: 2 },
+    ],
+  },
+  {
+    name: "Grupo B - Elite",
+    teams: [
+      { name: "Carlos Mendes / Juliana Lima", points: 6, wins: 2, losses: 0 },
+      { name: "Lucas Ferreira / Camila Rocha", points: 3, wins: 1, losses: 1 },
+      { name: "Bruno Dias / Fernanda Nunes", points: 0, wins: 0, losses: 2 },
+    ],
+  },
+];
+
+const MOCK_MATCHES = [
+  {
+    id: 1,
+    court: "Quadra 1",
+    time: "09:00",
+    date: "12 Mar",
+    team1: "João Silva / Maria Santos",
+    team2: "Rafael Souza / Beatriz Alves",
+    score: "6-4, 6-3",
+    status: "Finalizado",
+    category: "Elite",
+  },
+  {
+    id: 2,
+    court: "Quadra 2",
+    time: "10:30",
+    date: "12 Mar",
+    team1: "Pedro Oliveira / Ana Costa",
+    team2: "Lucas Ferreira / Camila Rocha",
+    score: "4-6, 7-5, 6-3",
+    status: "Finalizado",
+    category: "Avançado",
+  },
+  {
+    id: 3,
+    court: "Quadra 1",
+    time: "14:00",
+    date: "13 Mar",
+    team1: "Carlos Mendes / Juliana Lima",
+    team2: "Bruno Dias / Fernanda Nunes",
+    score: "-",
+    status: "Agendado",
+    category: "Intermediário",
+  },
+  {
+    id: 4,
+    court: "Quadra 3",
+    time: "15:30",
+    date: "13 Mar",
+    team1: "Thiago Martins / Patricia Gomes",
+    team2: "Rodrigo Castro / Amanda Silva",
+    score: "-",
+    status: "Agendado",
+    category: "Elite",
+  },
+];
+
+const MOCK_RESULTS = [
+  {
+    category: "Elite",
+    podium: [
+      { position: 1, team: "João Silva / Maria Santos", trophy: "🥇" },
+      { position: 2, team: "Carlos Mendes / Juliana Lima", trophy: "🥈" },
+      { position: 3, team: "Rafael Souza / Beatriz Alves", trophy: "🥉" },
+    ],
+  },
+  {
+    category: "Avançado",
+    podium: [
+      { position: 1, team: "Pedro Oliveira / Ana Costa", trophy: "🥇" },
+      { position: 2, team: "Lucas Ferreira / Camila Rocha", trophy: "🥈" },
+      { position: 3, team: "Bruno Dias / Fernanda Nunes", trophy: "🥉" },
+    ],
+  },
+];
+
+const MOCK_LIVE_MATCHES = [
+  {
+    id: 1,
+    court: "Quadra Central",
+    team1: "João Silva / Maria Santos",
+    team2: "Rafael Souza / Beatriz Alves",
+    score1: 6,
+    score2: 4,
+    set: 1,
+    status: "Ao Vivo",
+  },
+  {
+    id: 2,
+    court: "Quadra 2",
+    team1: "Pedro Oliveira / Ana Costa",
+    team2: "Lucas Ferreira / Camila Rocha",
+    score1: 3,
+    score2: 3,
+    set: 1,
+    status: "Ao Vivo",
+  },
+];
+
+const TournamentProfile = () => {
+  const { id } = useParams();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("info");
+  const [activeSubTab, setActiveSubTab] = useState("general");
+  const [selectedCategory, setSelectedCategory] = useState("Todas");
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCourt, setSelectedCourt] = useState("Todas as Quadras");
+  const [selectedDate, setSelectedDate] = useState("");
+
+  const tabs = [
+    { id: "info", label: "Informações" },
+    { id: "participants", label: "Inscritos" },
+    { id: "groups", label: "Grupos" },
+    { id: "matches", label: "Jogos" },
+    { id: "results", label: "Resultados" },
+    { id: "live", label: "Ao Vivo" },
+  ];
+
+  const infoSubTabs = [
+    { id: "general", label: "Gerais" },
+    { id: "contact", label: "Contato" },
+    { id: "location", label: "Localização" },
+    { id: "rules", label: "Regras" },
+    { id: "faq", label: "FAQ" },
+  ];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Confirmado":
+        return "bg-green-500/20 text-green-300 border-green-500/30";
+      case "Pendente":
+        return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
+      case "Finalizado":
+        return "bg-blue-500/20 text-blue-300 border-blue-500/30";
+      case "Agendado":
+        return "bg-purple-500/20 text-purple-300 border-purple-500/30";
+      case "Ao Vivo":
+        return "bg-red-500/20 text-red-300 border-red-500/30 animate-pulse";
+      default:
+        return "bg-gray-500/20 text-gray-300 border-gray-500/30";
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#0a0e27] text-white">
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
+
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e27]/95 backdrop-blur-sm border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center">
+                <svg
+                  className="w-6 h-6 text-[#0a0e27]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+              </div>
+              <span className="text-2xl font-bold tracking-tight">Bubble</span>
+            </Link>
+
+            <div className="hidden md:flex items-center gap-8">
+              <Link
+                to="/"
+                className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+              >
+                Início
+              </Link>
+              <Link
+                to="/tournaments"
+                className="text-white font-medium text-sm"
+              >
+                Torneios
+              </Link>
+              <Link
+                to="/contact"
+                className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+              >
+                Contato
+              </Link>
+              <button
+                onClick={() => setIsAuthModalOpen(true)}
+                className="px-6 py-2.5 bg-[#00ff88] text-[#0a0e27] rounded-lg font-semibold text-sm hover:bg-[#00dd77] transition-all"
+              >
+                Entrar
+              </button>
+            </div>
+
+            <MobileMenu onLoginClick={() => setIsAuthModalOpen(true)} />
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <section className="relative pt-24 pb-8 px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-6 text-sm text-gray-400">
+            <Link to="/tournaments" className="hover:text-[#00ff88]">
+              Torneios
+            </Link>
+            <span className="mx-2">/</span>
+            <span>{MOCK_TOURNAMENT.name}</span>
+          </div>
+
+          <div className="grid lg:grid-cols-4 gap-8">
+            <div className="lg:col-span-3">
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <span className="px-3 py-1 bg-[#00ff88]/20 text-[#00ff88] rounded-full text-sm font-semibold border border-[#00ff88]/30">
+                  {MOCK_TOURNAMENT.status}
+                </span>
+                <span className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm font-semibold border border-blue-500/30">
+                  {MOCK_TOURNAMENT.sport}
+                </span>
+              </div>
+
+              <h1 className="text-4xl md:text-5xl font-black mb-4">
+                {MOCK_TOURNAMENT.name}
+              </h1>
+
+              <div className="flex flex-wrap items-center gap-4 text-gray-300 mb-6">
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5 text-[#00ff88]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    />
+                  </svg>
+                  <span>{MOCK_TOURNAMENT.club}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5 text-[#00ff88]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  <span>
+                    {MOCK_TOURNAMENT.city}/{MOCK_TOURNAMENT.state}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5 text-[#00ff88]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <span>{MOCK_TOURNAMENT.dateRange}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5 text-[#00ff88]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                  <span>
+                    {MOCK_TOURNAMENT.teams}/{MOCK_TOURNAMENT.maxTeams} duplas
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div className="bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-5 rounded-xl border border-white/10 sticky top-28">
+                <button className="w-full py-3.5 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold text-base transition-all hover:scale-[1.02] shadow-lg mb-4">
+                  Inscrever-se Agora
+                </button>
+
+                <div className="space-y-3 pt-4 border-t border-white/10">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-400">Vagas disponíveis</span>
+                    <span className="font-semibold text-[#00ff88]">
+                      {MOCK_TOURNAMENT.maxTeams - MOCK_TOURNAMENT.teams}
+                    </span>
+                  </div>
+
+                  <div className="w-full bg-[#0a0e27] rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-[#00ff88] to-[#00cc6a] h-full rounded-full transition-all"
+                      style={{
+                        width: `${(MOCK_TOURNAMENT.teams / MOCK_TOURNAMENT.maxTeams) * 100}%`,
+                      }}
+                    ></div>
+                  </div>
+
+                  <div className="pt-4 space-y-2 text-sm text-gray-400">
+                    <div className="flex items-center justify-between">
+                      <span>Inscrições abertas</span>
+                      <span className="text-white">
+                        {MOCK_TOURNAMENT.inscriptionStart}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Inscrições encerram</span>
+                      <span className="text-white">
+                        {MOCK_TOURNAMENT.inscriptionEnd}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Tabs */}
+      <section className="sticky top-20 z-40 bg-[#0a0e27]/95 backdrop-blur-sm border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div className="flex overflow-x-auto flex-1">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    if (tab.id === "info") setActiveSubTab("general");
+                  }}
+                  className={`px-4 py-4 border-b-2 transition-colors whitespace-nowrap ${
+                    activeTab === tab.id
+                      ? "border-[#00ff88] text-[#00ff88]"
+                      : "border-transparent text-gray-400 hover:text-white"
+                  } font-medium text-sm`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Share Button */}
+            <button
+              className="ml-4 p-3 hover:bg-white/5 rounded-lg transition-colors"
+              title="Compartilhar"
+            >
+              <svg
+                className="w-5 h-5 text-gray-400 hover:text-white transition-colors"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Sub-tabs for Info */}
+      {activeTab === "info" && (
+        <section className="bg-[#0f1540]/30 border-b border-white/5">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8">
+            <div className="flex overflow-x-auto gap-1">
+              {infoSubTabs.map((subTab) => (
+                <button
+                  key={subTab.id}
+                  onClick={() => setActiveSubTab(subTab.id)}
+                  className={`px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                    activeSubTab === subTab.id
+                      ? "text-[#00ff88] bg-[#00ff88]/10"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                  } rounded-t-lg`}
+                >
+                  {subTab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Content */}
+      <section className="py-12 px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* INFO TAB */}
+          {activeTab === "info" && (
+            <>
+              {/* General Sub-tab */}
+              {activeSubTab === "general" && (
+                <div className="grid lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-2 space-y-8">
+                    <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10">
+                      <h2 className="text-2xl font-bold mb-4">
+                        Descrição do Torneio
+                      </h2>
+                      <p className="text-gray-300 leading-relaxed mb-6">
+                        {MOCK_TOURNAMENT.description}
+                      </p>
+
+                      <div className="grid md:grid-cols-2 gap-4 pt-6 border-t border-white/10">
+                        <div>
+                          <h3 className="font-semibold text-[#00ccff] mb-2">
+                            Período de Inscrições
+                          </h3>
+                          <p className="text-gray-300">
+                            {MOCK_TOURNAMENT.inscriptionStart} -{" "}
+                            {MOCK_TOURNAMENT.inscriptionEnd}
+                          </p>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-[#00ccff] mb-2">
+                            Valor da Inscrição
+                          </h3>
+                          <p className="text-gray-300">
+                            {MOCK_TOURNAMENT.price} por dupla
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10">
+                      <h2 className="text-2xl font-bold mb-4">
+                        Categorias Disponíveis
+                      </h2>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {MOCK_TOURNAMENT.categories.map((category, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-3 p-4 bg-white/5 rounded-lg border border-white/10"
+                          >
+                            <div className="w-10 h-10 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-full flex items-center justify-center">
+                              <svg
+                                className="w-5 h-5 text-[#0a0e27]"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            </div>
+                            <span className="font-medium">{category}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10">
+                      <h3 className="font-bold mb-4">Detalhes Rápidos</h3>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex items-center gap-3 pb-3 border-b border-white/10">
+                          <svg
+                            className="w-5 h-5 text-[#00ff88]"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                          <div>
+                            <p className="text-gray-400">Data do Evento</p>
+                            <p className="text-white font-medium">
+                              {MOCK_TOURNAMENT.dateRange}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 pb-3 border-b border-white/10">
+                          <svg
+                            className="w-5 h-5 text-[#00ff88]"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                            />
+                          </svg>
+                          <div>
+                            <p className="text-gray-400">Inscritos</p>
+                            <p className="text-white font-medium">
+                              {MOCK_TOURNAMENT.teams} de{" "}
+                              {MOCK_TOURNAMENT.maxTeams} duplas
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <svg
+                            className="w-5 h-5 text-[#00ff88]"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <div>
+                            <p className="text-gray-400">Investimento</p>
+                            <p className="text-white font-medium">
+                              {MOCK_TOURNAMENT.price}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10">
+                      <h3 className="font-bold mb-4">Sobre o Clube</h3>
+                      <p className="text-gray-300 text-sm mb-4">
+                        {MOCK_TOURNAMENT.club}
+                      </p>
+                      <a
+                        href={`https://wa.me/${MOCK_TOURNAMENT.phone.replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                      >
+                        <svg
+                          className="w-5 h-5"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                        </svg>
+                        WhatsApp
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Contact Sub-tab */}
+              {activeSubTab === "contact" && (
+                <div className="max-w-3xl">
+                  <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-8 rounded-xl border border-white/10">
+                    <h2 className="text-2xl font-bold mb-6">
+                      Informações de Contato
+                    </h2>
+
+                    <div className="space-y-6">
+                      <div className="flex items-start gap-4 p-4 bg-white/5 rounded-lg">
+                        <div className="w-12 h-12 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center flex-shrink-0">
+                          <svg
+                            className="w-6 h-6 text-[#0a0e27]"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-[#00ccff] mb-1">
+                            Telefone
+                          </h3>
+                          <a
+                            href={`tel:${MOCK_TOURNAMENT.phone}`}
+                            className="text-gray-300 hover:text-white transition-colors"
+                          >
+                            {MOCK_TOURNAMENT.phone}
+                          </a>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-4 p-4 bg-white/5 rounded-lg">
+                        <div className="w-12 h-12 bg-gradient-to-br from-[#00ccff] to-[#0099cc] rounded-lg flex items-center justify-center flex-shrink-0">
+                          <svg
+                            className="w-6 h-6 text-[#0a0e27]"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-[#00ccff] mb-1">
+                            Email
+                          </h3>
+                          <a
+                            href={`mailto:${MOCK_TOURNAMENT.email}`}
+                            className="text-gray-300 hover:text-white transition-colors"
+                          >
+                            {MOCK_TOURNAMENT.email}
+                          </a>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-4 p-4 bg-white/5 rounded-lg">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <svg
+                            className="w-6 h-6 text-white"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-[#00ccff] mb-1">
+                            Website
+                          </h3>
+                          <a
+                            href={`https://${MOCK_TOURNAMENT.website}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-gray-300 hover:text-white transition-colors"
+                          >
+                            {MOCK_TOURNAMENT.website}
+                          </a>
+                        </div>
+                      </div>
+
+                      <div className="pt-6 border-t border-white/10">
+                        <h3 className="font-semibold text-[#00ccff] mb-4">
+                          Redes Sociais
+                        </h3>
+                        <div className="flex gap-4">
+                          <a
+                            href="#"
+                            className="w-12 h-12 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center transition-colors"
+                          >
+                            <svg
+                              className="w-6 h-6"
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                            </svg>
+                          </a>
+                          <a
+                            href="#"
+                            className="w-12 h-12 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center transition-colors"
+                          >
+                            <svg
+                              className="w-6 h-6"
+                              fill="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                            </svg>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Location Sub-tab */}
+              {activeSubTab === "location" && (
+                <div className="max-w-3xl">
+                  <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-8 rounded-xl border border-white/10">
+                    <h2 className="text-2xl font-bold mb-6">
+                      Localização do Evento
+                    </h2>
+
+                    <div className="space-y-6">
+                      <div className="flex items-start gap-4 p-4 bg-white/5 rounded-lg">
+                        <div className="w-12 h-12 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center flex-shrink-0">
+                          <svg
+                            className="w-6 h-6 text-[#0a0e27]"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-[#00ccff] mb-2">
+                            Endereço
+                          </h3>
+                          <p className="text-gray-300">
+                            {MOCK_TOURNAMENT.address}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="aspect-video bg-white/5 rounded-lg overflow-hidden border border-white/10">
+                        <iframe
+                          src={`https://maps.google.com/maps?q=-23.5505,-46.6333&z=15&output=embed`}
+                          width="100%"
+                          height="100%"
+                          style={{ border: 0 }}
+                          allowFullScreen
+                          loading="lazy"
+                        ></iframe>
+                      </div>
+
+                      <div className="flex gap-4">
+                        <a
+                          href={MOCK_TOURNAMENT.mapUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#00ff88] hover:bg-[#00dd77] text-[#0a0e27] rounded-lg font-semibold transition-colors"
+                        >
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                            />
+                          </svg>
+                          Abrir no Google Maps
+                        </a>
+                      </div>
+
+                      <div className="pt-6 border-t border-white/10">
+                        <h3 className="font-semibold text-[#00ccff] mb-4">
+                          Como Chegar
+                        </h3>
+                        <div className="space-y-3 text-gray-300">
+                          <div className="flex gap-3">
+                            <span className="text-[#00ff88]">🚗</span>
+                            <p>
+                              Estacionamento gratuito disponível para
+                              participantes
+                            </p>
+                          </div>
+                          <div className="flex gap-3">
+                            <span className="text-[#00ff88]">🚇</span>
+                            <p>
+                              Estação de metrô mais próxima: Consolação (Linha
+                              Verde)
+                            </p>
+                          </div>
+                          <div className="flex gap-3">
+                            <span className="text-[#00ff88]">🚌</span>
+                            <p>Linhas de ônibus: 107M, 209P, 875T</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Rules Sub-tab */}
+              {activeSubTab === "rules" && (
+                <div className="max-w-3xl">
+                  <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-8 rounded-xl border border-white/10">
+                    <h2 className="text-2xl font-bold mb-6">
+                      Regras do Torneio
+                    </h2>
+
+                    <div className="space-y-4">
+                      {MOCK_TOURNAMENT.rules.map((rule, index) => (
+                        <div
+                          key={index}
+                          className="flex gap-4 p-4 bg-white/5 rounded-lg border border-white/10"
+                        >
+                          <div className="w-8 h-8 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-[#0a0e27] font-bold text-sm">
+                              {index + 1}
+                            </span>
+                          </div>
+                          <p className="text-gray-300 leading-relaxed pt-1">
+                            {rule}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-8 p-6 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                      <div className="flex gap-3">
+                        <svg
+                          className="w-6 h-6 text-blue-400 flex-shrink-0"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <div>
+                          <h3 className="font-semibold text-blue-400 mb-2">
+                            Informação Importante
+                          </h3>
+                          <p className="text-gray-300 text-sm">
+                            Todos os participantes devem estar cientes e
+                            concordar com as regras antes da inscrição. O não
+                            cumprimento das regras pode resultar em
+                            desclassificação do torneio.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* FAQ Sub-tab */}
+              {activeSubTab === "faq" && (
+                <div className="max-w-3xl">
+                  <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-8 rounded-xl border border-white/10">
+                    <h2 className="text-2xl font-bold mb-6">
+                      Perguntas Frequentes
+                    </h2>
+
+                    <div className="space-y-4">
+                      {MOCK_TOURNAMENT.faq.map((item, index) => (
+                        <div
+                          key={index}
+                          className="p-5 bg-white/5 rounded-lg border border-white/10"
+                        >
+                          <h3 className="font-semibold text-[#00ccff] mb-3 flex items-start gap-2">
+                            <svg
+                              className="w-5 h-5 flex-shrink-0 mt-0.5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                            {item.q}
+                          </h3>
+                          <p className="text-gray-300 ml-7">{item.a}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-8 p-6 bg-gradient-to-r from-[#00ff88]/10 to-[#00ccff]/10 border border-[#00ff88]/30 rounded-lg">
+                      <h3 className="font-semibold text-[#00ff88] mb-2">
+                        Ainda tem dúvidas?
+                      </h3>
+                      <p className="text-gray-300 text-sm mb-4">
+                        Entre em contato conosco através do WhatsApp ou email.
+                        Estamos prontos para ajudar!
+                      </p>
+                      <div className="flex flex-wrap gap-3">
+                        <a
+                          href={`https://wa.me/${MOCK_TOURNAMENT.phone.replace(/\D/g, "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors text-sm"
+                        >
+                          WhatsApp
+                        </a>
+                        <a
+                          href={`mailto:${MOCK_TOURNAMENT.email}`}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm"
+                        >
+                          Enviar Email
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* PARTICIPANTS TAB */}
+          {activeTab === "participants" && (
+            <div>
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">Duplas Inscritas</h2>
+                  <p className="text-gray-400">
+                    Total de {MOCK_PARTICIPANTS.length} duplas confirmadas
+                  </p>
+                </div>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88]"
+                >
+                  <option value="Todas">Todas as Categorias</option>
+                  {MOCK_TOURNAMENT.categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid gap-4">
+                {MOCK_PARTICIPANTS.filter(
+                  (p) =>
+                    selectedCategory === "Todas" ||
+                    p.category === selectedCategory,
+                ).map((participant) => (
+                  <div
+                    key={participant.id}
+                    className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10 hover:border-[#00ff88]/30 transition-colors"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-full flex items-center justify-center">
+                          <span className="text-[#0a0e27] font-bold">
+                            #{participant.id}
+                          </span>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg">
+                            {participant.player1} / {participant.player2}
+                          </h3>
+                          <p className="text-gray-400 text-sm">
+                            Categoria: {participant.category}
+                          </p>
+                        </div>
+                      </div>
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(participant.status)}`}
+                      >
+                        {participant.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* GROUPS TAB */}
+          {activeTab === "groups" && (
+            <div>
+              {/* Filters */}
+              <div className="mb-6 grid md:grid-cols-[1fr,auto] gap-4">
+                {/* Search */}
+                <div className="relative">
+                  <svg
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Buscar por nome do atleta..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88] transition-colors"
+                  />
+                </div>
+
+                {/* Category Filter */}
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88] appearance-none cursor-pointer"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 0.5rem center",
+                    backgroundSize: "1.5em 1.5em",
+                    paddingRight: "2.5rem",
+                  }}
+                >
+                  <option value="Todas">Categorias</option>
+                  {MOCK_TOURNAMENT.categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Groups Grid */}
+              <div className="grid lg:grid-cols-2 gap-6">
+                {MOCK_GROUPS.map((group, groupIndex) => (
+                  <div
+                    key={groupIndex}
+                    className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden"
+                  >
+                    {/* Group Header */}
+                    <div className="bg-gradient-to-r from-purple-600/30 to-purple-700/30 px-6 py-4 border-b border-white/10 flex items-center justify-between">
+                      <h3 className="font-bold text-lg">
+                        {group.name.split(" - ")[0]}
+                      </h3>
+                      <span className="px-3 py-1 bg-white/10 rounded-full text-sm font-semibold">
+                        {group.name.split(" - ")[1]}
+                      </span>
+                    </div>
+
+                    {/* Standings Table */}
+                    <div className="p-6">
+                      <div className="mb-4">
+                        <div className="grid grid-cols-[auto,1fr,auto,auto,auto] gap-3 text-xs font-semibold text-gray-400 uppercase pb-3 border-b border-white/10">
+                          <div className="w-8"></div>
+                          <div>Dupla</div>
+                          <div className="text-center w-12">V</div>
+                          <div className="text-center w-16">Saldo</div>
+                          <div className="text-center w-16">Games</div>
+                        </div>
+                      </div>
+
+                      {/* Teams */}
+                      <div className="space-y-2">
+                        {group.teams.map((team, teamIndex) => (
+                          <div
+                            key={teamIndex}
+                            className="grid grid-cols-[auto,1fr,auto,auto,auto] gap-3 items-center py-2 hover:bg-white/5 rounded-lg transition-colors"
+                          >
+                            {/* Position Badge */}
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                                teamIndex === 0
+                                  ? "bg-gradient-to-br from-[#00ff88] to-[#00cc6a] text-[#0a0e27]"
+                                  : teamIndex === 1
+                                    ? "bg-gradient-to-br from-purple-500 to-purple-600 text-white"
+                                    : "bg-white/10 text-gray-400"
+                              }`}
+                            >
+                              {teamIndex + 1}
+                            </div>
+
+                            {/* Team Name */}
+                            <div className="font-medium text-white">
+                              {team.name}
+                            </div>
+
+                            {/* Wins */}
+                            <div className="text-center w-12 font-bold text-green-400">
+                              {team.wins}
+                            </div>
+
+                            {/* Goal Difference */}
+                            <div
+                              className={`text-center w-16 font-bold ${
+                                team.points > 3
+                                  ? "text-green-400"
+                                  : team.points === 3
+                                    ? "text-yellow-400"
+                                    : "text-red-400"
+                              }`}
+                            >
+                              {team.points > 3
+                                ? `+${team.wins * 2}`
+                                : `-${team.losses * 2}`}
+                            </div>
+
+                            {/* Games/Points */}
+                            <div className="text-center w-16 font-bold text-white">
+                              {team.wins * 12 + team.losses * 8}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Matches Section */}
+                      <div className="mt-6 pt-6 border-t border-white/10">
+                        <h4 className="font-semibold text-sm text-gray-400 mb-3">
+                          Jogos
+                        </h4>
+                        <div className="space-y-3">
+                          {/* Sample matches for this group */}
+                          <div className="bg-white/5 rounded-lg p-3">
+                            <div className="flex items-center justify-between text-sm mb-1">
+                              <span className="text-white">
+                                {group.teams[0].name}
+                              </span>
+                              <span className="text-purple-400 font-bold">
+                                6-4, 6-3
+                              </span>
+                            </div>
+                            <div className="text-gray-400 text-sm">
+                              {group.teams[1].name}
+                            </div>
+                          </div>
+
+                          <div className="bg-white/5 rounded-lg p-3">
+                            <div className="flex items-center justify-between text-sm mb-1">
+                              <span className="text-white">
+                                {group.teams[0].name}
+                              </span>
+                              <span className="text-purple-400 font-bold">
+                                vs
+                              </span>
+                            </div>
+                            <div className="text-gray-400 text-sm">
+                              {group.teams[2].name}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* MATCHES TAB */}
+          {activeTab === "matches" && (
+            <div>
+              {/* Mobile Filter Toggle */}
+              <div className="md:hidden mb-4">
+                <button
+                  onClick={() => setFiltersExpanded(!filtersExpanded)}
+                  className="w-full flex items-center justify-between px-4 py-3 bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 border border-white/10 rounded-lg"
+                >
+                  <span className="font-semibold">Filtros</span>
+                  <svg
+                    className={`w-5 h-5 transition-transform ${filtersExpanded ? "rotate-180" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Filters Section */}
+              <div
+                className={`mb-6 ${!filtersExpanded ? "hidden md:block" : "block"}`}
+              >
+                <div className="grid md:grid-cols-4 gap-4 p-4 md:p-0">
+                  {/* Search */}
+                  <div className="relative">
+                    <svg
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                    <input
+                      type="text"
+                      placeholder="Buscar atleta..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88] transition-colors"
+                    />
+                  </div>
+
+                  {/* Court Filter */}
+                  <select
+                    value={selectedCourt}
+                    onChange={(e) => setSelectedCourt(e.target.value)}
+                    className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88] appearance-none cursor-pointer"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "right 0.5rem center",
+                      backgroundSize: "1.5em 1.5em",
+                      paddingRight: "2.5rem",
+                    }}
+                  >
+                    <option value="Todas as Quadras">Todas as Quadras</option>
+                    <option value="Quadra 1">Quadra 1</option>
+                    <option value="Quadra 2">Quadra 2</option>
+                    <option value="Quadra 3">Quadra 3</option>
+                    <option value="Quadra Central">Quadra Central</option>
+                  </select>
+
+                  {/* Category Filter */}
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88] appearance-none cursor-pointer"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "right 0.5rem center",
+                      backgroundSize: "1.5em 1.5em",
+                      paddingRight: "2.5rem",
+                    }}
+                  >
+                    <option value="Todas">Categorias</option>
+                    {MOCK_TOURNAMENT.categories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Date Filter */}
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88]"
+                  />
+                </div>
+              </div>
+
+              {/* Matches List */}
+              <div className="space-y-4">
+                {MOCK_MATCHES.filter((m) => {
+                  const matchesCategory =
+                    selectedCategory === "Todas" ||
+                    m.category === selectedCategory;
+                  const matchesCourt =
+                    selectedCourt === "Todas as Quadras" ||
+                    m.court === selectedCourt;
+                  const matchesSearch =
+                    searchTerm === "" ||
+                    m.team1.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    m.team2.toLowerCase().includes(searchTerm.toLowerCase());
+                  return matchesCategory && matchesCourt && matchesSearch;
+                }).map((match) => (
+                  <div
+                    key={match.id}
+                    className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden hover:border-[#00ff88]/30 transition-all"
+                  >
+                    <div className="p-4 md:p-6">
+                      {/* Match Header - Desktop */}
+                      <div className="hidden md:flex items-center gap-3 mb-4">
+                        {/* Status Badge */}
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(match.status)}`}
+                        >
+                          {match.status}
+                        </span>
+                      </div>
+
+                      {/* Match Info - Mobile First Layout */}
+                      <div className="space-y-3">
+                        {/* Date, Time, Court, Category - Mobile/Desktop */}
+                        <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm text-gray-400">
+                          <span className="font-medium">{match.time}</span>
+                          <span>•</span>
+                          <span>{match.court}</span>
+                          <span>•</span>
+                          <span>{match.date}</span>
+                          <span>•</span>
+                          <span className="text-[#00ccff]">
+                            {match.category}
+                          </span>
+                        </div>
+
+                        {/* Status Badge - Mobile Only */}
+                        <div className="md:hidden">
+                          <span
+                            className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${getStatusColor(match.status)}`}
+                          >
+                            {match.status}
+                          </span>
+                        </div>
+
+                        {/* Teams and Score */}
+                        <div className="space-y-2">
+                          {/* Team 1 */}
+                          <div className="flex items-center justify-between">
+                            <p className="font-semibold text-base md:text-lg text-white">
+                              {match.team1}
+                            </p>
+                            {match.status === "Finalizado" && (
+                              <span className="text-2xl md:text-3xl font-bold text-white ml-4">
+                                {match.score.split(",")[0]?.split("-")[0] ||
+                                  "-"}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Team 2 */}
+                          <div className="flex items-center justify-between">
+                            <p className="font-semibold text-base md:text-lg text-white">
+                              {match.team2}
+                            </p>
+                            {match.status === "Finalizado" && (
+                              <span className="text-2xl md:text-3xl font-bold text-white ml-4">
+                                {match.score.split(",")[0]?.split("-")[1] ||
+                                  "-"}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Full Score - Desktop Only for Finished Matches */}
+                        {match.status === "Finalizado" && (
+                          <div className="hidden md:block pt-3 border-t border-white/10">
+                            <p className="text-sm text-gray-400">
+                              <span className="font-medium text-[#00ccff]">
+                                Placar completo:
+                              </span>{" "}
+                              {match.score}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* VS indicator for scheduled matches - Mobile */}
+                        {match.status === "Agendado" && (
+                          <div className="md:hidden text-center">
+                            <span className="text-[#00ccff] font-bold text-sm">
+                              VS
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Action Button - Optional */}
+                      {match.status === "Agendado" && (
+                        <div className="mt-4 pt-4 border-t border-white/10 hidden md:block">
+                          <button className="text-sm text-[#00ff88] hover:text-[#00dd77] font-medium transition-colors">
+                            Ver detalhes →
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Empty State */}
+              {MOCK_MATCHES.filter((m) => {
+                const matchesCategory =
+                  selectedCategory === "Todas" ||
+                  m.category === selectedCategory;
+                const matchesCourt =
+                  selectedCourt === "Todas as Quadras" ||
+                  m.court === selectedCourt;
+                const matchesSearch =
+                  searchTerm === "" ||
+                  m.team1.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  m.team2.toLowerCase().includes(searchTerm.toLowerCase());
+                return matchesCategory && matchesCourt && matchesSearch;
+              }).length === 0 && (
+                <div className="text-center py-12">
+                  <svg
+                    className="w-16 h-16 mx-auto mb-4 text-gray-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  <h3 className="text-xl font-bold mb-2 text-gray-400">
+                    Nenhum jogo encontrado
+                  </h3>
+                  <p className="text-gray-500">
+                    Tente ajustar os filtros para ver mais resultados
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* RESULTS TAB */}
+          {activeTab === "results" && (
+            <div>
+              <div className="mb-8 text-center">
+                <h2 className="text-3xl font-bold mb-2">Resultados</h2>
+                <p className="text-gray-400">Resultados finais do torneio</p>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-8">
+                {MOCK_RESULTS.map((result, index) => (
+                  <div
+                    key={index}
+                    className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden"
+                  >
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-[#00ff88]/20 to-[#00ccff]/20 px-6 py-4 border-b border-white/10">
+                      <h3 className="font-bold text-xl text-white">
+                        {result.category}
+                      </h3>
+                    </div>
+
+                    <div className="p-8">
+                      {/* Champions Section */}
+                      <div className="text-center mb-8 pb-8 border-b border-white/10">
+                        <div className="flex items-center justify-center gap-3 mb-3">
+                          <span className="text-4xl">👑</span>
+                          <span className="text-4xl">🏆</span>
+                        </div>
+                        <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                          Campeões
+                        </h4>
+                        <p className="text-2xl font-bold text-[#00ff88] mb-4">
+                          {result.podium[0].team}
+                        </p>
+
+                        <div className="bg-[#0a0e27]/50 rounded-lg px-4 py-3 inline-block">
+                          <p className="text-xs text-gray-400 mb-1">
+                            Placar da Final
+                          </p>
+                          <p className="text-xl font-bold text-white">
+                            6-4, 6-3
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Vice-Champions Section */}
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-3 mb-3">
+                          <span className="text-3xl">🥈</span>
+                          <span className="text-3xl">🏅</span>
+                        </div>
+                        <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                          Vice-campeões
+                        </h4>
+                        <p className="text-lg font-semibold text-gray-300">
+                          {result.podium[1].team}
+                        </p>
+                      </div>
+
+                      {/* Third Place - Subtle */}
+                      {result.podium[2] && (
+                        <div className="mt-6 pt-6 border-t border-white/10 text-center">
+                          <p className="text-xs text-gray-500 mb-1">3º Lugar</p>
+                          <p className="text-sm text-gray-400">
+                            {result.podium[2].team}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Congratulations Section */}
+              <div className="mt-10 p-8 bg-gradient-to-r from-[#00ff88]/10 to-[#00ccff]/10 border border-[#00ff88]/30 rounded-xl text-center">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <svg
+                    className="w-8 h-8 text-[#00ff88]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                    />
+                  </svg>
+                  <h3 className="text-2xl font-bold text-[#00ff88]">
+                    Parabéns aos Vencedores!
+                  </h3>
+                </div>
+                <p className="text-gray-300 max-w-2xl mx-auto">
+                  Obrigado a todos os participantes pelo excelente nível de jogo
+                  e pelo espírito esportivo demonstrado ao longo do torneio. Até
+                  o próximo campeonato!
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* LIVE TAB */}
+          {activeTab === "live" && (
+            <div>
+              <div className="mb-8 text-center">
+                <h2 className="text-3xl font-bold mb-2">
+                  Transmissões Ao Vivo
+                </h2>
+                <p className="text-gray-400">
+                  Acompanhe os jogos em tempo real
+                </p>
+              </div>
+
+              {MOCK_LIVE_MATCHES.length > 0 ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {MOCK_LIVE_MATCHES.map((match) => (
+                    <div
+                      key={match.id}
+                      className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden hover:border-[#00ff88]/30 transition-all"
+                    >
+                      {/* Video Preview Area */}
+                      <div className="relative aspect-video bg-[#0a0e27] flex items-center justify-center border-b border-white/10">
+                        {/* Play Icon */}
+                        <div className="relative z-10">
+                          <svg
+                            className="w-20 h-20 text-white/80 hover:text-white transition-colors cursor-pointer"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1.5}
+                              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        </div>
+
+                        {/* Live Badge */}
+                        <div className="absolute top-3 right-3 flex items-center gap-2 px-3 py-1.5 bg-red-500 rounded-full">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                          </span>
+                          <span className="font-bold text-white uppercase text-xs">
+                            AO VIVO
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Match Info */}
+                      <div className="p-5">
+                        <h3 className="font-bold text-lg mb-3">
+                          {match.court}
+                        </h3>
+
+                        <div className="mb-4">
+                          <p className="text-sm text-gray-400 mb-1">
+                            Jogo atual:
+                          </p>
+                          <p className="font-semibold text-white">
+                            {match.team1} vs {match.team2}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg text-sm font-semibold border border-red-500/30">
+                            Ao Vivo
+                          </span>
+                          <button className="flex items-center gap-2 px-4 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold text-sm transition-colors">
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                              />
+                            </svg>
+                            Assistir
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Empty Court Card */}
+                  <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden opacity-60">
+                    <div className="relative aspect-video bg-[#0a0e27] flex items-center justify-center border-b border-white/10">
+                      <div className="relative z-10">
+                        <svg
+                          className="w-20 h-20 text-white/30"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="p-5">
+                      <h3 className="font-bold text-lg mb-3 text-gray-400">
+                        Quadra 3
+                      </h3>
+                      <p className="text-gray-500 text-sm mb-4">
+                        Nenhum jogo agendado
+                      </p>
+                      <span className="inline-block px-3 py-1.5 bg-white/5 text-gray-500 rounded-lg text-sm font-medium border border-white/10">
+                        Livre
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-12 rounded-xl border border-white/10 text-center">
+                  <svg
+                    className="w-16 h-16 mx-auto mb-4 text-gray-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <h3 className="text-xl font-bold mb-2 text-gray-400">
+                    Nenhuma partida ao vivo no momento
+                  </h3>
+                  <p className="text-gray-500">
+                    Volte mais tarde para acompanhar as partidas em tempo real
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-[#0a0e27] border-t border-white/5 py-12 px-6 lg:px-8 mt-20">
+        <div className="max-w-7xl mx-auto text-center text-gray-400">
+          <p>&copy; 2026 Bubble. Todos os direitos reservados.</p>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default TournamentProfile;

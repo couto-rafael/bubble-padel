@@ -1,0 +1,1283 @@
+import { useState, useRef } from "react";
+import type { Team, Group, GroupTeam, Match } from "./types";
+import {
+  generateGroupsForCategory,
+  recalculateStandings,
+  tournamentHasStarted,
+} from "./utils/groupUtils";
+
+// ─── TIPOS ────────────────────────────────────────────────────────────────────
+
+interface Tournament {
+  id: string;
+  name: string;
+  categories: string[];
+  status: string;
+  priceFirstCategory?: number;
+  maxTeams?: number;
+}
+
+interface TabGruposProps {
+  teams: Team[];
+  tournament: Tournament;
+  onGroupsChange?: (groups: Group[]) => void;
+}
+
+// ─── PALETA DE CORES POR CATEGORIA ───────────────────────────────────────────
+
+const CAT_COLORS = [
+  {
+    header: "bg-violet-600",
+    badge: "bg-violet-500",
+    dragBorder: "border-violet-400 shadow-violet-100",
+  },
+  {
+    header: "bg-blue-600",
+    badge: "bg-blue-500",
+    dragBorder: "border-blue-400 shadow-blue-100",
+  },
+  {
+    header: "bg-emerald-600",
+    badge: "bg-emerald-500",
+    dragBorder: "border-emerald-400 shadow-emerald-100",
+  },
+  {
+    header: "bg-rose-600",
+    badge: "bg-rose-500",
+    dragBorder: "border-rose-400 shadow-rose-100",
+  },
+  {
+    header: "bg-amber-500",
+    badge: "bg-amber-400",
+    dragBorder: "border-amber-400 shadow-amber-100",
+  },
+  {
+    header: "bg-cyan-600",
+    badge: "bg-cyan-500",
+    dragBorder: "border-cyan-400 shadow-cyan-100",
+  },
+];
+
+// ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────────────
+
+export default function TabGrupos({
+  teams,
+  tournament,
+  onGroupsChange,
+}: TabGruposProps) {
+  const [groups, setGroupsRaw] = useState<Group[]>([]);
+  const setGroups = (val: Group[] | ((prev: Group[]) => Group[])) => {
+    setGroupsRaw((prev) => {
+      const next = typeof val === "function" ? val(prev) : val;
+      onGroupsChange?.(next);
+      return next;
+    });
+  };
+  const [generated, setGenerated] = useState(false);
+  const [scoreModal, setScoreModal] = useState<{
+    open: boolean;
+    groupId: string;
+    match: Match | null;
+  }>({ open: false, groupId: "", match: null });
+  const [scoreInput, setScoreInput] = useState({ score1: "", score2: "" });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showWO, setShowWO] = useState(false);
+  const [sets, setSets] = useState<Array<{ s1: string; s2: string }>>([]);
+  const [showSets, setShowSets] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState("todas");
+
+  const dragTeam = useRef<{ groupId: string; teamId: string } | null>(null);
+  const locked = tournamentHasStarted(groups);
+
+  // ── Gerar Grupos ──────────────────────────────────────────────────────────
+
+  const handleGenerate = () => {
+    const confirmedTeams = teams.filter((t) => t.status === "confirmed");
+    if (confirmedTeams.length === 0) {
+      alert("Não há duplas confirmadas para gerar grupos.");
+      return;
+    }
+    const allGroups: Group[] = [];
+    tournament.categories.forEach((cat, idx) => {
+      const catTeams = confirmedTeams.filter((t) => t.category === cat);
+      if (catTeams.length === 0) return;
+      allGroups.push(...generateGroupsForCategory(cat, catTeams, idx));
+    });
+    setGroups(allGroups);
+    setGenerated(true);
+  };
+
+  const handleReset = () => {
+    if (
+      !window.confirm(
+        "Deseja refazer os grupos? Todos os sorteios serão perdidos.",
+      )
+    )
+      return;
+    setGroups([]);
+    setGenerated(false);
+  };
+
+  // ── Drag & Drop ───────────────────────────────────────────────────────────
+
+  const handleDragStart = (groupId: string, teamId: string) => {
+    dragTeam.current = { groupId, teamId };
+  };
+
+  const handleDropOnGroup = (targetGroupId: string) => {
+    if (!dragTeam.current || locked) return;
+    const { groupId: srcId, teamId } = dragTeam.current;
+    if (srcId === targetGroupId) return;
+    const src = groups.find((g) => g.id === srcId);
+    const tgt = groups.find((g) => g.id === targetGroupId);
+    if (!src || !tgt) return;
+    const moving = src.teams.find((gt) => gt.team.id === teamId);
+    if (!moving) return;
+    const newSrcTeams = src.teams.filter((gt) => gt.team.id !== teamId);
+    const newTgtTeams = [
+      ...tgt.teams,
+      {
+        ...moving,
+        wins: 0,
+        losses: 0,
+        pointsFor: 0,
+        pointsAgainst: 0,
+        saldo: 0,
+        gamesPlayed: 0,
+        qualified: false,
+      },
+    ];
+    setGroups(
+      groups.map((g) => {
+        if (g.id === srcId)
+          return recalculateStandings({
+            ...g,
+            teams: newSrcTeams,
+            matches: regen(g.id, newSrcTeams),
+          });
+        if (g.id === targetGroupId)
+          return recalculateStandings({
+            ...g,
+            teams: newTgtTeams,
+            matches: regen(g.id, newTgtTeams),
+          });
+        return g;
+      }),
+    );
+    dragTeam.current = null;
+  };
+
+  const regen = (gid: string, t: GroupTeam[]): Match[] => {
+    const mk = (i: number, a: string, b: string): Match => ({
+      id: `${gid}_m${i}`,
+      team1Id: a,
+      team2Id: b,
+      score1: null,
+      score2: null,
+      played: false,
+    });
+    if (t.length < 2) return [];
+    if (t.length === 2) return [mk(0, t[0].team.id, t[1].team.id)];
+    if (t.length === 3)
+      return [
+        mk(0, t[0].team.id, t[1].team.id),
+        mk(1, t[1].team.id, t[2].team.id),
+        mk(2, t[2].team.id, t[0].team.id),
+      ];
+    if (t.length === 4)
+      return [
+        mk(0, t[0].team.id, t[1].team.id),
+        mk(1, t[2].team.id, t[3].team.id),
+        mk(2, t[1].team.id, t[2].team.id),
+        mk(3, t[3].team.id, t[0].team.id),
+        mk(4, t[2].team.id, t[0].team.id),
+        mk(5, t[1].team.id, t[3].team.id),
+      ];
+    return [];
+  };
+
+  // ── Resultado ─────────────────────────────────────────────────────────────
+
+  const openScoreModal = (groupId: string, match: Match) => {
+    setScoreModal({ open: true, groupId, match });
+    const existingSets = (match as any).sets as
+      | Array<{ s1: number; s2: number }>
+      | undefined;
+    if (existingSets && existingSets.length > 0) {
+      setScoreInput({
+        score1: String(existingSets[0].s1),
+        score2: String(existingSets[0].s2),
+      });
+      setSets(
+        existingSets
+          .slice(1)
+          .map((s) => ({ s1: String(s.s1), s2: String(s.s2) })),
+      );
+      setShowSets(existingSets.length > 1);
+    } else {
+      setScoreInput({
+        score1: match.score1 !== null ? String(match.score1) : "",
+        score2: match.score2 !== null ? String(match.score2) : "",
+      });
+      setSets([]);
+      setShowSets(false);
+    }
+    setShowWO(false);
+  };
+
+  const handleSaveScore = () => {
+    if (!scoreModal.match) return;
+    const s1 = parseInt(scoreInput.score1),
+      s2 = parseInt(scoreInput.score2);
+    if (isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0) {
+      alert("Insira resultados válidos no 1º set.");
+      return;
+    }
+    if (s1 === s2) {
+      alert("Não pode haver empate no 1º set.");
+      return;
+    }
+
+    // Valida sets adicionais
+    const parsedSets: Array<{ s1: number; s2: number }> = [{ s1, s2 }];
+    for (let i = 0; i < sets.length; i++) {
+      const ps1 = parseInt(sets[i].s1),
+        ps2 = parseInt(sets[i].s2);
+      if (isNaN(ps1) || isNaN(ps2) || ps1 < 0 || ps2 < 0) {
+        alert(`Insira resultados válidos no ${i + 2}º set.`);
+        return;
+      }
+      if (ps1 === ps2) {
+        alert(`Não pode haver empate no ${i + 2}º set.`);
+        return;
+      }
+      parsedSets.push({ s1: ps1, s2: ps2 });
+    }
+
+    // Conta vitórias por set para definir o vencedor
+    let wins1 = 0,
+      wins2 = 0;
+    for (const ps of parsedSets) {
+      if (ps.s1 > ps.s2) wins1++;
+      else wins2++;
+    }
+    if (wins1 === wins2) {
+      alert("Resultado final em sets empatado. Adicione um set desempate.");
+      return;
+    }
+
+    // score1/score2 = placar do 1º set (para exibição simples); sets[] guarda todos
+    setGroups(
+      groups.map((g) => {
+        if (g.id !== scoreModal.groupId) return g;
+        return recalculateStandings({
+          ...g,
+          matches: g.matches.map((m) =>
+            m.id === scoreModal.match!.id
+              ? ({
+                  ...m,
+                  score1: parsedSets[0].s1,
+                  score2: parsedSets[0].s2,
+                  played: true,
+                  wo: undefined,
+                  sets: parsedSets,
+                } as any)
+              : m,
+          ),
+        });
+      }),
+    );
+    setScoreModal({ open: false, groupId: "", match: null });
+    setSets([]);
+    setShowSets(false);
+    setShowWO(false);
+  };
+
+  const handleWO = (winner: 1 | 2) => {
+    if (!scoreModal.match) return;
+    const s1 = winner === 1 ? 9 : 0;
+    const s2 = winner === 2 ? 9 : 0;
+    setGroups(
+      groups.map((g) => {
+        if (g.id !== scoreModal.groupId) return g;
+        return recalculateStandings({
+          ...g,
+          matches: g.matches.map((m) =>
+            m.id === scoreModal.match!.id
+              ? { ...m, score1: s1, score2: s2, played: true, wo: winner }
+              : m,
+          ),
+        });
+      }),
+    );
+    setScoreModal({ open: false, groupId: "", match: null });
+    setShowWO(false);
+    setSets([]);
+    setShowSets(false);
+  };
+
+  const getTeamName = (group: Group, teamId: string) => {
+    const gt = group.teams.find((t) => t.team.id === teamId);
+    return gt ? `${gt.team.player1Name} / ${gt.team.player2Name}` : "Dupla";
+  };
+
+  // ── Dados derivados ───────────────────────────────────────────────────────
+
+  const confirmedByCategory = tournament.categories.reduce<
+    Record<string, number>
+  >((acc, cat) => {
+    acc[cat] = teams.filter(
+      (t) => t.category === cat && t.status === "confirmed",
+    ).length;
+    return acc;
+  }, {});
+  const totalConfirmed = Object.values(confirmedByCategory).reduce(
+    (a, b) => a + b,
+    0,
+  );
+
+  const groupsByCategory = tournament.categories.reduce<
+    Record<string, Group[]>
+  >((acc, cat) => {
+    const cg = groups.filter((g) => g.category === cat);
+    if (cg.length > 0) acc[cat] = cg;
+    return acc;
+  }, {});
+
+  // Aplica filtros
+  const filteredGroupsByCategory = Object.entries(groupsByCategory).reduce<
+    Record<string, Group[]>
+  >((acc, [cat, catGroups]) => {
+    if (categoryFilter !== "todas" && cat !== categoryFilter) return acc;
+    const q = searchQuery.toLowerCase().trim();
+    const matching = q
+      ? catGroups.filter((g) =>
+          g.teams.some(
+            (gt) =>
+              gt.team.player1Name.toLowerCase().includes(q) ||
+              gt.team.player2Name.toLowerCase().includes(q),
+          ),
+        )
+      : catGroups;
+    if (matching.length > 0) acc[cat] = matching;
+    return acc;
+  }, {});
+
+  const catColorIdx = (cat: string) => tournament.categories.indexOf(cat);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // RENDER: estado vazio
+  // ─────────────────────────────────────────────────────────────────────────
+
+  if (!generated) {
+    return (
+      <div className="space-y-4">
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
+          <h3 className="text-base font-bold text-gray-900 mb-4">
+            Duplas confirmadas por categoria
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {tournament.categories.map((cat, idx) => {
+              const color = CAT_COLORS[idx % CAT_COLORS.length];
+              return (
+                <div
+                  key={cat}
+                  className="bg-white rounded-lg px-4 py-3 flex items-center justify-between border border-gray-200"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span
+                      className={`w-2 h-2 rounded-full shrink-0 ${color.badge}`}
+                    />
+                    <span className="text-sm font-medium text-gray-700 truncate">
+                      {cat}
+                    </span>
+                  </div>
+                  <span
+                    className={`text-sm font-bold shrink-0 ml-2 ${confirmedByCategory[cat] === 0 ? "text-gray-400" : "text-blue-600"}`}
+                  >
+                    {confirmedByCategory[cat]}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-xs text-gray-500 mt-3">
+            Total confirmadas: <strong>{totalConfirmed}</strong> duplas. Apenas
+            duplas com status "Confirmada" entram nos grupos.
+          </p>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl p-14 text-center">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-8 h-8 text-blue-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 mb-2">
+            Grupos não gerados
+          </h3>
+          <p className="text-gray-500 mb-6 max-w-md mx-auto text-sm">
+            Os grupos serão sorteados automaticamente por categoria.
+          </p>
+          <button
+            onClick={handleGenerate}
+            disabled={totalConfirmed === 0}
+            className="px-8 py-3 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            ⚡ Gerar Grupos Automaticamente
+          </button>
+          {totalConfirmed === 0 && (
+            <p className="text-xs text-red-500 mt-3">
+              Nenhuma dupla confirmada na aba Inscrições.
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // RENDER: grupos gerados
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const visibleCount = Object.values(filteredGroupsByCategory).flat().length;
+
+  return (
+    <div className="space-y-6">
+      {/* ── Toolbar ──────────────────────────────────────────────────────── */}
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        {/* Abas de categoria — scroll horizontal se necessário */}
+        <div className="border-b border-gray-200 overflow-x-auto">
+          <div className="flex items-center min-w-max px-4">
+            <button
+              onClick={() => setCategoryFilter("todas")}
+              className={`relative px-4 py-3.5 text-xs font-semibold whitespace-nowrap transition-colors ${
+                categoryFilter === "todas"
+                  ? "text-blue-600"
+                  : "text-gray-500 hover:text-gray-800"
+              }`}
+            >
+              Todas
+              {categoryFilter === "todas" && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" />
+              )}
+            </button>
+            {tournament.categories
+              .filter((c) => groupsByCategory[c])
+              .map((cat) => {
+                const groupCount = (groupsByCategory[cat] || []).length;
+                const active = categoryFilter === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setCategoryFilter(cat)}
+                    className={`relative flex items-center gap-1.5 px-4 py-3.5 text-xs font-semibold whitespace-nowrap transition-colors ${
+                      active
+                        ? "text-blue-600"
+                        : "text-gray-500 hover:text-gray-800"
+                    }`}
+                  >
+                    {cat.toUpperCase()}
+                    {active && (
+                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-t-full" />
+                    )}
+                  </button>
+                );
+              })}
+          </div>
+        </div>
+
+        {/* Busca + ações */}
+        <div className="p-4 space-y-3">
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            {/* Busca */}
+            <div className="relative flex-1">
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <input
+                type="text"
+                placeholder="Buscar atleta pelo nome..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-9 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* Filtro categoria (dropdown — mantido para compatibilidade) */}
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full sm:w-52 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            >
+              <option value="todas">Todas as categorias</option>
+              {tournament.categories
+                .filter((c) => groupsByCategory[c])
+                .map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+            </select>
+
+            {/* Status badges + Refazer */}
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                {groups.length} grupo{groups.length !== 1 ? "s" : ""}
+                {(searchQuery || categoryFilter !== "todas") &&
+                visibleCount !== groups.length
+                  ? ` · ${visibleCount} visíveis`
+                  : ""}
+              </span>
+              {locked && (
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap">
+                  🔒 Bloqueado
+                </span>
+              )}
+              {!locked && (
+                <button
+                  onClick={handleReset}
+                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors whitespace-nowrap"
+                >
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                  Refazer
+                </button>
+              )}
+            </div>
+          </div>
+
+          {!locked && (
+            <p className="text-xs text-gray-400 flex items-center gap-1.5">
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                />
+              </svg>
+              Arraste duplas entre grupos para reorganizar (bloqueado após o
+              primeiro resultado)
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* ── Grupos ───────────────────────────────────────────────────────── */}
+      {Object.keys(filteredGroupsByCategory).length === 0 ? (
+        <div className="text-center py-16 bg-white border border-gray-200 rounded-xl">
+          <svg
+            className="w-10 h-10 text-gray-300 mx-auto mb-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+          <p className="text-gray-500 font-semibold">Nenhum grupo encontrado</p>
+          <p className="text-gray-400 text-sm mt-1">
+            Tente ajustar a busca ou o filtro
+          </p>
+        </div>
+      ) : (
+        Object.entries(filteredGroupsByCategory).map(
+          ([category, catGroups]) => {
+            const ci = catColorIdx(category);
+            const color = CAT_COLORS[ci % CAT_COLORS.length];
+            return (
+              <div key={category} className="space-y-3">
+                {categoryFilter === "todas" && (
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`w-2.5 h-2.5 rounded-full ${color.badge}`}
+                    />
+                    <h2 className="text-sm font-bold text-gray-600 uppercase tracking-wide">
+                      {category}
+                    </h2>
+                    <span className="text-xs text-gray-400">
+                      {catGroups.length} grupo
+                      {catGroups.length !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {catGroups.map((group) => (
+                    <GroupCard
+                      key={group.id}
+                      group={group}
+                      category={category}
+                      colorIdx={ci}
+                      locked={locked}
+                      searchQuery={searchQuery}
+                      onDragStart={handleDragStart}
+                      onDrop={handleDropOnGroup}
+                      onOpenScore={openScoreModal}
+                      getTeamName={(id) => getTeamName(group, id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          },
+        )
+      )}
+
+      {/* ── Modal resultado ───────────────────────────────────────────────── */}
+      {scoreModal.open && scoreModal.match && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() =>
+              setScoreModal({ open: false, groupId: "", match: null })
+            }
+          />
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative z-10">
+            <h3 className="text-lg font-bold text-gray-900 mb-1">
+              Registrar Resultado
+            </h3>
+            <p className="text-sm text-gray-500 mb-5">
+              Insira o placar do jogo
+            </p>
+            {(() => {
+              const group = groups.find((g) => g.id === scoreModal.groupId);
+              if (!group) return null;
+              const t1 = getTeamName(group, scoreModal.match!.team1Id);
+              const t2 = getTeamName(group, scoreModal.match!.team2Id);
+              const [t1a, t1b] = t1.split(" / ");
+              const [t2a, t2b] = t2.split(" / ");
+              return (
+                <>
+                  {/* Nomes das duplas — header fixo */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex-1 text-center">
+                      <p className="text-sm text-gray-700 truncate leading-tight">
+                        {t1a}
+                      </p>
+                      {t1b && (
+                        <p className="text-sm text-gray-700 truncate leading-tight mt-0.5">
+                          {t1b}
+                        </p>
+                      )}
+                    </div>
+                    <span className="w-6 shrink-0" />
+                    <div className="flex-1 text-center">
+                      <p className="text-sm text-gray-700 truncate leading-tight">
+                        {t2a}
+                      </p>
+                      {t2b && (
+                        <p className="text-sm text-gray-700 truncate leading-tight mt-0.5">
+                          {t2b}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Sets */}
+                  <div className="space-y-2 mb-3">
+                    {/* Set 1 — sempre visível */}
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 pl-1">
+                        Set 1
+                      </p>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="number"
+                          min={0}
+                          value={scoreInput.score1}
+                          onChange={(e) =>
+                            setScoreInput((s) => ({
+                              ...s,
+                              score1: e.target.value,
+                            }))
+                          }
+                          className="w-0 flex-1 text-center text-3xl font-black py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 text-gray-900 bg-gray-50"
+                          placeholder="0"
+                        />
+                        <span className="text-xl font-bold text-gray-300 shrink-0">
+                          ×
+                        </span>
+                        <input
+                          type="number"
+                          min={0}
+                          value={scoreInput.score2}
+                          onChange={(e) =>
+                            setScoreInput((s) => ({
+                              ...s,
+                              score2: e.target.value,
+                            }))
+                          }
+                          className="w-0 flex-1 text-center text-3xl font-black py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 text-gray-900 bg-gray-50"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Sets adicionais */}
+                    {showSets &&
+                      sets.map((set, idx) => (
+                        <div key={idx}>
+                          <div className="flex items-center justify-between mb-1 pl-1">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                              Set {idx + 2}
+                            </p>
+                            <button
+                              onClick={() => {
+                                setSets((prev) =>
+                                  prev.filter((_, i) => i !== idx),
+                                );
+                                if (sets.length === 1) setShowSets(false);
+                              }}
+                              className="w-5 h-5 rounded-full bg-gray-100 hover:bg-red-100 text-gray-400 hover:text-red-500 flex items-center justify-center transition-colors"
+                            >
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={3}
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="number"
+                              min={0}
+                              value={set.s1}
+                              onChange={(e) =>
+                                setSets((prev) =>
+                                  prev.map((s, i) =>
+                                    i === idx
+                                      ? { ...s, s1: e.target.value }
+                                      : s,
+                                  ),
+                                )
+                              }
+                              className="w-0 flex-1 text-center text-3xl font-black py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 text-gray-900 bg-gray-50"
+                              placeholder="0"
+                            />
+                            <span className="text-xl font-bold text-gray-300 shrink-0">
+                              ×
+                            </span>
+                            <input
+                              type="number"
+                              min={0}
+                              value={set.s2}
+                              onChange={(e) =>
+                                setSets((prev) =>
+                                  prev.map((s, i) =>
+                                    i === idx
+                                      ? { ...s, s2: e.target.value }
+                                      : s,
+                                  ),
+                                )
+                              }
+                              className="w-0 flex-1 text-center text-3xl font-black py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 text-gray-900 bg-gray-50"
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+
+                  {/* Ações secundárias */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowWO((v) => !v);
+                        setShowSets(false);
+                        setSets([]);
+                      }}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 hover:text-amber-700 transition-colors"
+                    >
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2.5}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      Vitória por W.O.
+                    </button>
+                    <span className="text-gray-200">|</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowSets(true);
+                        setShowWO(false);
+                        setSets((prev) => [...prev, { s1: "", s2: "" }]);
+                      }}
+                      className="flex items-center gap-1.5 text-xs font-semibold text-blue-500 hover:text-blue-600 transition-colors"
+                    >
+                      <svg
+                        className="w-3.5 h-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2.5}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 4v16m8-8H4"
+                        />
+                      </svg>
+                      Adicionar Set
+                    </button>
+                  </div>
+
+                  {/* WO expandido */}
+                  {showWO && (
+                    <div className="border border-amber-200 bg-amber-50 rounded-xl p-3 mb-4">
+                      <p className="text-xs font-semibold text-amber-700 mb-2 text-center">
+                        Quem venceu por W.O.?
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleWO(1)}
+                          className="flex-1 py-2 px-2 rounded-lg bg-white border border-amber-300 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition-colors text-center leading-tight"
+                        >
+                          <span className="block truncate">{t1a}</span>
+                          {t1b && (
+                            <span className="block truncate text-amber-600 font-normal">
+                              {t1b}
+                            </span>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleWO(2)}
+                          className="flex-1 py-2 px-2 rounded-lg bg-white border border-amber-300 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition-colors text-center leading-tight"
+                        >
+                          <span className="block truncate">{t2a}</span>
+                          {t2b && (
+                            <span className="block truncate text-amber-600 font-normal">
+                              {t2b}
+                            </span>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setScoreModal({ open: false, groupId: "", match: null });
+                  setShowWO(false);
+                }}
+                className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-lg font-semibold text-sm hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveScore}
+                className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
+              >
+                Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── CARD DE GRUPO ────────────────────────────────────────────────────────────
+
+interface GroupCardProps {
+  group: Group;
+  category: string;
+  colorIdx: number;
+  locked: boolean;
+  searchQuery: string;
+  onDragStart: (groupId: string, teamId: string) => void;
+  onDrop: (groupId: string) => void;
+  onOpenScore: (groupId: string, match: Match) => void;
+  getTeamName: (teamId: string) => string;
+}
+
+function Highlight({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <>{text}</>;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="bg-yellow-200 text-yellow-900 rounded-sm not-italic font-bold">
+        {text.slice(idx, idx + query.length)}
+      </mark>
+      {text.slice(idx + query.length)}
+    </>
+  );
+}
+
+function GroupCard({
+  group,
+  category,
+  colorIdx,
+  locked,
+  searchQuery,
+  onDragStart,
+  onDrop,
+  onOpenScore,
+  getTeamName,
+}: GroupCardProps) {
+  const [dragOver, setDragOver] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!locked) setDragOver(true);
+  };
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    onDrop(group.id);
+  };
+
+  const playedCount = group.matches.filter((m) => m.played).length;
+  const totalMatches = group.matches.length;
+  const groupLetter = group.name.replace("Grupo ", "");
+  // Só destaca após todos os jogos terem resultado
+  const allMatchesPlayed = totalMatches > 0 && playedCount === totalMatches;
+
+  return (
+    <div
+      className={`bg-white rounded-2xl overflow-hidden transition-all border-2 shadow-sm hover:shadow-md ${
+        dragOver && !locked
+          ? "border-blue-400 shadow-blue-100 shadow-lg"
+          : "border-gray-100"
+      }`}
+      onDragOver={handleDragOver}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={handleDrop}
+    >
+      {/* ── Header ───────────────────────────────────────────────────────── */}
+      <div
+        className="px-4 py-3.5 flex items-center justify-between"
+        style={{ backgroundColor: "#1B2A4A" }}
+      >
+        <span className="text-base font-bold text-white">
+          Grupo {groupLetter}
+        </span>
+        <span className="text-xs font-semibold text-white/90 bg-white/15 border border-white/25 px-2.5 py-1 rounded-full">
+          {category}
+        </span>
+      </div>
+
+      {/* ── Standings ────────────────────────────────────────────────────── */}
+      <div className="px-4 pt-3 pb-2">
+        {/* Cabeçalho colunas */}
+        <div className="flex items-center pb-2 border-b border-gray-200 mb-0">
+          <span className="w-7 shrink-0" />
+          <span className="flex-1 text-xs font-semibold text-gray-500 uppercase tracking-wider pl-1">
+            Dupla
+          </span>
+          <span className="w-8 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            V
+          </span>
+          <span className="w-12 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            S
+          </span>
+          <span className="w-10 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            G
+          </span>
+        </div>
+
+        {group.teams.map((gt, i) => {
+          const isQualified = allMatchesPlayed && gt.qualified;
+          const isEliminated = allMatchesPlayed && !gt.qualified;
+          return (
+            <div
+              key={gt.team.id}
+              draggable={!locked}
+              onDragStart={() => onDragStart(group.id, gt.team.id)}
+              className={`flex items-center py-2.5 border-b border-dashed last:border-0 transition-colors ${
+                isQualified
+                  ? "border-emerald-100 bg-emerald-50 hover:bg-emerald-100"
+                  : isEliminated
+                    ? "border-red-100 bg-red-50 hover:bg-red-100"
+                    : "border-gray-100 hover:bg-gray-50"
+              } ${!locked && !allMatchesPlayed ? "cursor-grab active:cursor-grabbing" : ""}`}
+            >
+              {/* Posição */}
+              <div className="w-7 shrink-0">
+                {isQualified ? (
+                  <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-black">
+                    {i + 1}
+                  </span>
+                ) : isEliminated ? (
+                  <span className="w-5 h-5 rounded-full bg-red-400 text-white flex items-center justify-center text-[10px] font-black">
+                    {i + 1}
+                  </span>
+                ) : gt.qualified ? (
+                  <span
+                    className="w-5 h-5 rounded-full text-white flex items-center justify-center text-[10px] font-black"
+                    style={{ backgroundColor: "#1B2A4A" }}
+                  >
+                    {i + 1}
+                  </span>
+                ) : (
+                  <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-[10px] font-bold">
+                    {i + 1}
+                  </span>
+                )}
+              </div>
+
+              {/* Nomes — ambos com mesmo peso visual */}
+              <div className="flex-1 min-w-0 pl-1">
+                <p
+                  className={`text-sm leading-tight truncate ${isQualified ? "text-emerald-800" : isEliminated ? "text-red-700" : "text-gray-800"}`}
+                >
+                  <Highlight text={gt.team.player1Name} query={searchQuery} />
+                </p>
+                <p
+                  className={`text-sm leading-tight mt-0.5 truncate ${isQualified ? "text-emerald-700" : isEliminated ? "text-red-600" : "text-gray-700"}`}
+                >
+                  <Highlight text={gt.team.player2Name} query={searchQuery} />
+                </p>
+              </div>
+
+              {/* V */}
+              <div className="w-8 text-center">
+                <span
+                  className={`text-sm font-semibold tabular-nums ${gt.wins > 0 ? "text-gray-800" : "text-gray-400"}`}
+                >
+                  {gt.wins}
+                </span>
+              </div>
+
+              {/* S */}
+              <div className="w-12 text-center">
+                <span
+                  className={`text-sm font-semibold tabular-nums ${gt.saldo > 0 ? "text-emerald-600" : gt.saldo < 0 ? "text-red-500" : "text-gray-400"}`}
+                >
+                  {gt.saldo > 0
+                    ? `+${gt.saldo}`
+                    : gt.saldo === 0
+                      ? "0"
+                      : gt.saldo}
+                </span>
+              </div>
+
+              {/* G */}
+              <div className="w-10 text-center">
+                <span
+                  className={`text-sm font-semibold tabular-nums ${gt.pointsFor > 0 ? "text-gray-800" : "text-gray-400"}`}
+                >
+                  {gt.pointsFor}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── Partidas ─────────────────────────────────────────────────────── */}
+      <div className="pb-4">
+        {/* Label "Jogos" com fundo cinza */}
+        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-t border-b border-gray-200 mb-2">
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Jogos
+          </span>
+          <span className="text-xs font-semibold text-gray-500 tabular-nums">
+            {playedCount}/{totalMatches}
+          </span>
+        </div>
+
+        <div className="px-3 space-y-1.5">
+          {group.matches.map((match) => {
+            // Pega ambos os nomes de cada dupla
+            const fullName1 = getTeamName(match.team1Id); // "Fulano / Ciclano"
+            const fullName2 = getTeamName(match.team2Id);
+            const [p1a, p1b] = fullName1.split(" / ");
+            const [p2a, p2b] = fullName2.split(" / ");
+            const matchSetsArr = (match as any).sets as
+              | Array<{ s1: number; s2: number }>
+              | undefined;
+            const _w1 =
+              matchSetsArr && matchSetsArr.length > 0
+                ? matchSetsArr.filter((s) => s.s1 > s.s2).length >
+                  matchSetsArr.filter((s) => s.s2 > s.s1).length
+                : match.score1 !== null &&
+                  match.score2 !== null &&
+                  match.score1 > match.score2;
+            const _w2 =
+              matchSetsArr && matchSetsArr.length > 0
+                ? matchSetsArr.filter((s) => s.s2 > s.s1).length >
+                  matchSetsArr.filter((s) => s.s1 > s.s2).length
+                : match.score1 !== null &&
+                  match.score2 !== null &&
+                  match.score2 > match.score1;
+            const win1 = match.played && _w1;
+            const win2 = match.played && _w2;
+
+            return (
+              <button
+                key={match.id}
+                onClick={() => onOpenScore(group.id, match)}
+                className={`w-full rounded-lg text-xs transition-colors border ${
+                  match.played
+                    ? "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                    : "bg-white border-dashed border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                <div className="flex items-center gap-2 px-3 py-2">
+                  {/* Dupla 1 — dois nomes em linhas */}
+                  <div
+                    className={`flex-1 text-left ${win1 ? "opacity-100" : "opacity-60"}`}
+                  >
+                    <p
+                      className={`leading-tight truncate ${win1 ? "text-gray-900 font-semibold" : "text-gray-600"}`}
+                    >
+                      {p1a}
+                    </p>
+                    {p1b && (
+                      <p
+                        className={`leading-tight truncate mt-0.5 ${win1 ? "text-gray-900 font-semibold" : "text-gray-500"}`}
+                      >
+                        {p1b}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Placar central */}
+                  <div className="shrink-0 flex flex-col items-center gap-0.5 min-w-[60px]">
+                    {match.played ? (
+                      (() => {
+                        const matchSets = (match as any).sets as
+                          | Array<{ s1: number; s2: number }>
+                          | undefined;
+                        if (matchSets && matchSets.length > 0) {
+                          // Cada set em uma linha: "9 × 7"
+                          return matchSets.map((s, i) => (
+                            <span
+                              key={i}
+                              className="font-black text-sm tabular-nums text-gray-800 leading-snug"
+                            >
+                              {s.s1} × {s.s2}
+                            </span>
+                          ));
+                        }
+                        // Sem sets registrados — usa score1/score2 direto
+                        return (
+                          <span className="font-black text-sm tabular-nums text-gray-800 leading-none">
+                            {match.score1} × {match.score2}
+                          </span>
+                        );
+                      })()
+                    ) : (
+                      <span className="font-black text-sm tabular-nums text-gray-300">
+                        — × —
+                      </span>
+                    )}
+                    {match.played && match.wo && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 leading-none mt-0.5">
+                        W.O.
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Dupla 2 — dois nomes em linhas */}
+                  <div
+                    className={`flex-1 text-right ${win2 ? "opacity-100" : "opacity-60"}`}
+                  >
+                    <p
+                      className={`leading-tight truncate ${win2 ? "text-gray-900 font-semibold" : "text-gray-600"}`}
+                    >
+                      {p2a}
+                    </p>
+                    {p2b && (
+                      <p
+                        className={`leading-tight truncate mt-0.5 ${win2 ? "text-gray-900 font-semibold" : "text-gray-500"}`}
+                      >
+                        {p2b}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}

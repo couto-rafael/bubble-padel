@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  type         UserType
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  club         Club?
+  athlete      Athlete?
+  @@map("users")
+}
+
+enum UserType {
+  CLUB
+  ATHLETE
+}
+
+model Club {
+  id          String       @id @default(cuid())
+  userId      String       @unique
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  cnpj        String?
+  city        String       @default("")
+  state       String       @default("")
+  phone       String?
+  logoUrl     String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  tournaments Tournament[]
+  @@map("clubs")
+}
+
+model Athlete {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName  String
+  cpf       String?
+  phone     String?
+  birthDate DateTime?
+  city      String?
+  state     String?
+  avatarUrl String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  @@map("athletes")
+}
+
+model Tournament {
+  id                     String           @id @default(cuid())
+  clubId                 String
+  club                   Club             @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  name                   String
+  sport                  Sport            @default(PADEL)
+  tournamentType         String           @default("Grupos + Playoffs")
+  startDate              DateTime
+  endDate                DateTime
+  registrationStartDate  DateTime
+  registrationEndDate    DateTime
+  description            String           @default("")
+  status                 TournamentStatus @default(DRAFT)
+  maxTeams               Int              @default(32)
+  priceFirstCategory     Float            @default(0)
+  hasSecondCategoryPrice Boolean          @default(false)
+  priceSecondCategory    Float            @default(0)
+  pixKey                 String           @default("")
+  clubSede               String           @default("")
+  categories             String[]
+  courts                 String[]
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+  teams                  Team[]
+  groups                 Group[]
+  @@map("tournaments")
+}
+
+enum Sport {
+  PADEL
+  BEACH_TENNIS
+  TENIS
+  PICKLEBALL
+}
+
+enum TournamentStatus {
+  DRAFT
+  PUBLISHED
+  ONGOING
+  COMPLETED
+}
+
+model Team {
+  id               String        @id @default(cuid())
+  tournamentId     String
+  tournament       Tournament    @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  player1Name      String
+  player1Email     String
+  player2Name      String
+  player2Email     String
+  category         String
+  status           TeamStatus    @default(PENDING)
+  paymentStatus    PaymentStatus @default(PENDING)
+  registrationDate DateTime      @default(now())
+  amount           Float         @default(0)
+  hasRestriction   Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  groupTeams       GroupTeam[]
+  @@map("teams")
+}
+
+enum TeamStatus {
+  CONFIRMED
+  PENDING
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+}
+
+model Group {
+  id           String      @id @default(cuid())
+  tournamentId String
+  tournament   Tournament  @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name         String
+  category     String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  teams        GroupTeam[]
+  matches      Match[]
+  @@map("groups")
+}
+
+model GroupTeam {
+  id            String  @id @default(cuid())
+  groupId       String
+  group         Group   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  teamId        String
+  team          Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  position      Int     @default(0)
+  wins          Int     @default(0)
+  losses        Int     @default(0)
+  pointsFor     Int     @default(0)
+  pointsAgainst Int     @default(0)
+  saldo         Int     @default(0)
+  gamesPlayed   Int     @default(0)
+  qualified     Boolean @default(false)
+  @@unique([groupId, teamId])
+  @@map("group_teams")
+}
+
+model Match {
+  id        String    @id @default(cuid())
+  groupId   String
+  group     Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  team1Id   String
+  team2Id   String
+  score1    Int?
+  score2    Int?
+  played    Boolean   @default(false)
+  wo        Int?
+  sets      Json?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  schedule  Schedule?
+  @@map("matches")
+}
+
+model Schedule {
+  id        String    @id @default(cuid())
+  matchId   String    @unique
+  match     Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  court     String
+  date      DateTime?
+  time      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  @@map("schedules")
+}
