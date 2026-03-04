@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import DashboardHeader from "./DashboardHeader";
-import { useTournaments } from "./useTournaments";
-import type { Tournament, Team, Group } from "./types";
+import { useTournaments, useTeams } from "./hooks";
+import type { Tournament, Group } from "./types";
 import TabGrupos from "./TabGrupos";
 import TabJogos from "./TabJogos";
 
@@ -15,49 +15,6 @@ type Tab =
   | "grupos"
   | "jogos"
   | "configuracoes";
-
-// Mock data para demonstração
-const MOCK_TEAMS: Team[] = [
-  {
-    id: "1",
-    player1Name: "João Silva",
-    player1Email: "joao@email.com",
-    player2Name: "Pedro Santos",
-    player2Email: "pedro@email.com",
-    category: "Open Masculina",
-    status: "confirmed",
-    paymentStatus: "paid",
-    registrationDate: "2026-02-05",
-    amount: 120,
-    hasRestriction: false,
-  },
-  {
-    id: "2",
-    player1Name: "Maria Oliveira",
-    player1Email: "maria@email.com",
-    player2Name: "Ana Costa",
-    player2Email: "ana@email.com",
-    category: "Open Feminina",
-    status: "pending",
-    paymentStatus: "pending",
-    registrationDate: "2026-02-08",
-    amount: 120,
-    hasRestriction: true,
-  },
-  {
-    id: "3",
-    player1Name: "Carlos Mendes",
-    player1Email: "carlos@email.com",
-    player2Name: "Lucas Ferreira",
-    player2Email: "lucas@email.com",
-    category: "2ª Masc",
-    status: "confirmed",
-    paymentStatus: "paid",
-    registrationDate: "2026-02-06",
-    amount: 120,
-    hasRestriction: false,
-  },
-];
 
 // ─── STATUS BADGE ─────────────────────────────────────────
 const StatusBadge = ({
@@ -172,11 +129,18 @@ const EditTournament = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getTournamentById, updateTournament, tournaments } = useTournaments();
+  const {
+    teams,
+    loading: teamsLoading,
+    reload: refetchTeams,
+    addTeam,
+    updateTeam,
+    deleteTeam,
+  } = useTeams(id);
   const [sharedGroups, setSharedGroups] = useState<Group[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("geral");
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
-  const [teams, setTeams] = useState<Team[]>(MOCK_TEAMS);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("todas");
   const [statusFilter, setStatusFilter] = useState("todos");
@@ -265,7 +229,7 @@ const EditTournament = () => {
     }
   };
 
-  const handleAddTeam = () => {
+  const handleAddTeam = async () => {
     if (
       !newTeam.athlete1Name ||
       !newTeam.athlete1Email ||
@@ -277,29 +241,25 @@ const EditTournament = () => {
       return;
     }
 
-    const team: Team = {
-      id: String(Date.now()),
-      player1Name: newTeam.athlete1Name,
-      player1Email: newTeam.athlete1Email,
-      player2Name: newTeam.athlete2Name,
-      player2Email: newTeam.athlete2Email,
-      category: newTeam.category,
-      status: "pending",
-      paymentStatus: "pending",
-      registrationDate: new Date().toISOString().split("T")[0],
-      amount: tournament?.priceFirstCategory || 120,
-      hasRestriction: false,
-    };
-
-    setTeams([...teams, team]);
-    setIsAddTeamModalOpen(false);
-    setNewTeam({
-      athlete1Name: "",
-      athlete1Email: "",
-      athlete2Name: "",
-      athlete2Email: "",
-      category: "",
-    });
+    try {
+      await addTeam({
+        player1Name: newTeam.athlete1Name,
+        player1Email: newTeam.athlete1Email,
+        player2Name: newTeam.athlete2Name,
+        player2Email: newTeam.athlete2Email,
+        category: newTeam.category,
+      });
+      setIsAddTeamModalOpen(false);
+      setNewTeam({
+        athlete1Name: "",
+        athlete1Email: "",
+        athlete2Name: "",
+        athlete2Email: "",
+        category: "",
+      });
+    } catch {
+      alert("Erro ao adicionar dupla. Tente novamente.");
+    }
   };
 
   // ── CATEGORIAS ──────────────────────────────────────────
@@ -396,32 +356,27 @@ const EditTournament = () => {
       .replace(/\s+/g, ".");
     return `${c}${Math.floor(Math.random() * 99)}@${["gmail.com", "hotmail.com", "email.com"][Math.floor(Math.random() * 3)]}`;
   };
-  const handleGenerateTeams = () => {
+
+  const handleGenerateTeams = async () => {
     if (!generateConfig.category) {
       alert("Selecione uma categoria");
       return;
     }
-    const generated: Team[] = Array.from(
-      { length: generateConfig.quantity },
-      () => {
+    try {
+      for (let i = 0; i < generateConfig.quantity; i++) {
         const p1 = rName();
         const p2 = rName();
-        return {
-          id: String(Date.now() + Math.random()),
+        await addTeam({
           player1Name: p1,
           player1Email: rEmail(p1),
           player2Name: p2,
           player2Email: rEmail(p2),
           category: generateConfig.category,
-          status: "confirmed" as const,
-          paymentStatus: "paid" as const,
-          registrationDate: new Date().toISOString().split("T")[0],
-          amount: tournament?.priceFirstCategory || 120,
-          hasRestriction: false,
-        };
-      },
-    );
-    setTeams((prev) => [...prev, ...generated]);
+        });
+      }
+    } catch {
+      alert("Erro ao gerar duplas.");
+    }
     setIsGenerateModalOpen(false);
     setGenerateConfig({ quantity: 4, category: "" });
   };
@@ -483,7 +438,7 @@ const EditTournament = () => {
     paymentFilter !== "todos" ||
     searchQuery !== "";
 
-  if (loading) {
+  if (loading || teamsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -521,7 +476,7 @@ const EditTournament = () => {
 
       <main className="pt-20 pb-12">
         <div className="max-w-[1400px] mx-auto px-6">
-          {/* HEADER com Badge destacado e Botão à direita */}
+          {/* HEADER */}
           <div className="mb-8">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-4">
               <div className="flex items-center gap-3 flex-1">
@@ -553,7 +508,6 @@ const EditTournament = () => {
                 </div>
               </div>
 
-              {/* Desktop: Status Badge + Botão Publicar à direita */}
               <div className="flex items-center gap-3 flex-shrink-0">
                 <StatusBadge status={tournament.status} />
 
@@ -788,7 +742,6 @@ const EditTournament = () => {
           {/* TAB CONTENT - Inscrições */}
           {activeTab === "inscricoes" && (
             <div className="space-y-6">
-              {/* Filtros e Busca */}
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <div className="flex flex-col md:flex-row gap-4 items-end">
                   <div className="flex-1">
@@ -991,7 +944,6 @@ const EditTournament = () => {
                           key={team.id}
                           className="hover:bg-gray-50 transition-colors"
                         >
-                          {/* Atleta 1 */}
                           <td className="px-6 py-4">
                             <div className="text-sm">
                               <div className="font-semibold text-gray-900">
@@ -1002,8 +954,6 @@ const EditTournament = () => {
                               </div>
                             </div>
                           </td>
-
-                          {/* Atleta 2 */}
                           <td className="px-6 py-4">
                             <div className="text-sm">
                               <div className="font-semibold text-gray-900">
@@ -1014,22 +964,16 @@ const EditTournament = () => {
                               </div>
                             </div>
                           </td>
-
-                          {/* Categoria */}
                           <td className="px-6 py-4">
                             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700">
                               {team.category}
                             </span>
                           </td>
-
-                          {/* Data Inscrição */}
                           <td className="px-6 py-4 text-sm text-gray-600">
                             {new Date(team.registrationDate).toLocaleDateString(
                               "pt-BR",
                             )}
                           </td>
-
-                          {/* Status */}
                           <td className="px-6 py-4">
                             {team.status === "confirmed" ? (
                               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">
@@ -1043,8 +987,6 @@ const EditTournament = () => {
                               </span>
                             )}
                           </td>
-
-                          {/* Pagamento */}
                           <td className="px-6 py-4">
                             {team.paymentStatus === "paid" ? (
                               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700">
@@ -1078,8 +1020,6 @@ const EditTournament = () => {
                               </span>
                             )}
                           </td>
-
-                          {/* Restrição */}
                           <td className="px-6 py-4">
                             <div className="flex justify-center">
                               {team.hasRestriction ? (
@@ -1101,8 +1041,6 @@ const EditTournament = () => {
                               )}
                             </div>
                           </td>
-
-                          {/* Ações */}
                           <td className="px-6 py-4">
                             <div className="flex justify-center">
                               <button
@@ -1139,7 +1077,6 @@ const EditTournament = () => {
                                 </svg>
                               </button>
 
-                              {/* Dropdown Menu */}
                               {openMenuId === team.id && (
                                 <>
                                   <div
@@ -1155,7 +1092,6 @@ const EditTournament = () => {
                                   >
                                     <button
                                       onClick={() => {
-                                        console.log("Editar dupla:", team.id);
                                         setOpenMenuId(null);
                                       }}
                                       className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -1178,18 +1114,14 @@ const EditTournament = () => {
 
                                     {team.status === "pending" && (
                                       <button
-                                        onClick={() => {
-                                          setTeams((prevTeams) =>
-                                            prevTeams.map((t) =>
-                                              t.id === team.id
-                                                ? {
-                                                    ...t,
-                                                    status:
-                                                      "confirmed" as const,
-                                                  }
-                                                : t,
-                                            ),
-                                          );
+                                        onClick={async () => {
+                                          try {
+                                            await updateTeam(team.id, {
+                                              status: "confirmed",
+                                            });
+                                          } catch {
+                                            alert("Erro ao confirmar dupla.");
+                                          }
                                           setOpenMenuId(null);
                                         }}
                                         className="w-full flex items-center gap-3 px-4 py-2 text-sm text-green-700 hover:bg-green-50 transition-colors"
@@ -1214,17 +1146,17 @@ const EditTournament = () => {
                                     <div className="border-t border-gray-200 my-2"></div>
 
                                     <button
-                                      onClick={() => {
+                                      onClick={async () => {
                                         if (
                                           window.confirm(
                                             "Deseja realmente excluir esta dupla?",
                                           )
                                         ) {
-                                          setTeams((prevTeams) =>
-                                            prevTeams.filter(
-                                              (t) => t.id !== team.id,
-                                            ),
-                                          );
+                                          try {
+                                            await deleteTeam(team.id);
+                                          } catch {
+                                            alert("Erro ao excluir dupla.");
+                                          }
                                         }
                                         setOpenMenuId(null);
                                       }}
@@ -1370,7 +1302,6 @@ const EditTournament = () => {
                           <button
                             onClick={() => handleDeleteCategory(cat)}
                             className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100 shrink-0"
-                            title="Excluir categoria"
                           >
                             <svg
                               className="w-4 h-4"
@@ -1511,7 +1442,7 @@ const EditTournament = () => {
                   />
                 </div>
               </div>
-              <div className="mt-6 pt-6 border-t border-gray-200 flex items-center justify-between">
+              <div className="mt-6 pt-6 border-t border-gray-200">
                 <p className="text-sm text-gray-500 italic flex items-center gap-2">
                   <svg
                     className="w-4 h-4 text-amber-500"
@@ -1631,7 +1562,6 @@ const EditTournament = () => {
             </div>
 
             <div className="space-y-6">
-              {/* Atleta 1 */}
               <div>
                 <h4 className="text-sm font-semibold text-gray-700 mb-3">
                   Atleta 1
@@ -1673,7 +1603,6 @@ const EditTournament = () => {
                 </div>
               </div>
 
-              {/* Atleta 2 */}
               <div>
                 <h4 className="text-sm font-semibold text-gray-700 mb-3">
                   Atleta 2
@@ -1715,7 +1644,6 @@ const EditTournament = () => {
                 </div>
               </div>
 
-              {/* Categoria */}
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-2">
                   Categoria
@@ -1773,7 +1701,7 @@ const EditTournament = () => {
         message={confirmModal.message}
       />
 
-      {/* ── Modal Adicionar Categoria ───────────────────────── */}
+      {/* Modal Adicionar Categoria */}
       {isAddCategoryModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
           <div
@@ -1894,7 +1822,7 @@ const EditTournament = () => {
         </div>
       )}
 
-      {/* ── Modal Gerar Duplas (TESTE) ──────────────────────── */}
+      {/* Modal Gerar Duplas (TESTE) */}
       {isGenerateModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
           <div

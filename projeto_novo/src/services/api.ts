@@ -1,21 +1,7 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// CAMADA DE SERVIÇOS — API
-//
-// HOJE: todas as funções usam localStorage (mock).
-// PARA INTEGRAR COM BACKEND: substituir o corpo de cada função por um
-// fetch/axios real apontando para o endpoint correspondente.
-//
-// Exemplo de troca:
-//   ANTES:  const data = JSON.parse(localStorage.getItem("tournaments") ?? "[]")
-//   DEPOIS: const res = await fetch(`${API_URL}/tournaments`, { headers: authHeaders() })
-//           const data = await res.json()
-// ─────────────────────────────────────────────────────────────────────────────
-
 import type {
   Tournament,
   Team,
   Group,
-  Match,
   Schedule,
   Set,
   ApiResponse,
@@ -23,9 +9,8 @@ import type {
 
 // ─── CONFIGURAÇÃO ─────────────────────────────────────────────────────────────
 
-const API_URL = import.meta.env.VITE_API_URL ?? "";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
 
-// Retorna headers com token de auth para requisições protegidas
 function authHeaders(): Record<string, string> {
   const token = localStorage.getItem("auth_token");
   return {
@@ -34,258 +19,54 @@ function authHeaders(): Record<string, string> {
   };
 }
 
-// Handler de erro padrão
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: "Erro desconhecido" }));
-    throw new Error(err.message ?? `HTTP ${res.status}`);
+    const err = await res.json().catch(() => ({ error: "Erro desconhecido" }));
+    throw new Error(err.error ?? `HTTP ${res.status}`);
   }
   const json: ApiResponse<T> = await res.json();
   return json.data;
 }
-
-// ─── STORAGE KEYS (apenas enquanto usar localStorage) ────────────────────────
-
-const KEYS = {
-  tournaments: "tournaments",
-  teams: (id: string) => `teams_${id}`,
-  groups: (id: string) => `groups_${id}`,
-  schedule: (id: string) => `schedule_${id}`,
-};
-
-function getLocal<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function setLocal<T>(key: string, value: T): void {
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// TORNEIOS
-// ─────────────────────────────────────────────────────────────────────────────
-
-export const TournamentService = {
-  // GET /tournaments
-  list: async (): Promise<Tournament[]> => {
-    // TODO: return handleResponse<Tournament[]>(await fetch(`${API_URL}/tournaments`, { headers: authHeaders() }))
-    return getLocal<Tournament[]>(KEYS.tournaments, []);
-  },
-
-  // GET /tournaments/:id
-  get: async (id: string): Promise<Tournament | null> => {
-    // TODO: return handleResponse<Tournament>(await fetch(`${API_URL}/tournaments/${id}`, { headers: authHeaders() }))
-    const list = getLocal<Tournament[]>(KEYS.tournaments, []);
-    return list.find((t) => t.id === id) ?? null;
-  },
-
-  // POST /tournaments
-  create: async (data: Partial<Tournament>): Promise<Tournament> => {
-    // TODO: return handleResponse<Tournament>(await fetch(`${API_URL}/tournaments`, { method: "POST", headers: authHeaders(), body: JSON.stringify(data) }))
-    const now = new Date().toISOString();
-    const tournament: Tournament = {
-      id: Date.now().toString(),
-      status: "draft",
-      totalTeams: 0,
-      courts: [],
-      createdAt: now,
-      updatedAt: now,
-      ...data,
-    } as Tournament;
-    const list = getLocal<Tournament[]>(KEYS.tournaments, []);
-    setLocal(KEYS.tournaments, [...list, tournament]);
-    return tournament;
-  },
-
-  // PATCH /tournaments/:id
-  update: async (id: string, data: Partial<Tournament>): Promise<Tournament> => {
-    // TODO: return handleResponse<Tournament>(await fetch(`${API_URL}/tournaments/${id}`, { method: "PATCH", headers: authHeaders(), body: JSON.stringify(data) }))
-    const list = getLocal<Tournament[]>(KEYS.tournaments, []);
-    const updated = list.map((t) =>
-      t.id === id ? { ...t, ...data, updatedAt: new Date().toISOString() } : t
-    );
-    setLocal(KEYS.tournaments, updated);
-    return updated.find((t) => t.id === id)!;
-  },
-
-  // DELETE /tournaments/:id
-  delete: async (id: string): Promise<void> => {
-    // TODO: await fetch(`${API_URL}/tournaments/${id}`, { method: "DELETE", headers: authHeaders() })
-    const list = getLocal<Tournament[]>(KEYS.tournaments, []);
-    setLocal(KEYS.tournaments, list.filter((t) => t.id !== id));
-  },
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// INSCRIÇÕES (TEAMS)
-// ─────────────────────────────────────────────────────────────────────────────
-
-export const TeamService = {
-  // GET /tournaments/:tournamentId/teams
-  list: async (tournamentId: string): Promise<Team[]> => {
-    // TODO: return handleResponse<Team[]>(await fetch(`${API_URL}/tournaments/${tournamentId}/teams`, { headers: authHeaders() }))
-    return getLocal<Team[]>(KEYS.teams(tournamentId), []);
-  },
-
-  // POST /tournaments/:tournamentId/teams
-  create: async (tournamentId: string, data: Partial<Team>): Promise<Team> => {
-    // TODO: return handleResponse<Team>(await fetch(`${API_URL}/tournaments/${tournamentId}/teams`, { method: "POST", headers: authHeaders(), body: JSON.stringify(data) }))
-    const team: Team = {
-      id: Date.now().toString(),
-      tournamentId,
-      registrationDate: new Date().toISOString().split("T")[0],
-      status: "pending",
-      paymentStatus: "pending",
-      amount: 0,
-      hasRestriction: false,
-      ...data,
-    } as Team;
-    const list = getLocal<Team[]>(KEYS.teams(tournamentId), []);
-    setLocal(KEYS.teams(tournamentId), [...list, team]);
-    return team;
-  },
-
-  // PATCH /teams/:id
-  update: async (tournamentId: string, id: string, data: Partial<Team>): Promise<Team> => {
-    // TODO: return handleResponse<Team>(await fetch(`${API_URL}/teams/${id}`, { method: "PATCH", headers: authHeaders(), body: JSON.stringify(data) }))
-    const list = getLocal<Team[]>(KEYS.teams(tournamentId), []);
-    const updated = list.map((t) => (t.id === id ? { ...t, ...data } : t));
-    setLocal(KEYS.teams(tournamentId), updated);
-    return updated.find((t) => t.id === id)!;
-  },
-
-  // DELETE /teams/:id
-  delete: async (tournamentId: string, id: string): Promise<void> => {
-    // TODO: await fetch(`${API_URL}/teams/${id}`, { method: "DELETE", headers: authHeaders() })
-    const list = getLocal<Team[]>(KEYS.teams(tournamentId), []);
-    setLocal(KEYS.teams(tournamentId), list.filter((t) => t.id !== id));
-  },
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// GRUPOS
-// ─────────────────────────────────────────────────────────────────────────────
-
-export const GroupService = {
-  // GET /tournaments/:tournamentId/groups
-  list: async (tournamentId: string): Promise<Group[]> => {
-    // TODO: return handleResponse<Group[]>(await fetch(`${API_URL}/tournaments/${tournamentId}/groups`, { headers: authHeaders() }))
-    return getLocal<Group[]>(KEYS.groups(tournamentId), []);
-  },
-
-  // POST /tournaments/:tournamentId/groups  (salva sorteio gerado no cliente)
-  save: async (tournamentId: string, groups: Group[]): Promise<Group[]> => {
-    // TODO: return handleResponse<Group[]>(await fetch(`${API_URL}/tournaments/${tournamentId}/groups`, { method: "POST", headers: authHeaders(), body: JSON.stringify({ groups }) }))
-    const withFk = groups.map((g) => ({ ...g, tournamentId }));
-    setLocal(KEYS.groups(tournamentId), withFk);
-    return withFk;
-  },
-
-  // POST /tournaments/:tournamentId/groups/generate (backend gera)
-  generate: async (tournamentId: string): Promise<Group[]> => {
-    // TODO: return handleResponse<Group[]>(await fetch(`${API_URL}/tournaments/${tournamentId}/groups/generate`, { method: "POST", headers: authHeaders() }))
-    // Por enquanto a geração acontece no cliente (groupUtils.ts) e é salva via save()
-    throw new Error("Geração via backend ainda não implementada. Use o cliente.");
-  },
-
-  // DELETE /tournaments/:tournamentId/groups
-  reset: async (tournamentId: string): Promise<void> => {
-    // TODO: await fetch(`${API_URL}/tournaments/${tournamentId}/groups`, { method: "DELETE", headers: authHeaders() })
-    setLocal(KEYS.groups(tournamentId), []);
-  },
-
-  // PATCH /matches/:matchId/score
-  saveScore: async (
-    tournamentId: string,
-    groupId: string,
-    matchId: string,
-    payload: { score1: number; score2: number; wo?: 1 | 2; sets?: Set[] }
-  ): Promise<Group[]> => {
-    // TODO:
-    // const updated = await handleResponse<Group>(await fetch(`${API_URL}/matches/${matchId}/score`, { method: "PATCH", headers: authHeaders(), body: JSON.stringify(payload) }))
-    // queryClient.invalidateQueries(['groups', tournamentId])
-    // Por agora: atualiza localmente e persiste
-    const groups = getLocal<Group[]>(KEYS.groups(tournamentId), []);
-    // A lógica de recalculate continua no cliente por ora
-    // (será movida para backend na Fase 3)
-    setLocal(KEYS.groups(tournamentId), groups);
-    return groups;
-  },
-
-  // PATCH /groups/:groupId/teams/reorder  (drag & drop)
-  reorderTeams: async (
-    tournamentId: string,
-    groups: Group[]
-  ): Promise<void> => {
-    // TODO: await fetch(`${API_URL}/tournaments/${tournamentId}/groups/reorder`, { method: "PATCH", headers: authHeaders(), body: JSON.stringify({ groups }) })
-    setLocal(KEYS.groups(tournamentId), groups);
-  },
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// AGENDAMENTO
-// ─────────────────────────────────────────────────────────────────────────────
-
-export const ScheduleService = {
-  // GET /tournaments/:tournamentId/schedule
-  get: async (tournamentId: string): Promise<Record<string, Schedule>> => {
-    // TODO: return handleResponse<Record<string, Schedule>>(await fetch(`${API_URL}/tournaments/${tournamentId}/schedule`, { headers: authHeaders() }))
-    return getLocal<Record<string, Schedule>>(KEYS.schedule(tournamentId), {});
-  },
-
-  // PATCH /matches/:matchId/schedule
-  update: async (
-    tournamentId: string,
-    matchId: string,
-    data: Omit<Schedule, "matchId">
-  ): Promise<void> => {
-    // TODO: await fetch(`${API_URL}/matches/${matchId}/schedule`, { method: "PATCH", headers: authHeaders(), body: JSON.stringify(data) })
-    const current = getLocal<Record<string, Schedule>>(KEYS.schedule(tournamentId), {});
-    setLocal(KEYS.schedule(tournamentId), {
-      ...current,
-      [matchId]: { matchId, ...data },
-    });
-  },
-};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AUTH
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const AuthService = {
-  // POST /auth/login
-  login: async (email: string, password: string): Promise<{ token: string; user: any }> => {
-    // TODO: return handleResponse(await fetch(`${API_URL}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) }))
-    // Mock: simula login bem-sucedido
-    const mockToken = `mock_token_${Date.now()}`;
-    localStorage.setItem("auth_token", mockToken);
-    localStorage.setItem("auth_user", JSON.stringify({ id: "1", email, name: "Usuário", type: "club" }));
-    return { token: mockToken, user: { id: "1", email, name: "Usuário", type: "club" } };
+  login: async (
+    email: string,
+    password: string,
+  ): Promise<{ token: string; user: any }> => {
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await handleResponse<{ token: string; user: any }>(res);
+    localStorage.setItem("auth_token", data.token);
+    localStorage.setItem("auth_user", JSON.stringify(data.user));
+    return data;
   },
 
-  // POST /auth/register
-  register: async (data: Record<string, any>): Promise<{ token: string; user: any }> => {
-    // TODO: return handleResponse(await fetch(`${API_URL}/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }))
-    const mockToken = `mock_token_${Date.now()}`;
-    localStorage.setItem("auth_token", mockToken);
-    const user = { id: Date.now().toString(), email: data.email, name: data.name, type: data.userType };
-    localStorage.setItem("auth_user", JSON.stringify(user));
-    return { token: mockToken, user };
+  register: async (
+    data: Record<string, any>,
+  ): Promise<{ token: string; user: any }> => {
+    const res = await fetch(`${API_URL}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<{ token: string; user: any }>(res);
+    localStorage.setItem("auth_token", result.token);
+    localStorage.setItem("auth_user", JSON.stringify(result.user));
+    return result;
   },
 
-  // POST /auth/logout
   logout: async (): Promise<void> => {
-    // TODO: await fetch(`${API_URL}/auth/logout`, { method: "POST", headers: authHeaders() })
     localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_user");
   },
 
-  // Retorna usuário logado do storage local (substituir por validação de token)
   getCurrentUser: () => {
     try {
       const raw = localStorage.getItem("auth_user");
@@ -296,4 +77,206 @@ export const AuthService = {
   },
 
   getToken: () => localStorage.getItem("auth_token"),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TORNEIOS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Normaliza dados do backend (enums maiúsculos, _count) para o formato do frontend
+function normalizeTournament(t: any): Tournament {
+  return {
+    ...t,
+    status: t.status?.toLowerCase() ?? "draft",
+    totalTeams: t._count?.teams ?? t.totalTeams ?? 0,
+    categories: t.categories ?? [],
+    courts: t.courts ?? [],
+  };
+}
+
+export const TournamentService = {
+  list: async (): Promise<Tournament[]> => {
+    const res = await fetch(`${API_URL}/tournaments`, {
+      headers: authHeaders(),
+    });
+    const data = await handleResponse<any[]>(res);
+    return data.map(normalizeTournament);
+  },
+
+  get: async (id: string): Promise<Tournament | null> => {
+    const res = await fetch(`${API_URL}/tournaments/${id}`, {
+      headers: authHeaders(),
+    });
+    const data = await handleResponse<any>(res);
+    return normalizeTournament(data);
+  },
+
+  create: async (data: Partial<Tournament>): Promise<Tournament> => {
+    const res = await fetch(`${API_URL}/tournaments`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<Tournament>(res);
+  },
+
+  update: async (
+    id: string,
+    data: Partial<Tournament>,
+  ): Promise<Tournament> => {
+    const res = await fetch(`${API_URL}/tournaments/${id}`, {
+      method: "PATCH",
+      headers: authHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<Tournament>(res);
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await fetch(`${API_URL}/tournaments/${id}`, {
+      method: "DELETE",
+      headers: authHeaders(),
+    });
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INSCRIÇÕES (TEAMS)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function normalizeTeam(t: any): Team {
+  return {
+    ...t,
+    status: t.status?.toLowerCase() ?? "pending",
+    paymentStatus: t.paymentStatus?.toLowerCase() ?? "pending",
+  };
+}
+
+export const TeamService = {
+  list: async (tournamentId: string): Promise<Team[]> => {
+    const res = await fetch(`${API_URL}/tournaments/${tournamentId}/teams`, {
+      headers: authHeaders(),
+    });
+    const data = await handleResponse<any[]>(res);
+    return data.map(normalizeTeam);
+  },
+
+  create: async (tournamentId: string, data: Partial<Team>): Promise<Team> => {
+    const res = await fetch(`${API_URL}/tournaments/${tournamentId}/teams`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify(data),
+    });
+    const created = await handleResponse<any>(res);
+    return normalizeTeam(created);
+  },
+
+  update: async (
+    tournamentId: string,
+    id: string,
+    data: Partial<Team>,
+  ): Promise<Team> => {
+    const payload: any = { ...data };
+    if (payload.status) payload.status = payload.status.toUpperCase();
+    if (payload.paymentStatus)
+      payload.paymentStatus = payload.paymentStatus.toUpperCase();
+
+    const res = await fetch(
+      `${API_URL}/tournaments/${tournamentId}/teams/${id}`,
+      {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify(payload),
+      },
+    );
+    const updated = await handleResponse<any>(res);
+    return normalizeTeam(updated);
+  },
+
+  delete: async (tournamentId: string, id: string): Promise<void> => {
+    await fetch(`${API_URL}/tournaments/${tournamentId}/teams/${id}`, {
+      method: "DELETE",
+      headers: authHeaders(),
+    });
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GRUPOS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const GroupService = {
+  list: async (tournamentId: string): Promise<Group[]> => {
+    const res = await fetch(`${API_URL}/tournaments/${tournamentId}/groups`, {
+      headers: authHeaders(),
+    });
+    return handleResponse<Group[]>(res);
+  },
+
+  save: async (tournamentId: string, groups: Group[]): Promise<Group[]> => {
+    const res = await fetch(`${API_URL}/tournaments/${tournamentId}/groups`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ groups }),
+    });
+    return handleResponse<Group[]>(res);
+  },
+
+  reset: async (tournamentId: string): Promise<void> => {
+    await fetch(`${API_URL}/tournaments/${tournamentId}/groups`, {
+      method: "DELETE",
+      headers: authHeaders(),
+    });
+  },
+
+  saveScore: async (
+    _tournamentId: string,
+    _groupId: string,
+    matchId: string,
+    payload: { score1: number; score2: number; wo?: 1 | 2; sets?: Set[] },
+  ): Promise<Group[]> => {
+    const res = await fetch(`${API_URL}/matches/${matchId}/score`, {
+      method: "PATCH",
+      headers: authHeaders(),
+      body: JSON.stringify(payload),
+    });
+    const updatedGroup = await handleResponse<Group>(res);
+    return [updatedGroup];
+  },
+
+  reorderTeams: async (
+    tournamentId: string,
+    groups: Group[],
+  ): Promise<void> => {
+    await fetch(`${API_URL}/tournaments/${tournamentId}/groups/reorder`, {
+      method: "PATCH",
+      headers: authHeaders(),
+      body: JSON.stringify({ groups }),
+    });
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AGENDAMENTO
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const ScheduleService = {
+  get: async (tournamentId: string): Promise<Record<string, Schedule>> => {
+    const res = await fetch(`${API_URL}/tournaments/${tournamentId}/schedule`, {
+      headers: authHeaders(),
+    });
+    return handleResponse<Record<string, Schedule>>(res);
+  },
+
+  update: async (
+    _tournamentId: string,
+    matchId: string,
+    data: Omit<Schedule, "matchId">,
+  ): Promise<void> => {
+    await fetch(`${API_URL}/matches/${matchId}/schedule`, {
+      method: "PATCH",
+      headers: authHeaders(),
+      body: JSON.stringify(data),
+    });
+  },
 };

@@ -590,64 +590,44 @@ const CreateTournament = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validar campos obrigatórios
     const errors: string[] = [];
 
-    // Informações Essenciais
-    if (!form.name.trim()) {
-      errors.push("Nome do torneio é obrigatório");
-    }
-    if (!form.startDate) {
-      errors.push("Data de início é obrigatória");
-    }
-    if (!form.endDate) {
-      errors.push("Data de fim é obrigatória");
-    }
-    if (!form.registrationStartDate) {
+    if (!form.name.trim()) errors.push("Nome do torneio é obrigatório");
+    if (!form.startDate) errors.push("Data de início é obrigatória");
+    if (!form.endDate) errors.push("Data de fim é obrigatória");
+    if (!form.registrationStartDate)
       errors.push("Data de início das inscrições é obrigatória");
-    }
-    if (!form.registrationEndDate) {
+    if (!form.registrationEndDate)
       errors.push("Data de fim das inscrições é obrigatória");
-    }
-
-    // Verificar se há erros de data
-    if (Object.values(dateErrors).some((error) => error !== "")) {
+    if (Object.values(dateErrors).some((e) => e !== ""))
       errors.push("Corrija os erros nas datas antes de continuar");
-    }
-
-    // Categorias
-    if (form.selectedCategories.length === 0) {
+    if (form.selectedCategories.length === 0)
       errors.push("Selecione pelo menos uma categoria");
-    }
+    if (!form.pixKey.trim()) errors.push("Chave PIX é obrigatória");
+    if (!form.clubSede.trim()) errors.push("Clube sede é obrigatório");
+    if (form.courts.length === 0) errors.push("Adicione pelo menos uma quadra");
 
-    // Financeiro
-    if (!form.pixKey.trim()) {
-      errors.push("Chave PIX é obrigatória");
-    }
-
-    // Estrutura
-    if (!form.clubSede.trim()) {
-      errors.push("Clube sede é obrigatório");
-    }
-    if (form.courts.length === 0) {
-      errors.push("Adicione pelo menos uma quadra");
-    }
-
-    // Se houver erros, mostrar modal
     if (errors.length > 0) {
       setValidationErrors(errors);
       setShowValidationModal(true);
       return;
     }
 
-    // Criar torneio
     try {
       setIsSubmitting(true);
 
-      const tournamentData = {
+      const sportMap: Record<string, string> = {
+        Padel: "PADEL",
+        "Beach Tennis": "BEACH_TENNIS",
+        Tenis: "TENIS",
+        Pickleball: "PICKLEBALL",
+      };
+
+      await createTournament({
         name: form.name,
-        sport: form.sport,
+        sport: sportMap[form.sport] as any,
         tournamentType: form.tournamentType,
         startDate: form.startDate,
         endDate: form.endDate,
@@ -661,17 +641,14 @@ const CreateTournament = () => {
         pixKey: form.pixKey,
         clubSede: form.clubSede,
         categories: form.selectedCategories,
-      };
+        courts: form.courts,
+      });
 
-      const createdTournament = createTournament(tournamentData);
-
-      console.log("Torneio criado com sucesso:", createdTournament);
-
-      // Redirecionar para a lista de torneios
       navigate("/dashboard/tournaments");
-    } catch (error) {
-      console.error("Erro ao criar torneio:", error);
-      setValidationErrors(["Erro ao criar torneio. Tente novamente."]);
+    } catch (error: any) {
+      setValidationErrors([
+        error.message ?? "Erro ao criar torneio. Tente novamente.",
+      ]);
       setShowValidationModal(true);
     } finally {
       setIsSubmitting(false);
