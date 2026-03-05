@@ -8,10 +8,14 @@
 // Importar sempre de "@/hooks"
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useEffect, useCallback } from "react";
-import { TournamentService, TeamService, GroupService, ScheduleService } from "../services/api";
+import { useState, useEffect, useCallback, useRef } from "react";
+import {
+  TournamentService,
+  TeamService,
+  GroupService,
+  ScheduleService,
+} from "../services/api";
 import type { Tournament, Team, Group, Schedule, Set } from "../types";
-import { recalculateStandings } from "../utils/groupUtils";
 
 // ─── useTournaments ───────────────────────────────────────────────────────────
 // Lista todos os torneios do clube logado.
@@ -33,7 +37,9 @@ export function useTournaments() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const createTournament = async (data: Partial<Tournament>) => {
     const created = await TournamentService.create(data);
@@ -52,7 +58,8 @@ export function useTournaments() {
     setTournaments((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const getTournamentById = (id: string) => tournaments.find((t) => t.id === id);
+  const getTournamentById = (id: string) =>
+    tournaments.find((t) => t.id === id);
 
   return {
     tournaments,
@@ -87,7 +94,9 @@ export function useTournament(id: string | undefined) {
     }
   }, [id]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const update = async (data: Partial<Tournament>) => {
     if (!id) return;
@@ -120,7 +129,9 @@ export function useTeams(tournamentId: string | undefined) {
     }
   }, [tournamentId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const addTeam = async (data: Partial<Team>) => {
     if (!tournamentId) return;
@@ -142,7 +153,16 @@ export function useTeams(tournamentId: string | undefined) {
     setTeams((prev) => prev.filter((t) => t.id !== id));
   };
 
-  return { teams, setTeams, loading, error, reload: load, addTeam, updateTeam, deleteTeam };
+  return {
+    teams,
+    setTeams,
+    loading,
+    error,
+    reload: load,
+    addTeam,
+    updateTeam,
+    deleteTeam,
+  };
 }
 
 // ─── useGroups ────────────────────────────────────────────────────────────────
@@ -152,6 +172,9 @@ export function useGroups(tournamentId: string | undefined) {
   const [groups, setGroupsRaw] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Ref para debounce — cancela saves duplicados causados pelo React StrictMode
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const load = useCallback(async () => {
     if (!tournamentId) return;
@@ -166,36 +189,46 @@ export function useGroups(tournamentId: string | undefined) {
     }
   }, [tournamentId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  // Wrapper que persiste sempre que os grupos mudam
-  const setGroups = useCallback((val: Group[] | ((prev: Group[]) => Group[])) => {
-    setGroupsRaw((prev) => {
-      const next = typeof val === "function" ? val(prev) : val;
-      if (tournamentId) GroupService.save(tournamentId, next).catch(console.error);
-      return next;
-    });
-  }, [tournamentId]);
+  // Usado apenas ao gerar/reorganizar grupos — NÃO usar para salvar resultados.
+  // Debounce de 300ms evita duplo disparo do React StrictMode.
+  const setGroups = useCallback(
+    (val: Group[] | ((prev: Group[]) => Group[])) => {
+      setGroupsRaw((prev) => {
+        const next = typeof val === "function" ? val(prev) : val;
 
+        if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = setTimeout(() => {
+          if (tournamentId) {
+            GroupService.save(tournamentId, next).catch(console.error);
+          }
+        }, 300);
+
+        return next;
+      });
+    },
+    [tournamentId],
+  );
+
+  // Salva resultado de uma partida via PATCH /matches/:id/score
+  // e recarrega os grupos do backend — NÃO usa setGroups para evitar
+  // que o GroupService.save apague e recrie os grupos perdendo resultados.
   const saveScore = async (
     groupId: string,
     matchId: string,
-    payload: { score1: number; score2: number; wo?: 1 | 2; sets?: Set[] }
+    payload: { score1: number; score2: number; wo?: 1 | 2; sets?: Set[] },
   ) => {
     if (!tournamentId) return;
-    setGroups((prev) =>
-      prev.map((g) => {
-        if (g.id !== groupId) return g;
-        const updatedMatches = g.matches.map((m) =>
-          m.id === matchId
-            ? { ...m, ...payload, played: true }
-            : m
-        );
-        return recalculateStandings({ ...g, matches: updatedMatches });
-      })
-    );
-    // TODO: quando backend estiver pronto, chamar GroupService.saveScore() aqui
-    // e usar a resposta do servidor ao invés de recalcular no cliente
+    try {
+      await GroupService.saveScore(tournamentId, groupId, matchId, payload);
+      // Recarrega os grupos do backend para refletir standings atualizados
+      await load();
+    } catch (e: any) {
+      throw e;
+    }
   };
 
   const resetGroups = async () => {
@@ -239,11 +272,13 @@ export function useSchedule(tournamentId: string | undefined) {
     }
   }, [tournamentId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const updateSchedule = async (
     matchId: string,
-    data: { court: string; date: string; time: string }
+    data: { court: string; date: string; time: string },
   ) => {
     if (!tournamentId) return;
     await ScheduleService.update(tournamentId, matchId, data);

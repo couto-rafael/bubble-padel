@@ -214,10 +214,25 @@ export const GroupService = {
   },
 
   save: async (tournamentId: string, groups: Group[]): Promise<Group[]> => {
+    const payload = {
+      groups: groups.map((g) => ({
+        name: g.name,
+        category: g.category,
+        teams: g.teams.map((t: any, index: number) => {
+          // Pode ser Team (campo id) ou GroupTeam retornado do backend (campo teamId ou team.id)
+          const id = t.id ?? t.teamId ?? t.team?.id;
+          return {
+            teamId: id,
+            position: index,
+          };
+        }),
+      })),
+    };
+
     const res = await fetch(`${API_URL}/tournaments/${tournamentId}/groups`, {
       method: "POST",
       headers: authHeaders(),
-      body: JSON.stringify({ groups }),
+      body: JSON.stringify(payload),
     });
     return handleResponse<Group[]>(res);
   },

@@ -1,3 +1,4 @@
+import { useGroups } from "./hooks";
 import { useState, useRef } from "react";
 import type { Team, Group, GroupTeam, Match } from "./types";
 import {
@@ -65,15 +66,23 @@ export default function TabGrupos({
   tournament,
   onGroupsChange,
 }: TabGruposProps) {
-  const [groups, setGroupsRaw] = useState<Group[]>([]);
+  const {
+    groups,
+    setGroups: saveGroups,
+    saveScore, // ← adiciona isso
+    resetGroups,
+    loading: groupsLoading,
+  } = useGroups(tournament.id);
+
   const setGroups = (val: Group[] | ((prev: Group[]) => Group[])) => {
-    setGroupsRaw((prev) => {
+    saveGroups((prev: Group[]) => {
       const next = typeof val === "function" ? val(prev) : val;
       onGroupsChange?.(next);
       return next;
     });
   };
-  const [generated, setGenerated] = useState(false);
+
+  const generated = groups.length > 0;
   const [scoreModal, setScoreModal] = useState<{
     open: boolean;
     groupId: string;
@@ -104,18 +113,17 @@ export default function TabGrupos({
       allGroups.push(...generateGroupsForCategory(cat, catTeams, idx));
     });
     setGroups(allGroups);
-    setGenerated(true);
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (
       !window.confirm(
         "Deseja refazer os grupos? Todos os sorteios serão perdidos.",
       )
     )
       return;
-    setGroups([]);
-    setGenerated(false);
+    await resetGroups();
+    onGroupsChange?.([]);
   };
 
   // ── Drag & Drop ───────────────────────────────────────────────────────────
@@ -148,7 +156,7 @@ export default function TabGrupos({
       },
     ];
     setGroups(
-      groups.map((g) => {
+      groups.map((g: Group) => {
         if (g.id === srcId)
           return recalculateStandings({
             ...g,
@@ -170,6 +178,7 @@ export default function TabGrupos({
   const regen = (gid: string, t: GroupTeam[]): Match[] => {
     const mk = (i: number, a: string, b: string): Match => ({
       id: `${gid}_m${i}`,
+      groupId: gid,
       team1Id: a,
       team2Id: b,
       score1: null,
@@ -225,7 +234,7 @@ export default function TabGrupos({
     setShowWO(false);
   };
 
-  const handleSaveScore = () => {
+  const handleSaveScore = async () => {
     if (!scoreModal.match) return;
     const s1 = parseInt(scoreInput.score1),
       s2 = parseInt(scoreInput.score2);
@@ -238,7 +247,6 @@ export default function TabGrupos({
       return;
     }
 
-    // Valida sets adicionais
     const parsedSets: Array<{ s1: number; s2: number }> = [{ s1, s2 }];
     for (let i = 0; i < sets.length; i++) {
       const ps1 = parseInt(sets[i].s1),
@@ -254,7 +262,6 @@ export default function TabGrupos({
       parsedSets.push({ s1: ps1, s2: ps2 });
     }
 
-    // Conta vitórias por set para definir o vencedor
     let wins1 = 0,
       wins2 = 0;
     for (const ps of parsedSets) {
@@ -266,54 +273,36 @@ export default function TabGrupos({
       return;
     }
 
-    // score1/score2 = placar do 1º set (para exibição simples); sets[] guarda todos
-    setGroups(
-      groups.map((g) => {
-        if (g.id !== scoreModal.groupId) return g;
-        return recalculateStandings({
-          ...g,
-          matches: g.matches.map((m) =>
-            m.id === scoreModal.match!.id
-              ? ({
-                  ...m,
-                  score1: parsedSets[0].s1,
-                  score2: parsedSets[0].s2,
-                  played: true,
-                  wo: undefined,
-                  sets: parsedSets,
-                } as any)
-              : m,
-          ),
-        });
-      }),
-    );
+    try {
+      await saveScore(scoreModal.groupId, scoreModal.match.id, {
+        score1: parsedSets[0].s1,
+        score2: parsedSets[0].s2,
+        sets: parsedSets,
+      });
+    } catch {
+      alert("Erro ao salvar resultado. Tente novamente.");
+      return;
+    }
     setScoreModal({ open: false, groupId: "", match: null });
     setSets([]);
     setShowSets(false);
     setShowWO(false);
   };
 
-  const handleWO = (winner: 1 | 2) => {
+  const handleWO = async (winner: 1 | 2) => {
     if (!scoreModal.match) return;
-    const s1 = winner === 1 ? 9 : 0;
-    const s2 = winner === 2 ? 9 : 0;
-    setGroups(
-      groups.map((g) => {
-        if (g.id !== scoreModal.groupId) return g;
-        return recalculateStandings({
-          ...g,
-          matches: g.matches.map((m) =>
-            m.id === scoreModal.match!.id
-              ? { ...m, score1: s1, score2: s2, played: true, wo: winner }
-              : m,
-          ),
-        });
-      }),
-    );
+    try {
+      await saveScore(scoreModal.groupId, scoreModal.match.id, {
+        score1: winner === 1 ? 9 : 0,
+        score2: winner === 2 ? 9 : 0,
+        wo: winner,
+      });
+    } catch {
+      alert("Erro ao registrar W.O.");
+      return;
+    }
     setScoreModal({ open: false, groupId: "", match: null });
     setShowWO(false);
-    setSets([]);
-    setShowSets(false);
   };
 
   const getTeamName = (group: Group, teamId: string) => {
