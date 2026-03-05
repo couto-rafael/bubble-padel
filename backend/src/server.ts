@@ -5,7 +5,7 @@ import { tournamentRoutes } from "./routes/tournaments";
 import { teamRoutes } from "./routes/teams";
 import { groupRoutes } from "./routes/groups";
 import { matchRoutes } from "./routes/matches";
-import { scheduleRoutes } from "./routes/schedules";
+import { scheduleRoutes, scheduleTournamentRoutes } from "./routes/schedules";
 import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
@@ -25,8 +25,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/tournaments", tournamentRoutes);
 app.use("/api/tournaments", teamRoutes);
 app.use("/api/tournaments", groupRoutes);
+app.use("/api/tournaments", scheduleTournamentRoutes); // GET /:tournamentId/schedule
 app.use("/api/matches", matchRoutes);
-app.use("/api/matches", scheduleRoutes);
+app.use("/api/matches", scheduleRoutes); // PATCH /:id/schedule
 
 // Health check
 app.get("/api/health", (_req, res) => {

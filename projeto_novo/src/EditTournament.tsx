@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import DashboardHeader from "./DashboardHeader";
 import { useTournaments, useTeams } from "./hooks";
-import type { Tournament, Group } from "./types";
+import type { Tournament } from "./types";
 import TabGrupos from "./TabGrupos";
 import TabJogos from "./TabJogos";
 
@@ -137,7 +137,6 @@ const EditTournament = () => {
     updateTeam,
     deleteTeam,
   } = useTeams(id);
-  const [sharedGroups, setSharedGroups] = useState<Group[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("geral");
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1463,20 +1462,12 @@ const EditTournament = () => {
 
           {/* TAB CONTENT - Grupos */}
           {activeTab === "grupos" && (
-            <TabGrupos
-              teams={teams}
-              tournament={tournament}
-              onGroupsChange={setSharedGroups}
-            />
+            <TabGrupos teams={teams} tournament={tournament} />
           )}
 
           {/* TAB CONTENT - Jogos */}
           {activeTab === "jogos" && (
-            <TabJogos
-              teams={teams}
-              tournament={tournament}
-              groups={sharedGroups}
-            />
+            <TabJogos teams={teams} tournament={tournament} />
           )}
 
           {/* TAB CONTENT - Configurações */}

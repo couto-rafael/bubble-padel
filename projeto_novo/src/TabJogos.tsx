@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import type { Team, Group, Match } from "./utils/groupUtils";
-import { useGroups } from "./hooks";
+import { useGroups, useSchedule } from "./hooks";
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 
@@ -95,8 +95,14 @@ function matchLabel(group: Group, matchIndex: number) {
 
 // ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────────────
 
-export default function TabJogos({ teams, tournament, groups }: TabJogosProps) {
+export default function TabJogos({
+  teams,
+  tournament,
+}: Omit<TabJogosProps, "groups">) {
   const courts = tournament.courts?.length ? tournament.courts : DEFAULT_COURTS;
+
+  // Busca grupos diretamente do backend — garante sincronismo com TabGrupos
+  const { groups } = useGroups(tournament.id);
 
   // ── Estado dos filtros ────────────────────────────────────────────────────
   const [courtFilter, setCourtFilter] = useState<string>("todas");
@@ -109,9 +115,7 @@ export default function TabJogos({ teams, tournament, groups }: TabJogosProps) {
 
   // ── Estado de agendamento ─────────────────────────────────────────────────
   // Guarda { [matchId]: { court, date, time } }
-  const [schedule, setSchedule] = useState<
-    Record<string, { court: string; date: string; time: string }>
-  >({});
+  const { schedule, updateSchedule } = useSchedule(tournament.id);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ court: "", date: "", time: "" });
 
@@ -179,8 +183,14 @@ export default function TabJogos({ teams, tournament, groups }: TabJogosProps) {
     setEditingId(matchId);
   };
 
-  const saveEdit = (matchId: string) => {
-    setSchedule((prev) => ({ ...prev, [matchId]: { ...editForm } }));
+  const saveEdit = async (matchId: string) => {
+    if (editForm.court || editForm.date || editForm.time) {
+      await updateSchedule(matchId, {
+        court: editForm.court,
+        date: editForm.date,
+        time: editForm.time,
+      });
+    }
     setEditingId(null);
   };
 
@@ -713,7 +723,9 @@ export default function TabJogos({ teams, tournament, groups }: TabJogosProps) {
                           Cancelar
                         </button>
                         <button
-                          onClick={() => saveEdit(sm.match.id)}
+                          onClick={async () => {
+                            await saveEdit(sm.match.id);
+                          }}
                           className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
                         >
                           Salvar

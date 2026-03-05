@@ -16,6 +16,7 @@ import {
   ScheduleService,
 } from "../services/api";
 import type { Tournament, Team, Group, Schedule, Set } from "../types";
+import { recalculateStandings } from "../utils/groupUtils";
 
 // ─── useTournaments ───────────────────────────────────────────────────────────
 // Lista todos os torneios do clube logado.
@@ -181,7 +182,10 @@ export function useGroups(tournamentId: string | undefined) {
     try {
       setLoading(true);
       const data = await GroupService.list(tournamentId);
-      setGroupsRaw(data);
+      // Recalcula qualified no frontend após carregar do banco,
+      // pois o backend não define quem classifica
+      const withQualified = data.map((g: Group) => recalculateStandings(g));
+      setGroupsRaw(withQualified);
     } catch (e: any) {
       setError(e.message);
     } finally {
