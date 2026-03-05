@@ -83,7 +83,6 @@ export const AuthService = {
 // TORNEIOS
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Normaliza dados do backend (enums maiúsculos, _count) para o formato do frontend
 function normalizeTournament(t: any): Tournament {
   return {
     ...t,
@@ -219,12 +218,8 @@ export const GroupService = {
         name: g.name,
         category: g.category,
         teams: g.teams.map((t: any, index: number) => {
-          // Pode ser Team (campo id) ou GroupTeam retornado do backend (campo teamId ou team.id)
           const id = t.id ?? t.teamId ?? t.team?.id;
-          return {
-            teamId: id,
-            position: index,
-          };
+          return { teamId: id, position: index };
         }),
       })),
     };
@@ -293,5 +288,73 @@ export const ScheduleService = {
       headers: authHeaders(),
       body: JSON.stringify(data),
     });
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PLAYOFFS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface PlayoffMatchData {
+  id: string;
+  bracketId: string;
+  roundSize: number; // 8=oitavas, 4=quartas, 2=semis, 1=final
+  matchIndex: number;
+  team1Id: string | null;
+  team2Id: string | null;
+  team1Label: string | null;
+  team2Label: string | null;
+  score1: number | null;
+  score2: number | null;
+  winnerId: string | null;
+  isBye: boolean;
+  played: boolean;
+}
+
+export interface PlayoffBracketData {
+  id: string;
+  tournamentId: string;
+  category: string;
+  matches: PlayoffMatchData[];
+}
+
+export const PlayoffService = {
+  list: async (tournamentId: string): Promise<PlayoffBracketData[]> => {
+    const res = await fetch(`${API_URL}/tournaments/${tournamentId}/playoffs`, {
+      headers: authHeaders(),
+    });
+    return handleResponse<PlayoffBracketData[]>(res);
+  },
+
+  save: async (
+    tournamentId: string,
+    category: string,
+    matches: Omit<PlayoffMatchData, "id" | "bracketId">[],
+  ): Promise<PlayoffBracketData> => {
+    const res = await fetch(`${API_URL}/tournaments/${tournamentId}/playoffs`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ category, matches }),
+    });
+    return handleResponse<PlayoffBracketData>(res);
+  },
+
+  updateMatch: async (
+    matchId: string,
+    data: { score1: number; score2: number; winnerId: string },
+  ): Promise<PlayoffBracketData> => {
+    const res = await fetch(`${API_URL}/playoffs/matches/${matchId}`, {
+      method: "PATCH",
+      headers: authHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<PlayoffBracketData>(res);
+  },
+
+  reset: async (tournamentId: string, category: string): Promise<void> => {
+    await fetch(
+      `${API_URL}/tournaments/${tournamentId}/playoffs/${encodeURIComponent(category)}`,
+      { method: "DELETE", headers: authHeaders() },
+    );
   },
 };

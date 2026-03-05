@@ -14,12 +14,13 @@ import {
   TeamService,
   GroupService,
   ScheduleService,
+  PlayoffService,
+  type PlayoffBracketData,
 } from "../services/api";
 import type { Tournament, Team, Group, Schedule, Set } from "../types";
 import { recalculateStandings } from "../utils/groupUtils";
 
 // ─── useTournaments ───────────────────────────────────────────────────────────
-// Lista todos os torneios do clube logado.
 
 export function useTournaments() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -75,7 +76,6 @@ export function useTournaments() {
 }
 
 // ─── useTournament ────────────────────────────────────────────────────────────
-// Torneio individual por ID.
 
 export function useTournament(id: string | undefined) {
   const [tournament, setTournament] = useState<Tournament | null>(null);
@@ -110,7 +110,6 @@ export function useTournament(id: string | undefined) {
 }
 
 // ─── useTeams ─────────────────────────────────────────────────────────────────
-// Duplas inscritas num torneio.
 
 export function useTeams(tournamentId: string | undefined) {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -167,14 +166,12 @@ export function useTeams(tournamentId: string | undefined) {
 }
 
 // ─── useGroups ────────────────────────────────────────────────────────────────
-// Grupos e partidas de um torneio.
 
 export function useGroups(tournamentId: string | undefined) {
   const [groups, setGroupsRaw] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Ref para debounce — cancela saves duplicados causados pelo React StrictMode
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const load = useCallback(async () => {
@@ -182,8 +179,6 @@ export function useGroups(tournamentId: string | undefined) {
     try {
       setLoading(true);
       const data = await GroupService.list(tournamentId);
-      // Recalcula qualified no frontend após carregar do banco,
-      // pois o backend não define quem classifica
       const withQualified = data.map((g: Group) => recalculateStandings(g));
       setGroupsRaw(withQualified);
     } catch (e: any) {
@@ -197,29 +192,22 @@ export function useGroups(tournamentId: string | undefined) {
     load();
   }, [load]);
 
-  // Usado apenas ao gerar/reorganizar grupos — NÃO usar para salvar resultados.
-  // Debounce de 300ms evita duplo disparo do React StrictMode.
   const setGroups = useCallback(
     (val: Group[] | ((prev: Group[]) => Group[])) => {
       setGroupsRaw((prev) => {
         const next = typeof val === "function" ? val(prev) : val;
-
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = setTimeout(() => {
           if (tournamentId) {
             GroupService.save(tournamentId, next).catch(console.error);
           }
         }, 300);
-
         return next;
       });
     },
     [tournamentId],
   );
 
-  // Salva resultado de uma partida via PATCH /matches/:id/score
-  // e recarrega os grupos do backend — NÃO usa setGroups para evitar
-  // que o GroupService.save apague e recrie os grupos perdendo resultados.
   const saveScore = async (
     groupId: string,
     matchId: string,
@@ -228,7 +216,6 @@ export function useGroups(tournamentId: string | undefined) {
     if (!tournamentId) return;
     try {
       await GroupService.saveScore(tournamentId, groupId, matchId, payload);
-      // Recarrega os grupos do backend para refletir standings atualizados
       await load();
     } catch (e: any) {
       throw e;
@@ -260,7 +247,6 @@ export function useGroups(tournamentId: string | undefined) {
 }
 
 // ─── useSchedule ──────────────────────────────────────────────────────────────
-// Agendamento de jogos (quadra, data, horário).
 
 export function useSchedule(tournamentId: string | undefined) {
   const [schedule, setScheduleRaw] = useState<Record<string, Schedule>>({});
@@ -290,4 +276,83 @@ export function useSchedule(tournamentId: string | undefined) {
   };
 
   return { schedule, loading, reload: load, updateSchedule };
+}
+
+// ─── usePlayoffs ──────────────────────────────────────────────────────────────
+// Brackets de playoff de um torneio.
+
+export function usePlayoffs(tournamentId: string | undefined) {
+  const [brackets, setBrackets] = useState<PlayoffBracketData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    if (!tournamentId) return;
+    try {
+      setLoading(true);
+      const data = await PlayoffService.list(tournamentId);
+      setBrackets(data);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [tournamentId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // Gera e salva o bracket de uma categoria no backend
+  const generateBracket = async (
+    category: string,
+    matches: Omit<PlayoffBracketData["matches"][number], "id" | "bracketId">[],
+  ) => {
+    if (!tournamentId) return;
+    const saved = await PlayoffService.save(tournamentId, category, matches);
+    setBrackets((prev) => {
+      const filtered = prev.filter((b) => b.category !== category);
+      return [...filtered, saved];
+    });
+    return saved;
+  };
+
+  // Registra resultado de uma partida e atualiza o bracket
+  const saveMatchResult = async (
+    matchId: string,
+    score1: number,
+    score2: number,
+    winnerId: string,
+  ) => {
+    if (!tournamentId) return;
+    const updated = await PlayoffService.updateMatch(matchId, {
+      score1,
+      score2,
+      winnerId,
+    });
+    // Substitui o bracket atualizado
+    setBrackets((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
+    return updated;
+  };
+
+  // Remove bracket de uma categoria
+  const resetBracket = async (category: string) => {
+    if (!tournamentId) return;
+    await PlayoffService.reset(tournamentId, category);
+    setBrackets((prev) => prev.filter((b) => b.category !== category));
+  };
+
+  const getBracketByCategory = (category: string) =>
+    brackets.find((b) => b.category === category) ?? null;
+
+  return {
+    brackets,
+    loading,
+    error,
+    reload: load,
+    generateBracket,
+    saveMatchResult,
+    resetBracket,
+    getBracketByCategory,
+  };
 }

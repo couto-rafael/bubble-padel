@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import DashboardHeader from "./DashboardHeader";
-import { useTournaments, useTeams } from "./hooks";
+import { useTournaments, useTeams, useGroups } from "./hooks";
 import type { Tournament } from "./types";
 import TabGrupos from "./TabGrupos";
 import TabJogos from "./TabJogos";
+import TabPlayoffs from "./TabPlayoffs";
 
 // ─── TIPOS ────────────────────────────────────────────────
 type Tab =
@@ -14,6 +15,7 @@ type Tab =
   | "financeiro"
   | "grupos"
   | "jogos"
+  | "playoffs"
   | "configuracoes";
 
 // ─── STATUS BADGE ─────────────────────────────────────────
@@ -137,6 +139,7 @@ const EditTournament = () => {
     updateTeam,
     deleteTeam,
   } = useTeams(id);
+  const { groups } = useGroups(id);
   const [activeTab, setActiveTab] = useState<Tab>("geral");
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
@@ -410,6 +413,11 @@ const EditTournament = () => {
       key: "jogos",
       label: "Jogos",
       icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+    },
+    {
+      key: "playoffs",
+      label: "Playoffs",
+      icon: "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z",
     },
     {
       key: "configuracoes",
@@ -1468,6 +1476,15 @@ const EditTournament = () => {
           {/* TAB CONTENT - Jogos */}
           {activeTab === "jogos" && (
             <TabJogos teams={teams} tournament={tournament} />
+          )}
+
+          {/* TAB CONTENT - Playoffs */}
+          {activeTab === "playoffs" && (
+            <TabPlayoffs
+              tournament={tournament}
+              groups={groups}
+              teams={teams}
+            />
           )}
 
           {/* TAB CONTENT - Configurações */}

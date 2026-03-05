@@ -81,7 +81,8 @@ model Tournament {
   createdAt              DateTime         @default(now())
   updatedAt              DateTime         @updatedAt
   teams                  Team[]
-  groups                 Group[]
+groups       Group[]
+  playoffs     PlayoffBracket[]   // ← adiciona essa linha
   @@map("tournaments")
 }
 
@@ -187,4 +188,35 @@ model Schedule {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   @@map("schedules")
+}
+
+model PlayoffBracket {
+  id           String         @id @default(cuid())
+  tournamentId String
+  tournament   Tournament     @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  category     String
+  matches      PlayoffMatch[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@unique([tournamentId, category])
+}
+
+model PlayoffMatch {
+  id         String         @id @default(cuid())
+  bracketId  String
+  bracket    PlayoffBracket @relation(fields: [bracketId], references: [id], onDelete: Cascade)
+  roundSize  Int
+  matchIndex Int
+  team1Id    String?
+  team2Id    String?
+  team1Label String?
+  team2Label String?
+  score1     Int?
+  score2     Int?
+  winnerId   String?
+  isBye      Boolean        @default(false)
+  played     Boolean        @default(false)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
 }
