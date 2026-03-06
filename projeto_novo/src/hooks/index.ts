@@ -1,11 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // HOOKS DE DADOS
-//
-// Cada hook encapsula uma entidade e usa os services de api.ts.
-// Quando React Query for instalado, substituir useState+useEffect
-// por useQuery+useMutation — a interface externa dos hooks não muda.
-//
-// Importar sempre de "@/hooks"
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -15,10 +9,63 @@ import {
   GroupService,
   ScheduleService,
   PlayoffService,
+  ClubService,
   type PlayoffBracketData,
+  type ClubProfile,
 } from "../services/api";
 import type { Tournament, Team, Group, Schedule, Set } from "../types";
 import { recalculateStandings } from "../utils/groupUtils";
+
+// ─── useClub ──────────────────────────────────────────────────────────────────
+
+export function useClub() {
+  const [club, setClub] = useState<ClubProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await ClubService.getProfile();
+      setClub(data);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const updateClub = async (data: Partial<ClubProfile>) => {
+    setSaving(true);
+    try {
+      const updated = await ClubService.updateProfile(data);
+      setClub(updated);
+      return updated;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Perfil é considerado completo se tiver nome e pelo menos 1 quadra
+  const isProfileComplete = Boolean(
+    club && club.name?.trim() && club.courts?.length > 0,
+  );
+
+  return {
+    club,
+    loading,
+    error,
+    saving,
+    reload: load,
+    updateClub,
+    isProfileComplete,
+  };
+}
 
 // ─── useTournaments ───────────────────────────────────────────────────────────
 
@@ -279,7 +326,6 @@ export function useSchedule(tournamentId: string | undefined) {
 }
 
 // ─── usePlayoffs ──────────────────────────────────────────────────────────────
-// Brackets de playoff de um torneio.
 
 export function usePlayoffs(tournamentId: string | undefined) {
   const [brackets, setBrackets] = useState<PlayoffBracketData[]>([]);
@@ -303,7 +349,6 @@ export function usePlayoffs(tournamentId: string | undefined) {
     load();
   }, [load]);
 
-  // Gera e salva o bracket de uma categoria no backend
   const generateBracket = async (
     category: string,
     matches: Omit<PlayoffBracketData["matches"][number], "id" | "bracketId">[],
@@ -317,7 +362,6 @@ export function usePlayoffs(tournamentId: string | undefined) {
     return saved;
   };
 
-  // Registra resultado de uma partida e atualiza o bracket
   const saveMatchResult = async (
     matchId: string,
     score1: number,
@@ -330,12 +374,10 @@ export function usePlayoffs(tournamentId: string | undefined) {
       score2,
       winnerId,
     });
-    // Substitui o bracket atualizado
     setBrackets((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
     return updated;
   };
 
-  // Remove bracket de uma categoria
   const resetBracket = async (category: string) => {
     if (!tournamentId) return;
     await PlayoffService.reset(tournamentId, category);

@@ -73,8 +73,8 @@ export interface Tournament {
   pixKey: string;
   clubSede: string;
   categories: string[];
-  courts: string[];       // quadras do torneio
-  clubId?: string;        // FK para o clube organizador
+  courts: string[]; // quadras do torneio
+  clubId?: string; // FK para o clube organizador
   createdAt: string;
   updatedAt: string;
 }
@@ -83,7 +83,7 @@ export interface Tournament {
 
 export interface Team {
   id: string;
-  tournamentId: string;   // FK para o torneio
+  tournamentId: string; // FK para o torneio
   player1Name: string;
   player1Email: string;
   player2Name: string;
@@ -105,14 +105,14 @@ export interface Set {
 
 export interface Match {
   id: string;
-  groupId: string;         // FK para o grupo
+  groupId: string; // FK para o grupo
   team1Id: string;
   team2Id: string;
   score1: number | null;
   score2: number | null;
   played: boolean;
-  wo?: 1 | 2;             // 1 = team1 venceu por WO, 2 = team2 venceu por WO
-  sets?: Set[];           // resultado por sets
+  wo?: 1 | 2; // 1 = team1 venceu por WO, 2 = team2 venceu por WO
+  sets?: Set[]; // resultado por sets
 }
 
 export interface GroupTeam {
@@ -128,8 +128,8 @@ export interface GroupTeam {
 
 export interface Group {
   id: string;
-  tournamentId: string;   // FK para o torneio
-  name: string;           // "Grupo A", "Grupo B", ...
+  tournamentId: string; // FK para o torneio
+  name: string; // "Grupo A", "Grupo B", ...
   category: string;
   teams: GroupTeam[];
   matches: Match[];
@@ -140,8 +140,8 @@ export interface Group {
 export interface Schedule {
   matchId: string;
   court: string;
-  date: string;           // ISO "2025-03-15"
-  time: string;           // "14:00"
+  date: string; // ISO "2025-03-15"
+  time: string; // "14:00"
 }
 
 // ─── PLAYOFFS (futuro) ────────────────────────────────────────────────────────

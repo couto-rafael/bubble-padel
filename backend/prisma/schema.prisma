@@ -26,18 +26,24 @@ enum UserType {
 }
 
 model Club {
-  id          String       @id @default(cuid())
-  userId      String       @unique
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name        String
-  cnpj        String?
-  city        String       @default("")
-  state       String       @default("")
-  phone       String?
-  logoUrl     String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  tournaments Tournament[]
+  id                String       @id @default(cuid())
+  userId            String       @unique
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name              String
+  cnpj              String?
+  city              String       @default("")
+  state             String       @default("")
+  phone             String?
+  logoUrl           String?
+  // ─── campos de estrutura para torneios ───
+  courts            String[]     @default([])
+  matchDuration     Int          @default(60)
+  defaultStartTime  String       @default("08:00")
+  defaultEndTime    String       @default("20:00")
+  // ─────────────────────────────────────────
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  tournaments       Tournament[]
   @@map("clubs")
 }
 
@@ -81,8 +87,8 @@ model Tournament {
   createdAt              DateTime         @default(now())
   updatedAt              DateTime         @updatedAt
   teams                  Team[]
-groups       Group[]
-  playoffs     PlayoffBracket[]   // ← adiciona essa linha
+  groups                 Group[]
+  playoffs               PlayoffBracket[]
   @@map("tournaments")
 }
 

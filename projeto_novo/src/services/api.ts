@@ -80,6 +80,45 @@ export const AuthService = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// CLUBE
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface ClubProfile {
+  id: string;
+  userId: string;
+  name: string;
+  cnpj: string | null;
+  city: string;
+  state: string;
+  phone: string | null;
+  logoUrl: string | null;
+  courts: string[];
+  matchDuration: number;
+  defaultStartTime: string;
+  defaultEndTime: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const ClubService = {
+  getProfile: async (): Promise<ClubProfile> => {
+    const res = await fetch(`${API_URL}/club/profile`, {
+      headers: authHeaders(),
+    });
+    return handleResponse<ClubProfile>(res);
+  },
+
+  updateProfile: async (data: Partial<ClubProfile>): Promise<ClubProfile> => {
+    const res = await fetch(`${API_URL}/club/profile`, {
+      method: "PATCH",
+      headers: authHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<ClubProfile>(res);
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // TORNEIOS
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -298,7 +337,7 @@ export const ScheduleService = {
 export interface PlayoffMatchData {
   id: string;
   bracketId: string;
-  roundSize: number; // 8=oitavas, 4=quartas, 2=semis, 1=final
+  roundSize: number;
   matchIndex: number;
   team1Id: string | null;
   team2Id: string | null;

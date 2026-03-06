@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardHeader from "./DashboardHeader";
-import { useTournaments } from "./hooks";
+import { useTournaments, useClub } from "./hooks";
 
 // ─── tipos ────────────────────────────────────────────────
 type Step =
@@ -239,8 +239,27 @@ const generateDaysBetween = (start: string, end: string): DaySchedule[] => {
 const CreateTournament = () => {
   const navigate = useNavigate();
   const { createTournament } = useTournaments();
+  const { club, isProfileComplete, loading: clubLoading } = useClub();
   const [currentStep, setCurrentStep] = useState<Step>("informacoes");
   const [form, setForm] = useState<TournamentForm>(INITIAL_FORM);
+
+  // Pre-fill courts and times from club profile
+  useEffect(() => {
+    if (!club) return;
+    setForm((prev) => ({
+      ...prev,
+      courts: club.courts?.length > 0 ? [...club.courts] : prev.courts,
+      matchDuration: club.matchDuration
+        ? String(club.matchDuration)
+        : prev.matchDuration,
+      clubSede: club.name || prev.clubSede,
+      schedules: prev.schedules.map((s) => ({
+        ...s,
+        startTime: club.defaultStartTime || s.startTime,
+        endTime: club.defaultEndTime || s.endTime,
+      })),
+    }));
+  }, [club]);
   const [dateErrors, setDateErrors] = useState({
     registrationStartDate: "",
     registrationEndDate: "",
@@ -654,6 +673,56 @@ const CreateTournament = () => {
       setIsSubmitting(false);
     }
   };
+
+  // Block if club profile is incomplete
+  if (!clubLoading && !isProfileComplete) {
+    return (
+      <div className="min-h-screen bg-gray-50 text-gray-900">
+        <DashboardHeader activePage="tournaments" />
+        <main className="pt-20 min-h-screen flex items-center justify-center px-4">
+          <div className="max-w-md w-full bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm">
+            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg
+                className="w-8 h-8 text-orange-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.07 16.5c-.77.833.193 2.5 1.732 2.5z"
+                />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              Complete seu perfil antes de criar torneios
+            </h2>
+            <p className="text-gray-500 text-sm mb-6">
+              Você precisa cadastrar pelo menos <strong>uma quadra</strong> no
+              seu perfil de clube. As quadras serão pré-preenchidas
+              automaticamente em cada torneio.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="flex-1 py-3 border border-gray-300 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                Voltar ao Dashboard
+              </button>
+              <button
+                onClick={() => navigate("/dashboard/settings?welcome=true")}
+                className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
+              >
+                Completar Perfil
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">

@@ -1,24 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import DashboardHeader from "./DashboardHeader";
+import { useClub, useTournaments } from "./hooks";
+import { useAuth } from "./contexts/AuthContext";
 
-// ─── mock ─────────────────────────────────────────────────
-const CLUB = {
-  name: "",
-  cnpj: "",
-  email: "",
-  phone: "",
-  slogan: "",
-  description: "",
-  logoUrl: null as string | null,
-};
+const INPUT_CLS =
+  "w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";
+const LABEL_CLS = "block text-sm font-medium text-gray-600 mb-2";
 
-const ACCOUNT = {
-  email: "contato@clube.com",
-  clubName: "Clube Exemplo",
-  memberSince: "01 de Janeiro de 2024",
-};
-
-// ─── sidebar items ────────────────────────────────────────
 const SIDEBAR = [
   {
     key: "perfil",
@@ -58,27 +47,102 @@ const SIDEBAR = [
 ] as const;
 type SidebarKey = (typeof SIDEBAR)[number]["key"];
 
-// ─── input styles (shared) ────────────────────────────────
-const INPUT_CLS =
-  "w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";
-const LABEL_CLS = "block text-sm font-medium text-gray-600 mb-2";
+const EXTRAS_LIST = [
+  { key: "estacionamento", label: "Estacionamento", icon: "🚗" },
+  { key: "bar", label: "Bar", icon: "🍺" },
+  { key: "restaurante", label: "Restaurante", icon: "🍽️" },
+  { key: "vestiarios", label: "Vestiários", icon: "🚿" },
+  { key: "salaoFestas", label: "Salão de Festas", icon: "🎉" },
+  { key: "churrasqueira", label: "Churrasqueira", icon: "🔥" },
+  { key: "academia", label: "Academia / Fitness", icon: "💪" },
+  { key: "loja", label: "Loja / Pro Shop", icon: "🛒" },
+  { key: "piscina", label: "Piscina", icon: "🏊" },
+  { key: "areaKids", label: "Área Kids", icon: "🧒" },
+  { key: "wifi", label: "Wi-Fi", icon: "📶" },
+  { key: "arquibancada", label: "Arquibancada", icon: "🏟️" },
+  { key: "iluminacao", label: "Iluminação Noturna", icon: "💡" },
+  { key: "cameras", label: "Câmeras de Segurança", icon: "📷" },
+] as const;
+type ExtraKey = (typeof EXTRAS_LIST)[number]["key"];
+type ExtrasState = Record<ExtraKey, boolean>;
+const INITIAL_EXTRAS: ExtrasState = EXTRAS_LIST.reduce(
+  (acc, e) => ({ ...acc, [e.key]: false }),
+  {} as ExtrasState,
+);
 
-// ─── page ─────────────────────────────────────────────────
+const PAYMENT_METHODS = [
+  { key: "pix", label: "PIX", desc: "Transferência instantânea" },
+  {
+    key: "boleto",
+    label: "Boleto Bancário",
+    desc: "Compensação em até 3 dias úteis",
+  },
+  {
+    key: "creditCard",
+    label: "Cartão de Crédito",
+    desc: "Visa, Mastercard, Elo",
+  },
+  {
+    key: "debitCard",
+    label: "Cartão de Débito",
+    desc: "Débito imediato na conta",
+  },
+] as const;
+
+function formatDate(dateStr?: string): string {
+  if (!dateStr) return "—";
+  try {
+    return new Date(dateStr).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  } catch {
+    return "—";
+  }
+}
+
+const Toggle = ({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: () => void;
+}) => (
+  <button
+    onClick={onChange}
+    className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${checked ? "bg-blue-600" : "bg-gray-300"}`}
+  >
+    <span
+      className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${checked ? "translate-x-6" : "translate-x-0"}`}
+    />
+  </button>
+);
+
 const ClubSettings = () => {
-  const [activeTab, setActiveTab] = useState<SidebarKey>("perfil");
-  const [form, setForm] = useState(CLUB);
-  const [saved, setSaved] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isWelcome = searchParams.get("welcome") === "true";
 
-  // ── state para outras abas
-  const [quadras, setQuadras] = useState<string[]>([]);
-  const [extras, setExtras] = useState({
-    estacionamento: false,
-    bar: false,
-    restaurante: false,
-    vestiarios: false,
-    salaoFestas: false,
-    churrasqueira: false,
+  const { user } = useAuth();
+  const { club, loading, saving, updateClub } = useClub();
+  const { tournaments } = useTournaments();
+
+  const [activeTab, setActiveTab] = useState<SidebarKey>(
+    isWelcome ? "estrutura" : "perfil",
+  );
+  const [showWelcomeBanner, setShowWelcomeBanner] = useState(isWelcome);
+  const [isDirty, setIsDirty] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const [perfil, setPerfil] = useState({
+    name: "",
+    cnpj: "",
+    phone: "",
+    slogan: "",
+    description: "",
   });
+  const [courts, setCourts] = useState<string[]>([]);
+  const [extras, setExtras] = useState<ExtrasState>(INITIAL_EXTRAS);
   const [endereco, setEndereco] = useState({
     cep: "",
     rua: "",
@@ -87,11 +151,17 @@ const ClubSettings = () => {
     cidade: "",
     estado: "",
   });
+  const [mapQuery, setMapQuery] = useState("");
   const [pixKeys, setPixKeys] = useState<
     Array<{ id: string; tipo: string; chave: string }>
   >([]);
+  const [paymentMethods, setPaymentMethods] = useState({
+    pix: false,
+    boleto: false,
+    creditCard: false,
+    debitCard: false,
+  });
   const [contaForm, setContaForm] = useState({
-    emailAtual: ACCOUNT.email,
     senhaAtual: "",
     novaSenha: "",
     confirmarSenha: "",
@@ -102,150 +172,120 @@ const ClubSettings = () => {
     confirmar: false,
   });
 
-  // ── estados para Notificações
-  const [notificacoes, setNotificacoes] = useState({
-    porEmail: true,
-    porWhatsapp: false,
-    peloApp: true,
-    novaDupla: true,
-    categoriaCheia: true,
-    pagamentoConfirmado: true,
-    jogoReagendado: false,
-    resultadoInserido: false,
-  });
-
-  // ── estados para Privacidade
-  const [privacidade, setPrivacidade] = useState({
-    perfilPublico: true,
-    mostrarEstatisticas: true,
-    mostrarConquistas: true,
-    permitirMensagens: true,
-    permitirDesafios: true,
-    mostrarAtividade: false,
-  });
-
-  // ── estados para Permissões
-  const [permissoes, setPermissoes] = useState({
-    criarEditarTorneios: true,
-    acessarDadosFinanceiros: false,
-    gerenciarCategorias: true,
-    fazerTransmissoes: false,
-    editarRegras: true,
-  });
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    setSaved(false);
-  };
-
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
-  };
-
-  const handleAddQuadra = () => {
-    setQuadras((prev) => [...prev, `Quadra ${prev.length + 1}`]);
-  };
-
-  const handleRemoveQuadra = (index: number) => {
-    setQuadras((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleExtraToggle = (key: keyof typeof extras) => {
-    setExtras((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const handleEnderecoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEndereco((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleAddPixKey = () => {
-    setPixKeys((prev) => [
+  useEffect(() => {
+    setPerfil((prev) => ({
       ...prev,
-      { id: Date.now().toString(), tipo: "E-mail", chave: "" },
-    ]);
+      name: club?.name || user?.name || prev.name,
+      cnpj: club?.cnpj || prev.cnpj,
+      phone: club?.phone ?? prev.phone,
+      slogan: prev.slogan,
+      description: prev.description,
+    }));
+    if (club?.courts) setCourts(club.courts);
+    if (club?.city || club?.state) {
+      setEndereco((p) => ({
+        ...p,
+        cidade: club?.city ?? p.cidade,
+        estado: club?.state ?? p.estado,
+      }));
+    }
+  }, [club, user]);
+
+  useEffect(() => {
+    const { rua, numero, bairro, cidade, estado } = endereco;
+    if (cidade && estado) {
+      setMapQuery(
+        [rua, numero, bairro, cidade, estado].filter(Boolean).join(", "),
+      );
+    }
+  }, [endereco]);
+
+  const markDirty = () => {
+    setIsDirty(true);
+    setSaveSuccess(false);
   };
 
-  const handleRemovePixKey = (id: string) => {
-    setPixKeys((prev) => prev.filter((key) => key.id !== id));
+  const dismissWelcome = () => {
+    setShowWelcomeBanner(false);
+    searchParams.delete("welcome");
+    setSearchParams(searchParams);
   };
 
-  const handlePixKeyChange = (
-    id: string,
-    field: "tipo" | "chave",
-    value: string,
-  ) => {
-    setPixKeys((prev) =>
-      prev.map((key) => (key.id === id ? { ...key, [field]: value } : key)),
-    );
+  const handleSaveAll = async () => {
+    await updateClub({
+      name: perfil.name,
+      cnpj: perfil.cnpj,
+      phone: perfil.phone,
+      city: endereco.cidade,
+      state: endereco.estado,
+      courts,
+    } as any);
+    setIsDirty(false);
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 3000);
   };
 
-  const handleContaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setContaForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleNotificacoesToggle = (key: keyof typeof notificacoes) => {
-    setNotificacoes((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const handlePrivacidadeToggle = (key: keyof typeof privacidade) => {
-    setPrivacidade((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const handlePermissoesToggle = (key: keyof typeof permissoes) => {
-    setPermissoes((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  // ── placeholder tabs (não implementados ainda)
-  const PlaceholderTab = ({ title }: { title: string }) => (
-    <div className="flex items-center justify-center h-64">
-      <div className="text-center">
-        <div className="w-16 h-16 bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] border border-gray-200 rounded-xl flex items-center justify-center mx-auto mb-4">
-          <svg
-            className="w-7 h-7 text-gray-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        </div>
-        <h3 className="text-gray-900 font-bold text-lg">{title}</h3>
-        <p className="text-gray-500 text-sm mt-1">
-          Esta seção ainda está em desenvolvimento
-        </p>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-500 text-sm">Carregando...</div>
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <DashboardHeader activePage="dashboard" />
-
       <main className="pt-20 min-h-screen">
         <div className="max-w-[1400px] mx-auto px-6 py-4 sm:py-8">
-          {/* ── NAVEGAÇÃO MOBILE (tabs horizontais) ── */}
+          {showWelcomeBanner && (
+            <div className="mb-6 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-xl">👋</span>
+                </div>
+                <div>
+                  <h3 className="text-white font-bold text-base">
+                    Bem-vindo ao BubblePadel!
+                  </h3>
+                  <p className="text-blue-100 text-sm mt-0.5">
+                    Para criar seu primeiro torneio,{" "}
+                    <strong>cadastre suas quadras</strong> na aba Estrutura.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={dismissWelcome}
+                className="text-white/70 hover:text-white flex-shrink-0"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {/* Mobile nav */}
           <div className="lg:hidden mb-6 overflow-x-auto">
             <div className="flex gap-2 min-w-max pb-2">
               {SIDEBAR.map((item) => (
                 <button
                   key={item.key}
                   onClick={() => setActiveTab(item.key)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                    activeTab === item.key
-                      ? "bg-blue-50 text-blue-600 border border-blue-200"
-                      : "bg-white text-gray-600 border border-gray-300 hover:text-gray-900 hover:border-gray-400"
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${activeTab === item.key ? "bg-blue-50 text-blue-600 border border-blue-200" : "bg-white text-gray-600 border border-gray-300"}`}
                 >
                   <svg
-                    className="w-4 h-4 flex-shrink-0"
+                    className="w-4 h-4"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -264,7 +304,7 @@ const ClubSettings = () => {
           </div>
 
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
-            {/* ── SIDEBAR DESKTOP ── */}
+            {/* Sidebar */}
             <aside className="hidden lg:block w-64 flex-shrink-0">
               <div className="bg-white border border-gray-200 rounded-xl overflow-hidden sticky top-24">
                 <nav className="py-2">
@@ -272,15 +312,11 @@ const ClubSettings = () => {
                     <button
                       key={item.key}
                       onClick={() => setActiveTab(item.key)}
-                      className={`w-full flex items-center gap-3 px-5 py-3 text-sm transition-colors ${
-                        activeTab === item.key
-                          ? "bg-blue-50 text-blue-600 border-l-[3px] border-blue-600"
-                          : "text-gray-500 hover:text-gray-900 hover:bg-gray-50 border-l-[3px] border-transparent"
-                      }`}
+                      className={`w-full flex items-center gap-3 px-5 py-3 text-sm transition-colors ${activeTab === item.key ? "bg-blue-50 text-blue-600 border-l-[3px] border-blue-600" : "text-gray-500 hover:text-gray-900 hover:bg-gray-50 border-l-[3px] border-transparent"}`}
                     >
                       <svg
-                        className="w-4.5 h-4.5 flex-shrink-0"
                         style={{ width: "1.125rem", height: "1.125rem" }}
+                        className="flex-shrink-0"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -299,23 +335,21 @@ const ClubSettings = () => {
               </div>
             </aside>
 
-            {/* ── CENTRO: conteúdo ── */}
+            {/* Content */}
             <div className="flex-1 min-w-0">
-              {/* ── PERFIL ── */}
+              {/* PERFIL */}
               {activeTab === "perfil" && (
                 <div>
                   <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">
                     Perfil do Clube
                   </h2>
-
-                  <div className="bg-white border border-gray-200 rounded-xl sm:rounded-xl p-4 sm:p-6 space-y-4 sm:space-y-5">
-                    {/* Logo upload */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 space-y-4">
                     <div>
                       <label className={LABEL_CLS}>Logo do Clube</label>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5">
-                        <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-white border-2 border-dashed border-gray-300 flex items-center justify-center flex-shrink-0">
+                      <div className="flex items-center gap-5">
+                        <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center flex-shrink-0">
                           <svg
-                            className="w-6 h-6 sm:w-8 sm:h-8 text-gray-500"
+                            className="w-8 h-8 text-gray-400"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -324,123 +358,133 @@ const ClubSettings = () => {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={1.5}
-                              d="M3 9a6 6 0 0112 0v.75a4.5 4.5 0 018.25 2.25c0 2.484-2.25 4.5-5.25 4.5H6.75a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75c-2.484 0-4.5-2.016-4.5-4.5 0-2.178 1.612-3.972 3.75-4.238V9z"
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                             />
                           </svg>
                         </div>
-                        <div className="flex flex-col gap-2">
-                          <button className="self-start px-4 py-2 border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 hover:text-gray-900 hover:border-gray-400 hover:bg-gray-50 transition-colors">
+                        <div>
+                          <button className="px-4 py-2 border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
                             Carregar Logo
                           </button>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 mt-1">
                             PNG ou JPG, máx 2MB. Recomendado 200×200px
                           </p>
                         </div>
                       </div>
                     </div>
-
-                    {/* Nome do Clube */}
+                    {[
+                      {
+                        field: "name",
+                        label: "Nome do Clube",
+                        placeholder: "Nome do seu clube",
+                      },
+                      {
+                        field: "cnpj",
+                        label: "CNPJ",
+                        placeholder: "00.000.000/0000-00",
+                      },
+                      {
+                        field: "phone",
+                        label: "Contato",
+                        placeholder: "(00) 0 0000-0000",
+                      },
+                      {
+                        field: "slogan",
+                        label: "Slogan",
+                        placeholder: "Slogan do seu clube",
+                      },
+                    ].map(({ field, label, placeholder }) => (
+                      <div key={field}>
+                        <label className={LABEL_CLS}>{label}</label>
+                        <input
+                          value={perfil[field as keyof typeof perfil]}
+                          onChange={(e) => {
+                            setPerfil((p) => ({
+                              ...p,
+                              [field]: e.target.value,
+                            }));
+                            markDirty();
+                          }}
+                          placeholder={placeholder}
+                          className={INPUT_CLS}
+                        />
+                      </div>
+                    ))}
                     <div>
-                      <label className={LABEL_CLS}>Nome do Clube</label>
-                      <input
-                        name="name"
-                        value={form.name}
-                        onChange={handleChange}
-                        placeholder="Nome do seu clube"
-                        className={INPUT_CLS}
-                      />
-                    </div>
-
-                    {/* CNPJ */}
-                    <div>
-                      <label className={LABEL_CLS}>CNPJ</label>
-                      <input
-                        name="cnpj"
-                        value={form.cnpj}
-                        onChange={handleChange}
-                        placeholder="00.000.000/0000-00"
-                        className={INPUT_CLS}
-                      />
-                    </div>
-
-                    {/* Email */}
-                    <div>
-                      <label className={LABEL_CLS}>Email</label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={form.email}
-                        onChange={handleChange}
-                        placeholder="email@clube.com"
-                        className={INPUT_CLS}
-                      />
-                    </div>
-
-                    {/* Contato */}
-                    <div>
-                      <label className={LABEL_CLS}>Contato</label>
-                      <input
-                        name="phone"
-                        value={form.phone}
-                        onChange={handleChange}
-                        placeholder="(00) 0 0000-0000"
-                        className={INPUT_CLS}
-                      />
-                    </div>
-
-                    {/* Slogan */}
-                    <div>
-                      <label className={LABEL_CLS}>Slogan</label>
-                      <input
-                        name="slogan"
-                        value={form.slogan}
-                        onChange={handleChange}
-                        placeholder="Slogan do seu clube"
-                        className={INPUT_CLS}
-                      />
-                    </div>
-
-                    {/* Descrição */}
-                    <div>
-                      <label className={LABEL_CLS}>Descrição do Clube</label>
+                      <label className={LABEL_CLS}>Descrição</label>
                       <textarea
-                        name="description"
-                        value={form.description}
-                        onChange={handleChange}
+                        value={perfil.description}
+                        onChange={(e) => {
+                          setPerfil((p) => ({
+                            ...p,
+                            description: e.target.value,
+                          }));
+                          markDirty();
+                        }}
                         rows={4}
                         placeholder="Descrição do clube"
                         className={`${INPUT_CLS} resize-none`}
                       />
                     </div>
 
-                    {/* Salvar */}
-                    <button
-                      onClick={handleSave}
-                      className={`w-full py-3 rounded-lg font-bold text-sm transition-all ${
-                        saved
-                          ? "bg-emerald-50 border border-emerald-300 text-blue-600"
-                          : "bg-blue-600 hover:bg-blue-700 text-gray-900 hover:shadow"
-                      }`}
-                    >
-                      {saved ? "✓ Perfil salvo com sucesso!" : "Salvar Perfil"}
-                    </button>
+                    {/* Tab action buttons */}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
+                      <button
+                        onClick={handleSaveAll}
+                        disabled={saving}
+                        className={`flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white"} disabled:opacity-50`}
+                      >
+                        {saving
+                          ? "Salvando..."
+                          : saveSuccess
+                            ? "✓ Salvo!"
+                            : "Salvar"}
+                      </button>
+                      <div>
+                        <button
+                          onClick={() => setActiveTab("estrutura")}
+                          className="flex items-center gap-2 px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold transition-colors"
+                        >
+                          Próximo: Estrutura
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 5l7 7-7 7"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
 
+              {/* ESTRUTURA */}
               {activeTab === "estrutura" && (
                 <div>
                   <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">
                     Estrutura
                   </h2>
-
-                  <div className="bg-white border border-gray-200 rounded-xl sm:rounded-xl p-4 sm:p-6 space-y-5 sm:space-y-6">
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 space-y-6">
                     {/* Quadras */}
                     <div>
                       <label className={LABEL_CLS}>Quadras</label>
+                      <p className="text-xs text-gray-500 mb-3">
+                        Pré-preenchidas automaticamente ao criar torneios.
+                      </p>
                       <button
-                        onClick={handleAddQuadra}
-                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-semibold transition-colors mb-3"
+                        onClick={() => {
+                          setCourts((p) => [...p, `Quadra ${p.length + 1}`]);
+                          markDirty();
+                        }}
+                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-semibold mb-3"
                       >
                         <svg
                           className="w-4 h-4"
@@ -457,24 +501,41 @@ const ClubSettings = () => {
                         </svg>
                         Adicionar Quadra
                       </button>
-
-                      {quadras.length === 0 ? (
-                        <div className="text-gray-500 text-sm italic">
-                          Nenhuma quadra adicionada ainda
+                      {courts.length === 0 ? (
+                        <div className="text-gray-500 text-sm italic p-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                          Nenhuma quadra adicionada. Adicione pelo menos uma
+                          para criar torneios.
                         </div>
                       ) : (
                         <div className="space-y-2">
-                          {quadras.map((quadra, idx) => (
+                          {courts.map((q, idx) => (
                             <div
                               key={idx}
-                              className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg p-3"
+                              className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg p-3"
                             >
-                              <span className="text-sm text-gray-900 flex-1">
-                                {quadra}
+                              <span className="text-xs text-gray-400 w-5">
+                                {idx + 1}
                               </span>
+                              <input
+                                value={q}
+                                onChange={(e) => {
+                                  setCourts((p) =>
+                                    p.map((c, i) =>
+                                      i === idx ? e.target.value : c,
+                                    ),
+                                  );
+                                  markDirty();
+                                }}
+                                className="text-sm text-gray-900 flex-1 bg-transparent outline-none focus:text-blue-600"
+                              />
                               <button
-                                onClick={() => handleRemoveQuadra(idx)}
-                                className="text-red-400 hover:text-red-300 transition-colors"
+                                onClick={() => {
+                                  setCourts((p) =>
+                                    p.filter((_, i) => i !== idx),
+                                  );
+                                  markDirty();
+                                }}
+                                className="text-red-400 hover:text-red-500"
                               >
                                 <svg
                                   className="w-4 h-4"
@@ -498,135 +559,195 @@ const ClubSettings = () => {
 
                     {/* Extras */}
                     <div>
-                      <label className={LABEL_CLS}>Extras</label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {[
-                          {
-                            key: "estacionamento" as const,
-                            label: "Estacionamento",
-                          },
-                          { key: "bar" as const, label: "Bar" },
-                          { key: "restaurante" as const, label: "Restaurante" },
-                          { key: "vestiarios" as const, label: "Vestiários" },
-                          {
-                            key: "salaoFestas" as const,
-                            label: "Salão de Festas",
-                          },
-                          {
-                            key: "churrasqueira" as const,
-                            label: "Churrasqueira",
-                          },
-                        ].map(({ key, label }) => (
+                      <label className={LABEL_CLS}>Comodidades e Extras</label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {EXTRAS_LIST.map(({ key, label, icon }) => (
                           <label
                             key={key}
-                            className="flex items-center gap-3 cursor-pointer"
+                            className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all select-none ${extras[key] ? "bg-blue-50 border-blue-200" : "bg-white border-gray-200 hover:border-gray-300"}`}
                           >
                             <input
                               type="checkbox"
                               checked={extras[key]}
-                              onChange={() => handleExtraToggle(key)}
-                              className="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-[#7c3aed] focus:ring-offset-0"
+                              onChange={() => {
+                                setExtras((p) => ({ ...p, [key]: !p[key] }));
+                                markDirty();
+                              }}
+                              className="hidden"
                             />
-                            <span className="text-sm text-gray-600">
+                            <span className="text-lg leading-none">{icon}</span>
+                            <span className="text-sm text-gray-700 flex-1">
                               {label}
                             </span>
+                            {extras[key] && (
+                              <svg
+                                className="w-4 h-4 text-blue-600 flex-shrink-0"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            )}
                           </label>
                         ))}
                       </div>
                     </div>
 
-                    {/* Endereço Completo */}
+                    {/* Endereço */}
                     <div>
-                      <label className={LABEL_CLS}>Endereço Completo</label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        <input
-                          name="cep"
-                          value={endereco.cep}
-                          onChange={handleEnderecoChange}
-                          placeholder="00000-000"
-                          className={INPUT_CLS}
-                        />
-                        <input
-                          name="rua"
-                          value={endereco.rua}
-                          onChange={handleEnderecoChange}
-                          placeholder="Rua"
-                          className={INPUT_CLS}
-                        />
-                        <input
-                          name="numero"
-                          value={endereco.numero}
-                          onChange={handleEnderecoChange}
-                          placeholder="Número"
-                          className={INPUT_CLS}
-                        />
-                        <input
-                          name="bairro"
-                          value={endereco.bairro}
-                          onChange={handleEnderecoChange}
-                          placeholder="Bairro"
-                          className={INPUT_CLS}
-                        />
-                        <input
-                          name="cidade"
-                          value={endereco.cidade}
-                          onChange={handleEnderecoChange}
-                          placeholder="Cidade"
-                          className={INPUT_CLS}
-                        />
-                        <input
-                          name="estado"
-                          value={endereco.estado}
-                          onChange={handleEnderecoChange}
-                          placeholder="Estado"
-                          className={INPUT_CLS}
-                        />
+                      <label className={LABEL_CLS}>Endereço</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {[
+                          { name: "cep", placeholder: "CEP" },
+                          { name: "rua", placeholder: "Rua / Avenida" },
+                          { name: "numero", placeholder: "Número" },
+                          { name: "bairro", placeholder: "Bairro" },
+                          { name: "cidade", placeholder: "Cidade" },
+                          { name: "estado", placeholder: "Estado" },
+                        ].map(({ name, placeholder }) => (
+                          <input
+                            key={name}
+                            value={endereco[name as keyof typeof endereco]}
+                            onChange={(e) => {
+                              setEndereco((p) => ({
+                                ...p,
+                                [name]: e.target.value,
+                              }));
+                              markDirty();
+                            }}
+                            placeholder={placeholder}
+                            className={INPUT_CLS}
+                          />
+                        ))}
                       </div>
                     </div>
 
-                    {/* Maps placeholder */}
-                    <div>
-                      <label className={LABEL_CLS}>Maps</label>
-                      <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
-                        <p className="text-gray-500 text-sm">
-                          Google Maps será implementado aqui
+                    {/* Mapa */}
+                    {mapQuery && (
+                      <div>
+                        <label className={LABEL_CLS}>Localização no Mapa</label>
+                        <div className="rounded-xl overflow-hidden border border-gray-200 h-64 bg-gray-100">
+                          <iframe
+                            title="Localização do clube"
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            loading="lazy"
+                            src={`https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Atualizado automaticamente com o endereço acima.
                         </p>
                       </div>
-                    </div>
+                    )}
 
-                    {/* Fotos placeholder */}
-                    <div>
-                      <label className={LABEL_CLS}>Fotos</label>
-                      <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
-                        <p className="text-gray-500 text-sm">
-                          Upload de fotos será implementado aqui
-                        </p>
+                    {/* Botões de ação */}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
+                      <button
+                        onClick={handleSaveAll}
+                        disabled={saving}
+                        className={`flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white"} disabled:opacity-50`}
+                      >
+                        {saving
+                          ? "Salvando..."
+                          : saveSuccess
+                            ? "✓ Salvo!"
+                            : "Salvar"}
+                      </button>
+                      <div>
+                        <button
+                          onClick={() => setActiveTab("financeiro")}
+                          className="flex items-center gap-2 px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold transition-colors"
+                        >
+                          Próximo: Financeiro
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 5l7 7-7 7"
+                            />
+                          </svg>
+                        </button>
                       </div>
                     </div>
-
-                    <button
-                      onClick={handleSave}
-                      className="w-full py-3 rounded-lg font-bold text-sm bg-blue-600 hover:bg-blue-700 text-gray-900 hover:shadow transition-all"
-                    >
-                      Salvar Estrutura
-                    </button>
                   </div>
                 </div>
               )}
 
+              {/* FINANCEIRO */}
               {activeTab === "financeiro" && (
                 <div>
                   <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">
                     Financeiro
                   </h2>
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 space-y-6">
+                    <div>
+                      <label className={LABEL_CLS}>
+                        Métodos de Pagamento Aceitos
+                      </label>
+                      <p className="text-xs text-gray-500 mb-4">
+                        Defina os métodos padrão do seu clube. Podem ser
+                        ajustados em cada torneio.
+                      </p>
+                      <div className="space-y-3">
+                        {PAYMENT_METHODS.map(({ key, label, desc }) => (
+                          <div
+                            key={key}
+                            className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${paymentMethods[key as keyof typeof paymentMethods] ? "bg-blue-50 border-blue-200" : "bg-white border-gray-200"}`}
+                          >
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900">
+                                {label}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-0.5">
+                                {desc}
+                              </p>
+                            </div>
+                            <Toggle
+                              checked={
+                                paymentMethods[
+                                  key as keyof typeof paymentMethods
+                                ]
+                              }
+                              onChange={() => {
+                                setPaymentMethods((p) => ({
+                                  ...p,
+                                  [key]: !p[key as keyof typeof paymentMethods],
+                                }));
+                                markDirty();
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
-                  <div className="bg-white border border-gray-200 rounded-xl sm:rounded-xl p-4 sm:p-6 space-y-5 sm:space-y-6">
-                    {/* Chaves PIX */}
                     <div>
                       <label className={LABEL_CLS}>Chaves PIX</label>
                       <button
-                        onClick={handleAddPixKey}
-                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-semibold transition-colors mb-3"
+                        onClick={() => {
+                          setPixKeys((p) => [
+                            ...p,
+                            {
+                              id: Date.now().toString(),
+                              tipo: "E-mail",
+                              chave: "",
+                            },
+                          ]);
+                          markDirty();
+                        }}
+                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-semibold mb-3"
                       >
                         <svg
                           className="w-4 h-4"
@@ -643,11 +764,10 @@ const ClubSettings = () => {
                         </svg>
                         Adicionar Chave PIX
                       </button>
-
                       {pixKeys.length === 0 ? (
-                        <div className="text-gray-500 text-sm italic">
+                        <p className="text-gray-500 text-sm italic">
                           Nenhuma chave PIX adicionada
-                        </div>
+                        </p>
                       ) : (
                         <div className="space-y-3">
                           {pixKeys.map((pix, idx) => (
@@ -655,42 +775,51 @@ const ClubSettings = () => {
                               key={pix.id}
                               className="flex items-center gap-3"
                             >
-                              <span className="text-gray-500 text-sm w-6">
+                              <span className="text-gray-400 text-sm w-5">
                                 {idx + 1}º
                               </span>
                               <select
                                 value={pix.tipo}
-                                onChange={(e) =>
-                                  handlePixKeyChange(
-                                    pix.id,
-                                    "tipo",
-                                    e.target.value,
-                                  )
-                                }
-                                className="px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                                onChange={(e) => {
+                                  setPixKeys((p) =>
+                                    p.map((k) =>
+                                      k.id === pix.id
+                                        ? { ...k, tipo: e.target.value }
+                                        : k,
+                                    ),
+                                  );
+                                  markDirty();
+                                }}
+                                className="px-3 py-3 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"
                               >
-                                <option value="E-mail">E-mail</option>
-                                <option value="Celular">Celular</option>
-                                <option value="CNPJ">CNPJ</option>
-                                <option value="Chave Aleatória">
-                                  Chave Aleatória
-                                </option>
+                                <option>E-mail</option>
+                                <option>Celular</option>
+                                <option>CNPJ</option>
+                                <option>Chave Aleatória</option>
                               </select>
                               <input
                                 value={pix.chave}
-                                onChange={(e) =>
-                                  handlePixKeyChange(
-                                    pix.id,
-                                    "chave",
-                                    e.target.value,
-                                  )
-                                }
+                                onChange={(e) => {
+                                  setPixKeys((p) =>
+                                    p.map((k) =>
+                                      k.id === pix.id
+                                        ? { ...k, chave: e.target.value }
+                                        : k,
+                                    ),
+                                  );
+                                  markDirty();
+                                }}
                                 placeholder="Digite a chave PIX"
                                 className={`${INPUT_CLS} flex-1`}
                               />
                               <button
-                                onClick={() => handleRemovePixKey(pix.id)}
-                                className="text-red-400 hover:text-red-300 transition-colors p-2"
+                                onClick={() => {
+                                  setPixKeys((p) =>
+                                    p.filter((k) => k.id !== pix.id),
+                                  );
+                                  markDirty();
+                                }}
+                                className="text-red-400 hover:text-red-500 p-2"
                               >
                                 <svg
                                   className="w-5 h-5"
@@ -712,811 +841,256 @@ const ClubSettings = () => {
                       )}
                     </div>
 
-                    {/* Dados Financeiros */}
-                    <div>
-                      <label className={LABEL_CLS}>Dados Financeiros</label>
-                      <div className="bg-white border border-gray-200 rounded-lg p-8 text-center">
-                        <p className="text-gray-500 text-sm">
-                          Área para dados financeiros como Valor Recebido em
-                          Torneios será desenvolvida
-                        </p>
+                    {/* Botões de ação */}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
+                      <button
+                        onClick={handleSaveAll}
+                        disabled={saving}
+                        className={`flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white"} disabled:opacity-50`}
+                      >
+                        {saving
+                          ? "Salvando..."
+                          : saveSuccess
+                            ? "✓ Salvo!"
+                            : "Salvar"}
+                      </button>
+                      <div>
+                        <button
+                          onClick={() => setActiveTab("conta")}
+                          className="flex items-center gap-2 px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold transition-colors"
+                        >
+                          Próximo: Conta
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 5l7 7-7 7"
+                            />
+                          </svg>
+                        </button>
                       </div>
                     </div>
-
-                    <button
-                      onClick={handleSave}
-                      className="w-full py-3 rounded-lg font-bold text-sm bg-blue-600 hover:bg-blue-700 text-gray-900 hover:shadow transition-all"
-                    >
-                      Salvar Dados Financeiros
-                    </button>
                   </div>
                 </div>
               )}
 
+              {/* CONTA */}
               {activeTab === "conta" && (
                 <div>
                   <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">
                     Conta
                   </h2>
-
-                  <div className="bg-white border border-gray-200 rounded-xl sm:rounded-xl p-4 sm:p-6 space-y-5 sm:space-y-6">
-                    {/* Email Atual */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 space-y-5">
                     <div>
                       <label className={LABEL_CLS}>Email Atual</label>
                       <div className="flex items-center gap-3">
                         <input
-                          value={contaForm.emailAtual}
+                          value={user?.email ?? ""}
                           disabled
                           className={`${INPUT_CLS} flex-1 opacity-60 cursor-not-allowed`}
                         />
-                        <button className="px-4 py-3 border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap">
+                        <button className="px-4 py-3 border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg text-sm font-semibold whitespace-nowrap">
                           Alterar Email
                         </button>
                       </div>
                     </div>
-
-                    {/* Alterar Senha */}
                     <div className="pt-4 border-t border-gray-200">
                       <h3 className="text-base font-bold mb-4">
                         Alterar Senha
                       </h3>
-
                       <div className="space-y-4">
-                        <div>
-                          <label className={LABEL_CLS}>Senha Atual</label>
-                          <div className="relative">
-                            <input
-                              type={showPassword.atual ? "text" : "password"}
-                              name="senhaAtual"
-                              value={contaForm.senhaAtual}
-                              onChange={handleContaChange}
-                              className={INPUT_CLS}
-                            />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setShowPassword((prev) => ({
-                                  ...prev,
-                                  atual: !prev.atual,
-                                }))
-                              }
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                            >
-                              <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
+                        {[
+                          {
+                            key: "atual" as const,
+                            label: "Senha Atual",
+                            field: "senhaAtual",
+                          },
+                          {
+                            key: "nova" as const,
+                            label: "Nova Senha",
+                            field: "novaSenha",
+                          },
+                          {
+                            key: "confirmar" as const,
+                            label: "Confirmar Nova Senha",
+                            field: "confirmarSenha",
+                          },
+                        ].map(({ key, label, field }) => (
+                          <div key={key}>
+                            <label className={LABEL_CLS}>{label}</label>
+                            <div className="relative">
+                              <input
+                                type={showPassword[key] ? "text" : "password"}
+                                value={
+                                  contaForm[field as keyof typeof contaForm]
+                                }
+                                onChange={(e) =>
+                                  setContaForm((p) => ({
+                                    ...p,
+                                    [field]: e.target.value,
+                                  }))
+                                }
+                                className={INPUT_CLS}
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setShowPassword((p) => ({
+                                    ...p,
+                                    [key]: !p[key],
+                                  }))
+                                }
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                               >
-                                {showPassword.atual ? (
+                                <svg
+                                  className="w-5 h-5"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
                                   <path
                                     strokeLinecap="round"
                                     strokeLinejoin="round"
                                     strokeWidth={2}
-                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                                    d={
+                                      showPassword[key]
+                                        ? "M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                                        : "M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                    }
                                   />
-                                ) : (
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                  />
-                                )}
-                              </svg>
-                            </button>
+                                </svg>
+                              </button>
+                            </div>
                           </div>
-                        </div>
-
-                        <div>
-                          <label className={LABEL_CLS}>Nova Senha</label>
-                          <div className="relative">
-                            <input
-                              type={showPassword.nova ? "text" : "password"}
-                              name="novaSenha"
-                              value={contaForm.novaSenha}
-                              onChange={handleContaChange}
-                              className={INPUT_CLS}
-                            />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setShowPassword((prev) => ({
-                                  ...prev,
-                                  nova: !prev.nova,
-                                }))
-                              }
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                            >
-                              <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                {showPassword.nova ? (
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                                  />
-                                ) : (
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                  />
-                                )}
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className={LABEL_CLS}>
-                            Confirmar Nova Senha
-                          </label>
-                          <div className="relative">
-                            <input
-                              type={
-                                showPassword.confirmar ? "text" : "password"
-                              }
-                              name="confirmarSenha"
-                              value={contaForm.confirmarSenha}
-                              onChange={handleContaChange}
-                              className={INPUT_CLS}
-                            />
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setShowPassword((prev) => ({
-                                  ...prev,
-                                  confirmar: !prev.confirmar,
-                                }))
-                              }
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                            >
-                              <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                {showPassword.confirmar ? (
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                                  />
-                                ) : (
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                  />
-                                )}
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
+                        ))}
                       </div>
+                      <button className="mt-4 w-full py-3 rounded-lg font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white transition-all">
+                        Alterar Senha
+                      </button>
                     </div>
 
-                    <button
-                      onClick={handleSave}
-                      className="w-full py-3 rounded-lg font-bold text-sm bg-blue-600 hover:bg-blue-700 text-gray-900 hover:shadow transition-all"
-                    >
-                      Alterar Senha
-                    </button>
+                    {/* Tab action buttons */}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
+                      <button
+                        onClick={handleSaveAll}
+                        disabled={saving}
+                        className={`flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white"} disabled:opacity-50`}
+                      >
+                        {saving
+                          ? "Salvando..."
+                          : saveSuccess
+                            ? "✓ Salvo!"
+                            : "Salvar"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
 
-              {activeTab === "notificacoes" && (
-                <div>
-                  <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">
-                    Notificações
-                  </h2>
-
-                  <div className="bg-white border border-gray-200 rounded-xl sm:rounded-xl p-4 sm:p-6 space-y-5 sm:space-y-6">
-                    {/* Desejo receber notificações */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-4">
-                        <svg
-                          className="w-5 h-5 text-blue-600"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <h3 className="font-bold text-base">
-                          Desejo receber notificações:
-                        </h3>
-                      </div>
-
-                      <div className="space-y-3 ml-7">
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={notificacoes.porEmail}
-                            onChange={() =>
-                              handleNotificacoesToggle("porEmail")
-                            }
-                            className="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-600 focus:ring-offset-0"
-                          />
-                          <span className="text-sm text-gray-600">
-                            Por e-mail
-                          </span>
-                        </label>
-
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={notificacoes.porWhatsapp}
-                            onChange={() =>
-                              handleNotificacoesToggle("porWhatsapp")
-                            }
-                            className="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-600 focus:ring-offset-0"
-                          />
-                          <span className="text-sm text-gray-600">
-                            Por WhatsApp (futuro)
-                          </span>
-                        </label>
-
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={notificacoes.peloApp}
-                            onChange={() => handleNotificacoesToggle("peloApp")}
-                            className="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-600 focus:ring-offset-0"
-                          />
-                          <span className="text-sm text-gray-600">
-                            Pelo app
-                          </span>
-                        </label>
-                      </div>
+              {/* OUTRAS ABAS */}
+              {(activeTab === "notificacoes" ||
+                activeTab === "privacidade" ||
+                activeTab === "permissoes") && (
+                <div className="flex items-center justify-center h-64">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-gray-100 border border-gray-200 rounded-xl flex items-center justify-center mx-auto mb-4">
+                      <svg
+                        className="w-7 h-7 text-gray-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
                     </div>
-
-                    {/* Quero ser notificado quando */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-4">
-                        <svg
-                          className="w-5 h-5 text-orange-400"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                        </svg>
-                        <h3 className="font-bold text-base">
-                          Quero ser notificado quando:
-                        </h3>
-                      </div>
-
-                      <div className="space-y-3 ml-7">
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={notificacoes.novaDupla}
-                            onChange={() =>
-                              handleNotificacoesToggle("novaDupla")
-                            }
-                            className="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-600 focus:ring-offset-0"
-                          />
-                          <span className="text-sm text-gray-600">
-                            Uma nova dupla se inscrever
-                          </span>
-                        </label>
-
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={notificacoes.categoriaCheia}
-                            onChange={() =>
-                              handleNotificacoesToggle("categoriaCheia")
-                            }
-                            className="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-600 focus:ring-offset-0"
-                          />
-                          <span className="text-sm text-gray-600">
-                            Uma categoria estiver cheia
-                          </span>
-                        </label>
-
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={notificacoes.pagamentoConfirmado}
-                            onChange={() =>
-                              handleNotificacoesToggle("pagamentoConfirmado")
-                            }
-                            className="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-600 focus:ring-offset-0"
-                          />
-                          <span className="text-sm text-gray-600">
-                            Um pagamento for confirmado
-                          </span>
-                        </label>
-
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={notificacoes.jogoReagendado}
-                            onChange={() =>
-                              handleNotificacoesToggle("jogoReagendado")
-                            }
-                            className="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-600 focus:ring-offset-0"
-                          />
-                          <span className="text-sm text-gray-600">
-                            Um jogo for reagendado
-                          </span>
-                        </label>
-
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={notificacoes.resultadoInserido}
-                            onChange={() =>
-                              handleNotificacoesToggle("resultadoInserido")
-                            }
-                            className="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-600 focus:ring-offset-0"
-                          />
-                          <span className="text-sm text-gray-600">
-                            Um resultado for inserido
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Alertas Automáticos (futuro) */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <svg
-                          className="w-5 h-5 text-yellow-400"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <h3 className="font-bold text-base">
-                          Alertas Automáticos (futuro)
-                        </h3>
-                      </div>
-                      <p className="text-sm text-gray-500 ml-7">
-                        Em breve você poderá programar alertas automáticos, como
-                        "Enviar lembrete 1h antes do jogo".
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {activeTab === "privacidade" && (
-                <div>
-                  <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">
-                    Privacidade
-                  </h2>
-
-                  <div className="bg-white border border-gray-200 rounded-xl sm:rounded-xl p-4 sm:p-6 space-y-5 sm:space-y-6">
-                    {/* Visibilidade do Perfil */}
-                    <div>
-                      <h3 className="font-bold text-base mb-4">
-                        Visibilidade do Perfil
-                      </h3>
-
-                      <div className="space-y-4">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-4 bg-white border border-gray-200 rounded-lg">
-                          <div>
-                            <p className="font-semibold text-sm text-gray-900">
-                              Perfil público
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">
-                              Seu perfil pode ser visto por qualquer pessoa
-                            </p>
-                          </div>
-                          <button
-                            onClick={() =>
-                              handlePrivacidadeToggle("perfilPublico")
-                            }
-                            className={`relative w-12 h-6 rounded-full transition-colors ${
-                              privacidade.perfilPublico
-                                ? "bg-blue-600"
-                                : "bg-gray-600"
-                            }`}
-                          >
-                            <span
-                              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                                privacidade.perfilPublico
-                                  ? "translate-x-6"
-                                  : "translate-x-0"
-                              }`}
-                            />
-                          </button>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-4 bg-white border border-gray-200 rounded-lg">
-                          <div>
-                            <p className="font-semibold text-sm text-gray-900">
-                              Mostrar estatísticas
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">
-                              Suas estatísticas são visíveis para outros
-                              jogadores
-                            </p>
-                          </div>
-                          <button
-                            onClick={() =>
-                              handlePrivacidadeToggle("mostrarEstatisticas")
-                            }
-                            className={`relative w-12 h-6 rounded-full transition-colors ${
-                              privacidade.mostrarEstatisticas
-                                ? "bg-blue-600"
-                                : "bg-gray-600"
-                            }`}
-                          >
-                            <span
-                              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                                privacidade.mostrarEstatisticas
-                                  ? "translate-x-6"
-                                  : "translate-x-0"
-                              }`}
-                            />
-                          </button>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-4 bg-white border border-gray-200 rounded-lg">
-                          <div>
-                            <p className="font-semibold text-sm text-gray-900">
-                              Mostrar conquistas
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">
-                              Suas conquistas são visíveis para outros jogadores
-                            </p>
-                          </div>
-                          <button
-                            onClick={() =>
-                              handlePrivacidadeToggle("mostrarConquistas")
-                            }
-                            className={`relative w-12 h-6 rounded-full transition-colors ${
-                              privacidade.mostrarConquistas
-                                ? "bg-blue-600"
-                                : "bg-gray-600"
-                            }`}
-                          >
-                            <span
-                              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                                privacidade.mostrarConquistas
-                                  ? "translate-x-6"
-                                  : "translate-x-0"
-                              }`}
-                            />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Interações */}
-                    <div>
-                      <h3 className="font-bold text-base mb-4">Interações</h3>
-
-                      <div className="space-y-4">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-4 bg-white border border-gray-200 rounded-lg">
-                          <div>
-                            <p className="font-semibold text-sm text-gray-900">
-                              Permitir mensagens
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">
-                              Outros jogadores podem te enviar mensagens
-                            </p>
-                          </div>
-                          <button
-                            onClick={() =>
-                              handlePrivacidadeToggle("permitirMensagens")
-                            }
-                            className={`relative w-12 h-6 rounded-full transition-colors ${
-                              privacidade.permitirMensagens
-                                ? "bg-blue-600"
-                                : "bg-gray-600"
-                            }`}
-                          >
-                            <span
-                              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                                privacidade.permitirMensagens
-                                  ? "translate-x-6"
-                                  : "translate-x-0"
-                              }`}
-                            />
-                          </button>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-4 bg-white border border-gray-200 rounded-lg">
-                          <div>
-                            <p className="font-semibold text-sm text-gray-900">
-                              Permitir desafios
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">
-                              Outros jogadores podem te desafiar para partidas
-                            </p>
-                          </div>
-                          <button
-                            onClick={() =>
-                              handlePrivacidadeToggle("permitirDesafios")
-                            }
-                            className={`relative w-12 h-6 rounded-full transition-colors ${
-                              privacidade.permitirDesafios
-                                ? "bg-blue-600"
-                                : "bg-gray-600"
-                            }`}
-                          >
-                            <span
-                              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                                privacidade.permitirDesafios
-                                  ? "translate-x-6"
-                                  : "translate-x-0"
-                              }`}
-                            />
-                          </button>
-                        </div>
-
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-4 bg-white border border-gray-200 rounded-lg">
-                          <div>
-                            <p className="font-semibold text-sm text-gray-900">
-                              Mostrar atividade
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">
-                              Sua atividade recente é visível para outros
-                              jogadores
-                            </p>
-                          </div>
-                          <button
-                            onClick={() =>
-                              handlePrivacidadeToggle("mostrarAtividade")
-                            }
-                            className={`relative w-12 h-6 rounded-full transition-colors ${
-                              privacidade.mostrarAtividade
-                                ? "bg-blue-600"
-                                : "bg-gray-600"
-                            }`}
-                          >
-                            <span
-                              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                                privacidade.mostrarAtividade
-                                  ? "translate-x-6"
-                                  : "translate-x-0"
-                              }`}
-                            />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Deletar Conta */}
-                    <div className="pt-4 border-t border-gray-200">
-                      <h3 className="font-bold text-base mb-4">Conta</h3>
-
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-4 bg-white border border-red-900/30 rounded-lg">
-                        <div>
-                          <p className="font-semibold text-sm text-gray-900">
-                            Deletar conta
-                          </p>
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            Remover permanentemente sua conta e todos os dados
-                          </p>
-                        </div>
-                        <button className="px-4 py-2 border border-red-500 text-red-500 hover:bg-red-500/10 rounded-lg text-sm font-semibold transition-colors">
-                          Deletar Conta
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {activeTab === "permissoes" && (
-                <div>
-                  <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">
-                    Permissões
-                  </h2>
-
-                  <div className="bg-white border border-gray-200 rounded-xl sm:rounded-xl p-4 sm:p-6 space-y-5 sm:space-y-6">
-                    {/* Permissões dos membros da conta */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-4">
-                        <svg
-                          className="w-5 h-5 text-blue-600"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <h3 className="font-bold text-base">
-                          Permissões dos membros da conta:
-                        </h3>
-                      </div>
-
-                      <div className="space-y-3 ml-7">
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={permissoes.criarEditarTorneios}
-                            onChange={() =>
-                              handlePermissoesToggle("criarEditarTorneios")
-                            }
-                            className="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-600 focus:ring-offset-0"
-                          />
-                          <span className="text-sm text-gray-600">
-                            Pode criar ou editar torneios
-                          </span>
-                        </label>
-
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={permissoes.acessarDadosFinanceiros}
-                            onChange={() =>
-                              handlePermissoesToggle("acessarDadosFinanceiros")
-                            }
-                            className="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-600 focus:ring-offset-0"
-                          />
-                          <span className="text-sm text-gray-600">
-                            Pode acessar dados financeiros
-                          </span>
-                        </label>
-
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={permissoes.gerenciarCategorias}
-                            onChange={() =>
-                              handlePermissoesToggle("gerenciarCategorias")
-                            }
-                            className="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-600 focus:ring-offset-0"
-                          />
-                          <span className="text-sm text-gray-600">
-                            Pode gerenciar categorias
-                          </span>
-                        </label>
-
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={permissoes.fazerTransmissoes}
-                            onChange={() =>
-                              handlePermissoesToggle("fazerTransmissoes")
-                            }
-                            className="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-600 focus:ring-offset-0"
-                          />
-                          <span className="text-sm text-gray-600">
-                            Pode fazer transmissões
-                          </span>
-                        </label>
-
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={permissoes.editarRegras}
-                            onChange={() =>
-                              handlePermissoesToggle("editarRegras")
-                            }
-                            className="w-4 h-4 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-600 focus:ring-offset-0"
-                          />
-                          <span className="text-sm text-gray-600">
-                            Pode editar regras
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Perfis de Acesso */}
-                    <div>
-                      <h3 className="font-bold text-base mb-4">
-                        Perfis de Acesso
-                      </h3>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                        {/* Administrador */}
-                        <div className="p-4 sm:p-5 bg-white border border-gray-200 rounded-xl hover:border-gray-300 transition-colors">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
-                              <span className="text-2xl">👑</span>
-                            </div>
-                            <h4 className="font-bold text-base">
-                              Administrador
-                            </h4>
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            Acesso total a todas as funcionalidades
-                          </p>
-                        </div>
-
-                        {/* Gestor de Torneio */}
-                        <div className="p-4 sm:p-5 bg-white border border-gray-200 rounded-xl hover:border-gray-300 transition-colors">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-                              <span className="text-2xl">🏆</span>
-                            </div>
-                            <h4 className="font-bold text-base">
-                              Gestor de Torneio
-                            </h4>
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            Pode criar e gerenciar torneios
-                          </p>
-                        </div>
-
-                        {/* Financeiro */}
-                        <div className="p-4 sm:p-5 bg-white border border-gray-200 rounded-xl hover:border-gray-300 transition-colors">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                              <span className="text-2xl">💰</span>
-                            </div>
-                            <h4 className="font-bold text-base">Financeiro</h4>
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            Acesso aos dados financeiros
-                          </p>
-                        </div>
-
-                        {/* Operacional */}
-                        <div className="p-4 sm:p-5 bg-white border border-gray-200 rounded-xl hover:border-gray-300 transition-colors">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                              <span className="text-2xl">⚙️</span>
-                            </div>
-                            <h4 className="font-bold text-base">Operacional</h4>
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            Gerencia jogos e resultados
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                    <h3 className="text-gray-900 font-bold text-lg capitalize">
+                      {activeTab}
+                    </h3>
+                    <p className="text-gray-500 text-sm mt-1">
+                      Esta seção ainda está em desenvolvimento
+                    </p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* ── DIREITA: resumo conta (apenas desktop) ── */}
+            {/* ASIDE DIREITO */}
             <aside className="hidden xl:block w-64 flex-shrink-0">
               <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-5 sticky top-24">
                 <h3 className="font-bold text-base">Conta</h3>
 
-                {/* Email */}
-                <div>
-                  <p className="text-xs text-gray-500">E-mail</p>
-                  <p className="text-sm font-semibold mt-0.5">
-                    {ACCOUNT.email}
-                  </p>
-                  <button className="text-xs text-blue-600 hover:text-blue-700 transition-colors mt-1">
-                    Alterar e-mail de acesso
+                {/* Avatar + nome */}
+                <div className="flex flex-col items-center text-center gap-2">
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-xl">
+                      {(club?.name || user?.name || "C")[0].toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="min-w-0 w-full">
+                    <p className="text-sm font-bold text-gray-900 truncate">
+                      {club?.name || user?.name || "—"}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate mt-0.5">
+                      {user?.email ?? "—"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100 pt-4 space-y-3">
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">
+                      Membro desde
+                    </p>
+                    <p className="text-sm text-gray-700 mt-0.5">
+                      {formatDate(club?.createdAt)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide font-medium">
+                      Torneios criados
+                    </p>
+                    <p className="text-sm text-gray-700 mt-0.5">
+                      {tournaments.length} torneio
+                      {tournaments.length !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Botão Salvar */}
+                <div className="border-t border-gray-100 pt-4">
+                  <button
+                    onClick={handleSaveAll}
+                    disabled={!isDirty || saving}
+                    className={`w-full py-2.5 rounded-lg text-sm font-bold transition-all ${
+                      saveSuccess
+                        ? "bg-emerald-50 border border-emerald-300 text-emerald-600"
+                        : isDirty
+                          ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    {saving
+                      ? "Salvando..."
+                      : saveSuccess
+                        ? "✓ Salvo!"
+                        : "Salvar Alterações"}
                   </button>
-                </div>
-
-                {/* Nome */}
-                <div>
-                  <p className="text-xs text-gray-500">Nome do Clube</p>
-                  <p className="text-sm font-semibold mt-0.5">
-                    {ACCOUNT.clubName}
-                  </p>
-                </div>
-
-                {/* Membro desde */}
-                <div>
-                  <p className="text-xs text-gray-500">Membro desde</p>
-                  <p className="text-sm font-semibold mt-0.5">
-                    {ACCOUNT.memberSince}
-                  </p>
+                  {isDirty && !saving && (
+                    <p className="text-xs text-orange-500 text-center mt-2">
+                      Alterações não salvas
+                    </p>
+                  )}
                 </div>
               </div>
             </aside>
