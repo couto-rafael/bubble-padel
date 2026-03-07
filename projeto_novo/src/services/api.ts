@@ -328,6 +328,31 @@ export const ScheduleService = {
       body: JSON.stringify(data),
     });
   },
+
+  bulkUpdate: async (
+    tournamentId: string,
+    schedules: Array<{
+      matchId: string;
+      court: string;
+      date: string;
+      time: string;
+    }>,
+  ): Promise<void> => {
+    const res = await fetch(
+      `${API_URL}/tournaments/${tournamentId}/schedule/bulk`,
+      {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ schedules }),
+      },
+    );
+    if (!res.ok) {
+      const err = await res
+        .json()
+        .catch(() => ({ error: "Erro desconhecido" }));
+      throw new Error(err.error ?? `HTTP ${res.status}`);
+    }
+  },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import type { Group, Team, Tournament } from "./types";
-import { usePlayoffs } from "./hooks";
+import { usePlayoffs, useGroups } from "./hooks";
 import type { PlayoffBracketData, PlayoffMatchData } from "./services/api";
 
 // ─── ALGORITMO DE SEEDING ─────────────────────────────────────────────────────
@@ -477,18 +477,16 @@ const BracketView = ({ bracket, teams, onMatchClick }: BracketViewProps) => {
 
 interface TabPlayoffsProps {
   tournament: Tournament;
-  groups: Group[];
   teams: Team[];
 }
 
-export default function TabPlayoffs({
-  tournament,
-  groups,
-  teams,
-}: TabPlayoffsProps) {
+export default function TabPlayoffs({ tournament, teams }: TabPlayoffsProps) {
   const { brackets, loading, generateBracket, saveMatchResult } = usePlayoffs(
     tournament.id,
   );
+
+  // Carrega grupos diretamente do backend (igual a TabJogos) — evita estado stale do pai
+  const { groups, loading: groupsLoading } = useGroups(tournament.id);
 
   // Categorias derivadas dos próprios grupos (evita mismatch de string com tournament.categories)
   const groupCategories = useMemo(
@@ -560,7 +558,7 @@ export default function TabPlayoffs({
     setScoreModal(null);
   };
 
-  if (loading) {
+  if (loading || groupsLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />

@@ -266,6 +266,7 @@ const CreateTournament = () => {
     startDate: "",
     endDate: "",
   });
+  const [singleDay, setSingleDay] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -307,9 +308,9 @@ const CreateTournament = () => {
       }
     }
 
-    // Validar se início do torneio é antes do fim
+    // Validar se início do torneio é antes do fim (datas iguais = torneio 1 dia, OK)
     if (tournamentStart && tournamentEnd) {
-      if (new Date(tournamentEnd) <= new Date(tournamentStart)) {
+      if (new Date(tournamentEnd) < new Date(tournamentStart)) {
         errors.endDate = "Data fim deve ser depois da data início";
       }
     }
@@ -545,6 +546,11 @@ const CreateTournament = () => {
   const handleDateChange = (field: "startDate" | "endDate", value: string) => {
     const updated = { ...form, [field]: value };
 
+    // Se torneio de 1 dia, endDate sempre = startDate
+    if (singleDay && field === "startDate") {
+      updated.endDate = value;
+    }
+
     // Regenerar horários quando ambas as datas estão definidas
     if (updated.startDate && updated.endDate) {
       updated.schedules = generateDaysBetween(
@@ -615,7 +621,7 @@ const CreateTournament = () => {
 
     if (!form.name.trim()) errors.push("Nome do torneio é obrigatório");
     if (!form.startDate) errors.push("Data de início é obrigatória");
-    if (!form.endDate) errors.push("Data de fim é obrigatória");
+    if (!singleDay && !form.endDate) errors.push("Data de fim é obrigatória");
     if (!form.registrationStartDate)
       errors.push("Data de início das inscrições é obrigatória");
     if (!form.registrationEndDate)
@@ -918,52 +924,80 @@ const CreateTournament = () => {
                     </div>
 
                     {/* Datas do Torneio */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm text-gray-500 mb-2 font-medium">
-                          Data Início <span className="text-red-400">*</span>
-                        </label>
-                        <input
-                          type="date"
-                          value={form.startDate}
-                          onChange={(e) =>
-                            handleDateChange("startDate", e.target.value)
-                          }
-                          onClick={(e) => e.currentTarget.showPicker?.()}
-                          className={`w-full px-4 py-3 bg-white border rounded-lg text-sm text-gray-900 focus:outline-none transition-all cursor-pointer ${
-                            dateErrors.startDate
-                              ? "border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                              : "border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                          }`}
-                        />
-                        {dateErrors.startDate && (
-                          <p className="text-xs text-red-600 mt-1.5 font-medium">
-                            ⚠️ {dateErrors.startDate}
-                          </p>
-                        )}
-                      </div>
+                    <div>
+                      {/* Toggle 1 dia */}
+                      <label className="flex items-center gap-3 mb-4 cursor-pointer w-fit">
+                        <div
+                          onClick={() => {
+                            const next = !singleDay;
+                            setSingleDay(next);
+                            if (next && form.startDate) {
+                              handleDateChange("startDate", form.startDate);
+                            }
+                          }}
+                          className={`relative w-10 h-5 rounded-full transition-colors ${singleDay ? "bg-blue-600" : "bg-gray-300"}`}
+                        >
+                          <span
+                            className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${singleDay ? "translate-x-5" : "translate-x-0"}`}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-gray-700">
+                          Torneio de 1 dia
+                        </span>
+                      </label>
 
-                      <div>
-                        <label className="block text-sm text-gray-500 mb-2 font-medium">
-                          Data Fim <span className="text-red-400">*</span>
-                        </label>
-                        <input
-                          type="date"
-                          value={form.endDate}
-                          onChange={(e) =>
-                            handleDateChange("endDate", e.target.value)
-                          }
-                          onClick={(e) => e.currentTarget.showPicker?.()}
-                          className={`w-full px-4 py-3 bg-white border rounded-lg text-sm text-gray-900 focus:outline-none transition-all cursor-pointer ${
-                            dateErrors.endDate
-                              ? "border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                              : "border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                          }`}
-                        />
-                        {dateErrors.endDate && (
-                          <p className="text-xs text-red-600 mt-1.5 font-medium">
-                            ⚠️ {dateErrors.endDate}
-                          </p>
+                      <div
+                        className={`grid gap-4 ${singleDay ? "grid-cols-1 sm:grid-cols-1 max-w-xs" : "grid-cols-1 sm:grid-cols-2"}`}
+                      >
+                        <div>
+                          <label className="block text-sm text-gray-500 mb-2 font-medium">
+                            {singleDay ? "Data do Torneio" : "Data Início"}{" "}
+                            <span className="text-red-400">*</span>
+                          </label>
+                          <input
+                            type="date"
+                            value={form.startDate}
+                            onChange={(e) =>
+                              handleDateChange("startDate", e.target.value)
+                            }
+                            onClick={(e) => e.currentTarget.showPicker?.()}
+                            className={`w-full px-4 py-3 bg-white border rounded-lg text-sm text-gray-900 focus:outline-none transition-all cursor-pointer ${
+                              dateErrors.startDate
+                                ? "border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                                : "border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            }`}
+                          />
+                          {dateErrors.startDate && (
+                            <p className="text-xs text-red-600 mt-1.5 font-medium">
+                              ⚠️ {dateErrors.startDate}
+                            </p>
+                          )}
+                        </div>
+
+                        {!singleDay && (
+                          <div>
+                            <label className="block text-sm text-gray-500 mb-2 font-medium">
+                              Data Fim <span className="text-red-400">*</span>
+                            </label>
+                            <input
+                              type="date"
+                              value={form.endDate}
+                              onChange={(e) =>
+                                handleDateChange("endDate", e.target.value)
+                              }
+                              onClick={(e) => e.currentTarget.showPicker?.()}
+                              className={`w-full px-4 py-3 bg-white border rounded-lg text-sm text-gray-900 focus:outline-none transition-all cursor-pointer ${
+                                dateErrors.endDate
+                                  ? "border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                                  : "border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                              }`}
+                            />
+                            {dateErrors.endDate && (
+                              <p className="text-xs text-red-600 mt-1.5 font-medium">
+                                ⚠️ {dateErrors.endDate}
+                              </p>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>

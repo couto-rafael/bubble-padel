@@ -1,4 +1,4 @@
-import { useGroups } from "./hooks";
+import { useGroups, useClub } from "./hooks";
 import { useState, useRef } from "react";
 import type { Team, Group, GroupTeam, Match } from "./types";
 import {
@@ -6,6 +6,13 @@ import {
   recalculateStandings,
   tournamentHasStarted,
 } from "./utils/groupUtils";
+import {
+  buildSeeds,
+  generateBracketMatches,
+  generateAutoSchedule,
+  buildDaySchedules,
+} from "./utils/scheduleUtils";
+import { GroupService, PlayoffService, ScheduleService } from "./services/api";
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 
@@ -14,8 +21,11 @@ interface Tournament {
   name: string;
   categories: string[];
   status: string;
+  startDate?: string; // "2025-03-15" ou ISO completo
+  endDate?: string;
   priceFirstCategory?: number;
   maxTeams?: number;
+  courts?: string[];
 }
 
 interface TabGruposProps {
@@ -69,7 +79,8 @@ export default function TabGrupos({
   const {
     groups,
     setGroups: saveGroups,
-    saveScore, // ← adiciona isso
+    saveGroupsImmediate,
+    saveScore,
     resetGroups,
     loading: groupsLoading,
   } = useGroups(tournament.id);
@@ -98,21 +109,114 @@ export default function TabGrupos({
   const dragTeam = useRef<{ groupId: string; teamId: string } | null>(null);
   const locked = tournamentHasStarted(groups);
 
-  // ── Gerar Grupos ──────────────────────────────────────────────────────────
+  const { club } = useClub();
 
-  const handleGenerate = () => {
+  const [generating, setGenerating] = useState(false);
+
+  const handleGenerate = async () => {
     const confirmedTeams = teams.filter((t) => t.status === "confirmed");
     if (confirmedTeams.length === 0) {
       alert("Não há duplas confirmadas para gerar grupos.");
       return;
     }
-    const allGroups: Group[] = [];
-    tournament.categories.forEach((cat, idx) => {
-      const catTeams = confirmedTeams.filter((t) => t.category === cat);
-      if (catTeams.length === 0) return;
-      allGroups.push(...generateGroupsForCategory(cat, catTeams, idx));
-    });
-    setGroups(allGroups);
+
+    setGenerating(true);
+    try {
+      // 1. Gerar grupos localmente
+      const allGroups: Group[] = [];
+      tournament.categories.forEach((cat, idx) => {
+        const catTeams = confirmedTeams.filter((t) => t.category === cat);
+        if (catTeams.length === 0) return;
+        allGroups.push(...generateGroupsForCategory(cat, catTeams, idx));
+      });
+
+      // 2. Salvar grupos no backend e obter IDs dos jogos
+      const savedGroups = await saveGroupsImmediate(allGroups);
+
+      // 3. Gerar e salvar brackets de playoff para cada categoria
+      const playoffBrackets: Array<{
+        category: string;
+        matches: Array<{ id: string; roundSize: number; isBye: boolean }>;
+      }> = [];
+
+      for (const cat of tournament.categories) {
+        const catGroups = savedGroups.filter((g) => g.category === cat);
+        if (catGroups.length === 0) continue;
+        const seeds = buildSeeds(catGroups);
+        if (seeds.length < 2) continue;
+        const bracketMatches = generateBracketMatches(seeds);
+        try {
+          const saved = await PlayoffService.save(
+            tournament.id,
+            cat,
+            bracketMatches,
+          );
+          playoffBrackets.push({
+            category: saved.category,
+            matches: saved.matches.map((m) => ({
+              id: m.id,
+              roundSize: m.roundSize,
+              isBye: m.isBye,
+            })),
+          });
+        } catch (e) {
+          console.error(`Erro ao salvar bracket de ${cat}:`, e);
+        }
+      }
+
+      // 4. Agendar automaticamente se o torneio tem quadras e clube tem horários
+      const hasCourts = tournament.courts && tournament.courts.length > 0;
+      const matchDuration = club?.matchDuration ?? 60;
+      const defaultStart = club?.defaultStartTime ?? "08:00";
+      const defaultEnd = club?.defaultEndTime ?? "20:00";
+
+      // Deriva as datas do torneio (pode vir como ISO completo ou "YYYY-MM-DD")
+      const extractDate = (d?: string) => (d ? d.slice(0, 10) : null);
+      const startDate = extractDate(tournament.startDate);
+      const endDate = extractDate(tournament.endDate);
+
+      if (hasCourts && startDate && endDate) {
+        const daySchedules = buildDaySchedules(
+          startDate,
+          endDate,
+          defaultStart,
+          defaultEnd,
+        );
+
+        // Coletar jogos de grupo com IDs
+        const groupMatchInputs = savedGroups.flatMap((g) =>
+          (g.matches ?? [])
+            .filter((m) => m.team1Id && m.team2Id)
+            .map((m) => ({
+              id: m.id,
+              team1Id: m.team1Id as string,
+              team2Id: m.team2Id as string,
+              category: g.category,
+            })),
+        );
+
+        // Rodar algoritmo
+        const scheduleEntries = generateAutoSchedule(
+          groupMatchInputs,
+          playoffBrackets,
+          tournament.courts!,
+          daySchedules,
+          matchDuration,
+        );
+
+        // Salvar em lote
+        if (scheduleEntries.length > 0) {
+          await ScheduleService.bulkUpdate(tournament.id, scheduleEntries);
+        }
+      }
+
+      onGroupsChange?.(savedGroups);
+    } catch (err) {
+      console.error("Erro ao gerar grupos:", err);
+      alert("Erro ao gerar grupos. Tente novamente.");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const handleReset = async () => {
@@ -420,10 +524,10 @@ export default function TabGrupos({
           </p>
           <button
             onClick={handleGenerate}
-            disabled={totalConfirmed === 0}
+            disabled={totalConfirmed === 0 || generating}
             className="px-8 py-3 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            ⚡ Gerar Grupos Automaticamente
+            {generating ? "⏳ Gerando..." : "⚡ Gerar Grupos Automaticamente"}
           </button>
           {totalConfirmed === 0 && (
             <p className="text-xs text-red-500 mt-3">

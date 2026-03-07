@@ -557,6 +557,9 @@ export default function TabJogos({
                     <span className="text-xs font-semibold text-gray-500 truncate">
                       {matchLabel(sm.group, sm.matchIndex)}
                     </span>
+                    <span className="text-[10px] font-semibold text-blue-500 truncate">
+                      {sm.group.category}
+                    </span>
                     {sm.court ? (
                       <span
                         className={`inline-flex items-center gap-1 text-[10px] font-bold truncate ${courtColor ? "text-gray-600" : "text-gray-400"}`}
@@ -597,9 +600,6 @@ export default function TabJogos({
                     >
                       {t1p2}
                     </p>
-                    <span className="text-[10px] text-gray-400 truncate">
-                      {sm.group.category}
-                    </span>
                   </div>
 
                   {/* Placar */}

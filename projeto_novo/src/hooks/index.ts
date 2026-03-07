@@ -255,6 +255,15 @@ export function useGroups(tournamentId: string | undefined) {
     [tournamentId],
   );
 
+  // Salva grupos diretamente (sem debounce) e retorna os grupos com IDs do backend
+  const saveGroupsImmediate = async (newGroups: Group[]): Promise<Group[]> => {
+    if (!tournamentId) return newGroups;
+    const saved = await GroupService.save(tournamentId, newGroups);
+    const withStandings = saved.map((g: Group) => recalculateStandings(g));
+    setGroupsRaw(withStandings);
+    return withStandings;
+  };
+
   const saveScore = async (
     groupId: string,
     matchId: string,
@@ -284,6 +293,7 @@ export function useGroups(tournamentId: string | undefined) {
   return {
     groups,
     setGroups,
+    saveGroupsImmediate,
     loading,
     error,
     reload: load,

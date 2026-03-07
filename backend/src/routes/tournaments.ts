@@ -122,3 +122,49 @@ tournamentRoutes.delete(
     }
   },
 );
+
+// POST /api/tournaments/:id/schedule/bulk — salva schedule de múltiplos jogos de uma vez
+tournamentRoutes.post(
+  "/:id/schedule/bulk",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const { schedules } = req.body as {
+        schedules: Array<{
+          matchId: string;
+          court: string;
+          date: string;
+          time: string;
+        }>;
+      };
+
+      if (!Array.isArray(schedules) || schedules.length === 0) {
+        return res.status(400).json({ error: "schedules array é obrigatório" });
+      }
+
+      // Upsert em paralelo (cria ou atualiza cada schedule de jogo)
+      await Promise.all(
+        schedules.map((s) =>
+          prisma.schedule.upsert({
+            where: { matchId: s.matchId },
+            create: {
+              matchId: s.matchId,
+              court: s.court,
+              date: s.date,
+              time: s.time,
+            },
+            update: {
+              court: s.court,
+              date: s.date,
+              time: s.time,
+            },
+          }),
+        ),
+      );
+
+      return res.json({ data: { count: schedules.length } });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
