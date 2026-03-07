@@ -150,12 +150,12 @@ tournamentRoutes.post(
             create: {
               matchId: s.matchId,
               court: s.court,
-              date: s.date,
+              date: new Date(s.date), // ← era: date: s.date
               time: s.time,
             },
             update: {
               court: s.court,
-              date: s.date,
+              date: new Date(s.date), // ← era: date: s.date
               time: s.time,
             },
           }),
