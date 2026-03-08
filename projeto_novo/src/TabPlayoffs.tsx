@@ -364,12 +364,6 @@ const MatchBox = ({ match, teams, onClick, isClickable }: MatchBoxProps) => {
           </svg>
         )}
       </div>
-
-      {isClickable && (
-        <div className="bg-blue-50 text-center text-xs text-blue-600 font-semibold py-1 border-t border-blue-100">
-          Clique para registrar
-        </div>
-      )}
     </div>
   );
 };
@@ -554,10 +548,10 @@ export default function TabPlayoffs({ tournament, teams }: TabPlayoffsProps) {
     const catGroups = groups.filter((g) => g.category === activeCategory);
     if (catGroups.length === 0) return;
 
-    const allDone = catGroups.every(
+    const anyGroupDone = catGroups.some(
       (g) => g.matches.length > 0 && g.matches.every((m) => m.played),
     );
-    if (!allDone) return;
+    if (!anyGroupDone) return;
 
     const bracket = brackets.find((b) => b.category === activeCategory);
     if (!bracket) return;

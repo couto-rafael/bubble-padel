@@ -156,14 +156,7 @@ playoffTournamentRoutes.post(
         },
       });
 
-      const allPlayed = (groups as any[]).every((g) =>
-        (g.matches as any[]).every((m: any) => m.played),
-      );
-      if (!allPlayed) {
-        return res
-          .status(400)
-          .json({ error: "Nem todos os jogos do grupo foram encerrados" });
-      }
+      // Seed parcial: resolve apenas grupos cujos jogos já terminaram todos
 
       function getStandings(group: any) {
         const stats: Record<
@@ -212,7 +205,10 @@ playoffTournamentRoutes.post(
       }
 
       const labelMap: Record<string, { teamId: string; label: string }> = {};
-      for (const group of groups) {
+      for (const group of groups as any[]) {
+        // Só resolve grupos onde todos os jogos já foram jogados
+        const groupDone = (group.matches as any[]).every((m: any) => m.played);
+        if (!groupDone) continue;
         const standings = getStandings(group);
         standings.forEach((entry: any, idx: number) => {
           const key = `${idx + 1}° ${group.name}`;
@@ -241,6 +237,61 @@ playoffTournamentRoutes.post(
         }
       }
       await Promise.all(updates);
+
+      // Propaga vencedores de partidas BYE para a próxima fase
+      const refreshed = await prisma.playoffBracket.findUnique({
+        where: { id: bracket.id },
+        include: { matches: true },
+      });
+      if (refreshed) {
+        const byePropUpdates: Promise<any>[] = [];
+        for (const m of refreshed.matches) {
+          if (!m.isBye || m.played === false) continue;
+          // Determina o vencedor: quem não é BYE
+          const t1IsBye = m.team1Label === null && m.team2Label !== null;
+          const t2IsBye = m.team2Label === null && m.team1Label !== null;
+          const winnerId = t1IsBye ? m.team2Id : t2IsBye ? m.team1Id : null;
+          if (!winnerId) continue;
+          if (m.winnerId === winnerId) continue; // já propagado
+
+          // Atualiza winnerId no match BYE
+          byePropUpdates.push(
+            prisma.playoffMatch.update({
+              where: { id: m.id },
+              data: { winnerId },
+            }),
+          );
+
+          // Propaga para próxima fase
+          const nextRoundSize = m.roundSize / 2;
+          if (nextRoundSize < 1) continue;
+          const nextMatchIndex = Math.floor(m.matchIndex / 2);
+          const isSlot1 = m.matchIndex % 2 === 0;
+          const nextMatch = await prisma.playoffMatch.findFirst({
+            where: {
+              bracketId: bracket.id,
+              roundSize: nextRoundSize,
+              matchIndex: nextMatchIndex,
+            },
+          });
+          if (!nextMatch) continue;
+          const winnerTeam = await prisma.team.findUnique({
+            where: { id: winnerId },
+          });
+          const winnerLabel = winnerTeam
+            ? `${winnerTeam.player1Name} / ${winnerTeam.player2Name}`
+            : "Vencedor";
+          byePropUpdates.push(
+            prisma.playoffMatch.update({
+              where: { id: nextMatch.id },
+              data: isSlot1
+                ? { team1Id: winnerId, team1Label: winnerLabel }
+                : { team2Id: winnerId, team2Label: winnerLabel },
+            }),
+          );
+        }
+        await Promise.all(byePropUpdates);
+      }
 
       const updated = await prisma.playoffBracket.findUnique({
         where: { id: bracket.id },
