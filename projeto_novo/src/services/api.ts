@@ -129,7 +129,6 @@ function normalizeTournament(t: any): Tournament {
     totalTeams: t._count?.teams ?? t.totalTeams ?? 0,
     categories: t.categories ?? [],
     matchDuration: t.matchDuration ?? 60,
-    daySchedules: t.daySchedules ?? [],
     courts: t.courts ?? [],
   };
 }
@@ -422,5 +421,16 @@ export const PlayoffService = {
       `${API_URL}/tournaments/${tournamentId}/playoffs/${encodeURIComponent(category)}`,
       { method: "DELETE", headers: authHeaders() },
     );
+  },
+
+  seed: async (
+    tournamentId: string,
+    category: string,
+  ): Promise<PlayoffBracketData> => {
+    const res = await fetch(
+      `${API_URL}/tournaments/${tournamentId}/playoffs/${encodeURIComponent(category)}/seed`,
+      { method: "POST", headers: authHeaders() },
+    );
+    return handleResponse<PlayoffBracketData>(res);
   },
 };

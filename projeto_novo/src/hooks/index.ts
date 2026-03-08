@@ -394,6 +394,20 @@ export function usePlayoffs(tournamentId: string | undefined) {
     setBrackets((prev) => prev.filter((b) => b.category !== category));
   };
 
+  const seedBracket = async (category: string) => {
+    if (!tournamentId) return null;
+    try {
+      const updated = await PlayoffService.seed(tournamentId, category);
+      setBrackets((prev) =>
+        prev.map((b) => (b.category === category ? updated : b)),
+      );
+      return updated;
+    } catch (e) {
+      // Silencioso se grupos ainda não estão completos
+      return null;
+    }
+  };
+
   const getBracketByCategory = (category: string) =>
     brackets.find((b) => b.category === category) ?? null;
 
@@ -405,6 +419,7 @@ export function usePlayoffs(tournamentId: string | undefined) {
     generateBracket,
     saveMatchResult,
     resetBracket,
+    seedBracket,
     getBracketByCategory,
   };
 }

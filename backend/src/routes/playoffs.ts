@@ -19,13 +19,15 @@ playoffTournamentRoutes.get(
     try {
       const brackets = await prisma.playoffBracket.findMany({
         where: { tournamentId: req.params.tournamentId },
-        include: { matches: { orderBy: [{ roundSize: "desc" }, { matchIndex: "asc" }] } },
+        include: {
+          matches: { orderBy: [{ roundSize: "desc" }, { matchIndex: "asc" }] },
+        },
       });
       return res.json({ data: brackets });
     } catch (err) {
       next(err);
     }
-  }
+  },
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -61,7 +63,9 @@ playoffTournamentRoutes.post(
         where: { tournamentId_category: { tournamentId, category } },
       });
       if (existing) {
-        await prisma.playoffMatch.deleteMany({ where: { bracketId: existing.id } });
+        await prisma.playoffMatch.deleteMany({
+          where: { bracketId: existing.id },
+        });
         await prisma.playoffBracket.delete({ where: { id: existing.id } });
       }
 
@@ -86,14 +90,16 @@ playoffTournamentRoutes.post(
             })),
           },
         },
-        include: { matches: { orderBy: [{ roundSize: "desc" }, { matchIndex: "asc" }] } },
+        include: {
+          matches: { orderBy: [{ roundSize: "desc" }, { matchIndex: "asc" }] },
+        },
       });
 
       return res.status(201).json({ data: bracket });
     } catch (err) {
       next(err);
     }
-  }
+  },
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -111,14 +117,142 @@ playoffTournamentRoutes.delete(
         where: { tournamentId_category: { tournamentId, category: decoded } },
       });
       if (existing) {
-        await prisma.playoffMatch.deleteMany({ where: { bracketId: existing.id } });
+        await prisma.playoffMatch.deleteMany({
+          where: { bracketId: existing.id },
+        });
         await prisma.playoffBracket.delete({ where: { id: existing.id } });
       }
       return res.json({ data: { ok: true } });
     } catch (err) {
       next(err);
     }
-  }
+  },
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// POST /api/tournaments/:tournamentId/playoffs/:category/seed
+// Resolve labels "1° Grupo A" para teamIds reais com base nas standings
+// ─────────────────────────────────────────────────────────────────────────────
+playoffTournamentRoutes.post(
+  "/:tournamentId/playoffs/:category/seed",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const { tournamentId } = req.params;
+      const category = decodeURIComponent(req.params.category);
+
+      const bracket = await prisma.playoffBracket.findUnique({
+        where: { tournamentId_category: { tournamentId, category } },
+        include: { matches: true },
+      });
+      if (!bracket)
+        return res.status(404).json({ error: "Bracket não encontrado" });
+
+      const groups = await prisma.group.findMany({
+        where: { tournamentId, category },
+        include: {
+          teams: { include: { team: true }, orderBy: { position: "asc" } },
+          matches: true,
+        },
+      });
+
+      const allPlayed = (groups as any[]).every((g) =>
+        (g.matches as any[]).every((m: any) => m.played),
+      );
+      if (!allPlayed) {
+        return res
+          .status(400)
+          .json({ error: "Nem todos os jogos do grupo foram encerrados" });
+      }
+
+      function getStandings(group: any) {
+        const stats: Record<
+          string,
+          { wins: number; saldo: number; gamesFor: number }
+        > = {};
+        for (const gt of group.teams) {
+          stats[gt.teamId] = { wins: 0, saldo: 0, gamesFor: 0 };
+        }
+        for (const m of group.matches as any[]) {
+          if (!m.played || m.score1 == null || m.score2 == null) continue;
+          const s1 = m.score1,
+            s2 = m.score2;
+          if (s1 > s2) {
+            if (stats[m.team1Id]) {
+              stats[m.team1Id].wins++;
+              stats[m.team1Id].saldo += s1 - s2;
+              stats[m.team1Id].gamesFor += s1;
+            }
+            if (stats[m.team2Id]) {
+              stats[m.team2Id].saldo -= s1 - s2;
+              stats[m.team2Id].gamesFor += s2;
+            }
+          } else {
+            if (stats[m.team2Id]) {
+              stats[m.team2Id].wins++;
+              stats[m.team2Id].saldo += s2 - s1;
+              stats[m.team2Id].gamesFor += s2;
+            }
+            if (stats[m.team1Id]) {
+              stats[m.team1Id].saldo -= s2 - s1;
+              stats[m.team1Id].gamesFor += s1;
+            }
+          }
+        }
+        return (group.teams as any[])
+          .map((gt: any) => ({
+            teamId: gt.teamId,
+            team: gt.team,
+            ...stats[gt.teamId],
+          }))
+          .sort(
+            (a: any, b: any) =>
+              b.wins - a.wins || b.saldo - a.saldo || b.gamesFor - a.gamesFor,
+          );
+      }
+
+      const labelMap: Record<string, { teamId: string; label: string }> = {};
+      for (const group of groups) {
+        const standings = getStandings(group);
+        standings.forEach((entry: any, idx: number) => {
+          const key = `${idx + 1}° ${group.name}`;
+          labelMap[key] = {
+            teamId: entry.teamId,
+            label: `${entry.team.player1Name} / ${entry.team.player2Name}`,
+          };
+        });
+      }
+
+      const updates: Promise<any>[] = [];
+      for (const match of bracket.matches) {
+        const data: any = {};
+        if (!match.team1Id && match.team1Label && labelMap[match.team1Label]) {
+          data.team1Id = labelMap[match.team1Label].teamId;
+          data.team1Label = labelMap[match.team1Label].label;
+        }
+        if (!match.team2Id && match.team2Label && labelMap[match.team2Label]) {
+          data.team2Id = labelMap[match.team2Label].teamId;
+          data.team2Label = labelMap[match.team2Label].label;
+        }
+        if (Object.keys(data).length > 0) {
+          updates.push(
+            prisma.playoffMatch.update({ where: { id: match.id }, data }),
+          );
+        }
+      }
+      await Promise.all(updates);
+
+      const updated = await prisma.playoffBracket.findUnique({
+        where: { id: bracket.id },
+        include: {
+          matches: { orderBy: [{ roundSize: "desc" }, { matchIndex: "asc" }] },
+        },
+      });
+      return res.json({ data: updated });
+    } catch (err) {
+      next(err);
+    }
+  },
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -183,12 +317,14 @@ playoffRoutes.patch(
       // Retorna o bracket completo atualizado
       const bracketUpdated = await prisma.playoffBracket.findUnique({
         where: { id: updated.bracketId },
-        include: { matches: { orderBy: [{ roundSize: "desc" }, { matchIndex: "asc" }] } },
+        include: {
+          matches: { orderBy: [{ roundSize: "desc" }, { matchIndex: "asc" }] },
+        },
       });
 
       return res.json({ data: bracketUpdated });
     } catch (err) {
       next(err);
     }
-  }
+  },
 );

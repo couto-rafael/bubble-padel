@@ -481,9 +481,8 @@ interface TabPlayoffsProps {
 }
 
 export default function TabPlayoffs({ tournament, teams }: TabPlayoffsProps) {
-  const { brackets, loading, generateBracket, saveMatchResult } = usePlayoffs(
-    tournament.id,
-  );
+  const { brackets, loading, generateBracket, saveMatchResult, seedBracket } =
+    usePlayoffs(tournament.id);
 
   // Carrega grupos diretamente do backend (igual a TabJogos) — evita estado stale do pai
   const { groups, loading: groupsLoading } = useGroups(tournament.id);
@@ -546,6 +545,37 @@ export default function TabPlayoffs({ tournament, teams }: TabPlayoffsProps) {
     groupCategories.join(","),
     brackets.length,
     activeCategory,
+  ]);
+
+  // Seed automático: quando todos os jogos de um grupo estão encerrados,
+  // resolve os labels "1° Grupo A" para nomes reais das duplas
+  useEffect(() => {
+    if (!activeCategory || loading || groupsLoading) return;
+    const catGroups = groups.filter((g) => g.category === activeCategory);
+    if (catGroups.length === 0) return;
+
+    const allDone = catGroups.every(
+      (g) => g.matches.length > 0 && g.matches.every((m) => m.played),
+    );
+    if (!allDone) return;
+
+    const bracket = brackets.find((b) => b.category === activeCategory);
+    if (!bracket) return;
+
+    // Verifica se ainda há labels não resolvidos (teamId == null)
+    const hasUnresolved = bracket.matches.some(
+      (m) => !m.isBye && (!m.team1Id || !m.team2Id),
+    );
+    if (!hasUnresolved) return;
+
+    seedBracket(activeCategory).catch(console.error);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    activeCategory,
+    loading,
+    groupsLoading,
+    brackets.length,
+    groups.map((g) => g.matches.filter((m) => m.played).length).join(","),
   ]);
 
   const handleSaveScore = async (
