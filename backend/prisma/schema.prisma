@@ -83,6 +83,8 @@ model Tournament {
   pixKey                 String           @default("")
   clubSede               String           @default("")
   categories             String[]
+  matchDuration          Int              @default(60)
+  daySchedules           Json             @default("[]")
   courts                 String[]
   createdAt              DateTime         @default(now())
   updatedAt              DateTime         @updatedAt

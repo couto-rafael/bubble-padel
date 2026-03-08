@@ -24,6 +24,16 @@ const tournamentSchema = z.object({
   clubSede: z.string().default(""),
   categories: z.array(z.string()).default([]),
   courts: z.array(z.string()).default([]),
+  matchDuration: z.number().default(60),
+  daySchedules: z
+    .array(
+      z.object({
+        date: z.string(),
+        startTime: z.string(),
+        endTime: z.string(),
+      }),
+    )
+    .default([]),
 });
 
 // GET /api/tournaments — lista torneios do clube logado

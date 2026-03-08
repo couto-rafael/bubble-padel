@@ -667,6 +667,12 @@ const CreateTournament = () => {
         clubSede: form.clubSede,
         categories: form.selectedCategories,
         courts: form.courts,
+        matchDuration: parseInt(form.matchDuration) || 60,
+        daySchedules: form.schedules.map((s) => ({
+          date: s.date,
+          startTime: s.startTime,
+          endTime: s.endTime,
+        })),
       });
 
       navigate("/dashboard/tournaments");

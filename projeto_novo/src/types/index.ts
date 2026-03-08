@@ -74,6 +74,8 @@ export interface Tournament {
   clubSede: string;
   categories: string[];
   courts: string[]; // quadras do torneio
+  matchDuration: number;
+  daySchedules: Array<{ date: string; startTime: string; endTime: string }>;
   clubId?: string; // FK para o clube organizador
   createdAt: string;
   updatedAt: string;

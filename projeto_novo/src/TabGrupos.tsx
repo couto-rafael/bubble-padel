@@ -21,11 +21,13 @@ interface Tournament {
   name: string;
   categories: string[];
   status: string;
-  startDate?: string; // "2025-03-15" ou ISO completo
+  startDate?: string;
   endDate?: string;
   priceFirstCategory?: number;
   maxTeams?: number;
   courts?: string[];
+  matchDuration?: number;
+  daySchedules?: Array<{ date: string; startTime: string; endTime: string }>;
 }
 
 interface TabGruposProps {
@@ -164,25 +166,38 @@ export default function TabGrupos({
         }
       }
 
-      // 4. Agendar automaticamente se o torneio tem quadras e clube tem horários
+      // 4. Agendar automaticamente se o torneio tem quadras e horários por dia
       const hasCourts = tournament.courts && tournament.courts.length > 0;
-      const matchDuration = club?.matchDuration ?? 60;
-      const defaultStart = club?.defaultStartTime ?? "08:00";
-      const defaultEnd = club?.defaultEndTime ?? "20:00";
+      const matchDuration =
+        tournament.matchDuration ?? club?.matchDuration ?? 60;
 
-      // Deriva as datas do torneio (pode vir como ISO completo ou "YYYY-MM-DD")
+      // Usa daySchedules do torneio; fallback para clube se não tiver
       const extractDate = (d?: string) => (d ? d.slice(0, 10) : null);
       const startDate = extractDate(tournament.startDate);
       const endDate = extractDate(tournament.endDate);
 
-      if (hasCourts && startDate && endDate) {
-        const daySchedules = buildDaySchedules(
-          startDate,
-          endDate,
-          defaultStart,
-          defaultEnd,
-        );
+      const daySchedules: Array<{
+        date: string;
+        startTime: string;
+        endTime: string;
+      }> =
+        tournament.daySchedules && tournament.daySchedules.length > 0
+          ? tournament.daySchedules
+          : buildDaySchedules(
+              startDate ?? "",
+              endDate ?? "",
+              club?.defaultStartTime ?? "08:00",
+              club?.defaultEndTime ?? "20:00",
+            );
 
+      console.log(
+        "[schedule] matchDuration:",
+        matchDuration,
+        "daySchedules:",
+        daySchedules,
+      );
+
+      if (hasCourts && daySchedules.length > 0) {
         // Coletar jogos de grupo com IDs
         const groupMatchInputs = savedGroups.flatMap((g) =>
           (g.matches ?? [])
@@ -198,7 +213,7 @@ export default function TabGrupos({
         // Rodar algoritmo
         const scheduleEntries = generateAutoSchedule(
           groupMatchInputs,
-          playoffBrackets,
+          [],
           tournament.courts!,
           daySchedules,
           matchDuration,

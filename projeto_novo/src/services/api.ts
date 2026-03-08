@@ -128,6 +128,8 @@ function normalizeTournament(t: any): Tournament {
     status: t.status?.toLowerCase() ?? "draft",
     totalTeams: t._count?.teams ?? t.totalTeams ?? 0,
     categories: t.categories ?? [],
+    matchDuration: t.matchDuration ?? 60,
+    daySchedules: t.daySchedules ?? [],
     courts: t.courts ?? [],
   };
 }

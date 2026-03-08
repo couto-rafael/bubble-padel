@@ -135,6 +135,11 @@ export default function TabJogos({
         });
       });
     }
+    result.sort((a, b) => {
+      const da = `${a.date ?? "9999"} ${a.time ?? "99:99"}`;
+      const db = `${b.date ?? "9999"} ${b.time ?? "99:99"}`;
+      return da.localeCompare(db);
+    });
     return result;
   }, [groups, schedule]);
 
