@@ -182,14 +182,12 @@ model Match {
   sets      Json?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  schedule  Schedule?
   @@map("matches")
 }
 
 model Schedule {
   id        String    @id @default(cuid())
   matchId   String    @unique
-  match     Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
   court     String
   date      DateTime?
   time      String?

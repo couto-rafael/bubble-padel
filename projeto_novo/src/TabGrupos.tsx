@@ -86,6 +86,20 @@ const getRoundLabel = (roundSize: number): string => {
   return `Fase ${roundSize}`;
 };
 
+const COURT_COLORS = [
+  { dot: "bg-blue-500" },
+  { dot: "bg-orange-500" },
+  { dot: "bg-violet-500" },
+  { dot: "bg-emerald-500" },
+  { dot: "bg-rose-500" },
+  { dot: "bg-cyan-500" },
+];
+
+function formatDate(iso: string) {
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+}
+
 export default function TabGrupos({
   teams,
   tournament,
@@ -111,7 +125,11 @@ export default function TabGrupos({
   const generated = groups.length > 0;
 
   // Playoffs e schedule — para listar jogos de playoff por categoria
-  const { brackets, saveMatchResult } = usePlayoffs(tournament.id);
+  const {
+    brackets,
+    saveMatchResult,
+    reload: reloadBrackets,
+  } = usePlayoffs(tournament.id);
   const { schedule, updateSchedule } = useSchedule(tournament.id);
   const [playoffScoreModal, setPlayoffScoreModal] =
     useState<PlayoffMatchData | null>(null);
@@ -225,10 +243,10 @@ export default function TabGrupos({
             })),
         );
 
-        // Rodar algoritmo
+        // Rodar algoritmo com grupos E playoffs
         const scheduleEntries = generateAutoSchedule(
           groupMatchInputs,
-          [],
+          playoffBrackets,
           tournament.courts!,
           daySchedules,
           matchDuration,
@@ -240,6 +258,8 @@ export default function TabGrupos({
         }
       }
 
+      // Recarrega brackets e schedule para reflectir no UI imediatamente
+      await reloadBrackets();
       onGroupsChange?.(savedGroups);
     } catch (err) {
       console.error("Erro ao gerar grupos:", err);
@@ -747,83 +767,113 @@ export default function TabGrupos({
                           const s = schedule[pm.id];
                           const roundLabel = getRoundLabel(pm.roundSize);
                           const isClickable = !!pm.team1Id && !!pm.team2Id;
+                          const allCourts = tournament.courts ?? [];
+                          const courtIdx = allCourts.indexOf(s?.court ?? "");
+                          const courtColor =
+                            courtIdx >= 0
+                              ? COURT_COLORS[courtIdx % COURT_COLORS.length]
+                              : null;
+
                           return (
-                            <button
+                            <div
                               key={pm.id}
-                              disabled={!isClickable}
-                              onClick={() =>
-                                isClickable && setPlayoffScoreModal(pm)
-                              }
-                              className={`w-full rounded-xl text-xs transition-colors border text-left ${
-                                pm.played
-                                  ? "bg-gray-50 border-gray-200 hover:bg-gray-100"
-                                  : isClickable
-                                    ? "bg-white border-dashed border-gray-200 hover:bg-gray-50"
-                                    : "bg-white border-dashed border-gray-100 opacity-60 cursor-default"
-                              }`}
+                              className={`bg-white border rounded-2xl overflow-hidden transition-all ${pm.played ? "border-gray-100" : "border-gray-200"}`}
                             >
-                              <div className="flex items-center gap-2 px-3 py-2.5">
-                                <div className="shrink-0 w-24">
-                                  <p className="text-[10px] font-bold text-gray-500">
+                              <div
+                                className={`flex items-center gap-3 px-4 py-3 transition-colors ${isClickable ? "cursor-pointer hover:bg-gray-50" : "cursor-default"}`}
+                                onClick={() =>
+                                  isClickable && setPlayoffScoreModal(pm)
+                                }
+                              >
+                                {/* Info */}
+                                <div className="shrink-0 w-36 flex flex-col gap-0.5">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-[10px] font-bold text-blue-500">
+                                      {category}
+                                    </span>
+                                    {!pm.played && isClickable && (
+                                      <span className="text-[9px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full border border-amber-200 whitespace-nowrap">
+                                        A realizar
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="text-[10px] font-semibold text-gray-500 truncate">
                                     {roundLabel}
-                                  </p>
-                                  {s?.court && (
-                                    <p className="text-[10px] text-blue-400 truncate">
+                                  </span>
+                                  {s?.court ? (
+                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold truncate text-gray-600">
+                                      <span
+                                        className={`w-1.5 h-1.5 rounded-full shrink-0 ${courtColor?.dot ?? "bg-gray-300"}`}
+                                      />
                                       {s.court}
-                                    </p>
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] text-gray-300 italic">
+                                      Sem quadra
+                                    </span>
                                   )}
-                                  {s?.date && (
-                                    <p className="text-[10px] text-gray-400">
-                                      {s.date.split("-").reverse().join("/")}
-                                      {s.time ? ` ${s.time}` : ""}
-                                    </p>
+                                  {s?.date ? (
+                                    <span className="text-[10px] text-gray-400 tabular-nums">
+                                      {formatDate(s.date)}
+                                      {s.time ? ` · ${s.time}` : ""}
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] text-gray-300 italic">
+                                      Sem horário
+                                    </span>
                                   )}
                                 </div>
+
+                                {/* Dupla 1 */}
                                 <div
-                                  className={`flex-1 min-w-0 ${win1 ? "opacity-100" : "opacity-60"}`}
+                                  className={`flex-1 text-right min-w-0 ${win1 ? "" : "opacity-60"}`}
                                 >
                                   <p
-                                    className={`leading-tight truncate ${win1 ? "text-gray-900 font-semibold" : "text-gray-600"}`}
+                                    className={`text-sm leading-tight truncate ${win1 ? "font-semibold text-gray-900" : "text-gray-600"}`}
                                   >
                                     {t1a}
                                   </p>
                                   {t1b && (
                                     <p
-                                      className={`leading-tight truncate mt-0.5 ${win1 ? "text-gray-900 font-semibold" : "text-gray-500"}`}
+                                      className={`text-sm leading-tight truncate mt-0.5 ${win1 ? "font-semibold text-gray-900" : "text-gray-500"}`}
                                     >
                                       {t1b}
                                     </p>
                                   )}
                                 </div>
-                                <div className="shrink-0 text-center min-w-[48px]">
+
+                                {/* Placar */}
+                                <div className="shrink-0 flex flex-col items-center min-w-[60px]">
                                   {pm.played ? (
-                                    <span className="font-black text-sm text-gray-800">
+                                    <span className="font-black text-sm tabular-nums text-gray-800">
                                       {pm.score1} × {pm.score2}
                                     </span>
                                   ) : (
-                                    <span className="text-gray-300 font-black text-sm">
+                                    <span className="text-gray-300 font-black text-sm tabular-nums">
                                       — × —
                                     </span>
                                   )}
                                 </div>
+
+                                {/* Dupla 2 */}
                                 <div
-                                  className={`flex-1 min-w-0 text-right ${win2 ? "opacity-100" : "opacity-60"}`}
+                                  className={`flex-1 text-left min-w-0 ${win2 ? "" : "opacity-60"}`}
                                 >
                                   <p
-                                    className={`leading-tight truncate ${win2 ? "text-gray-900 font-semibold" : "text-gray-600"}`}
+                                    className={`text-sm leading-tight truncate ${win2 ? "font-semibold text-gray-900" : "text-gray-600"}`}
                                   >
                                     {t2a}
                                   </p>
                                   {t2b && (
                                     <p
-                                      className={`leading-tight truncate mt-0.5 ${win2 ? "text-gray-900 font-semibold" : "text-gray-500"}`}
+                                      className={`text-sm leading-tight truncate mt-0.5 ${win2 ? "font-semibold text-gray-900" : "text-gray-500"}`}
                                     >
                                       {t2b}
                                     </p>
                                   )}
                                 </div>
                               </div>
-                            </button>
+                            </div>
                           );
                         })}
                       </div>
