@@ -1,6 +1,7 @@
-import { useGroups, useClub } from "./hooks";
+import { useGroups, useClub, usePlayoffs, useSchedule } from "./hooks";
 import { useState, useRef } from "react";
 import type { Team, Group, GroupTeam, Match } from "./types";
+import ScoreModal from "./ScoreModal";
 import {
   generateGroupsForCategory,
   recalculateStandings,
@@ -13,6 +14,7 @@ import {
   buildDaySchedules,
 } from "./utils/scheduleUtils";
 import { GroupService, PlayoffService, ScheduleService } from "./services/api";
+import type { PlayoffBracketData, PlayoffMatchData } from "./services/api";
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 
@@ -96,16 +98,18 @@ export default function TabGrupos({
   };
 
   const generated = groups.length > 0;
+
+  // Playoffs e schedule — para listar jogos de playoff por categoria
+  const { brackets, saveMatchResult } = usePlayoffs(tournament.id);
+  const { schedule, updateSchedule } = useSchedule(tournament.id);
+  const [playoffScoreModal, setPlayoffScoreModal] =
+    useState<PlayoffMatchData | null>(null);
   const [scoreModal, setScoreModal] = useState<{
     open: boolean;
     groupId: string;
     match: Match | null;
   }>({ open: false, groupId: "", match: null });
-  const [scoreInput, setScoreInput] = useState({ score1: "", score2: "" });
   const [searchQuery, setSearchQuery] = useState("");
-  const [showWO, setShowWO] = useState(false);
-  const [sets, setSets] = useState<Array<{ s1: string; s2: string }>>([]);
-  const [showSets, setShowSets] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState("todas");
 
   const dragTeam = useRef<{ groupId: string; teamId: string } | null>(null);
@@ -328,100 +332,6 @@ export default function TabGrupos({
 
   const openScoreModal = (groupId: string, match: Match) => {
     setScoreModal({ open: true, groupId, match });
-    const existingSets = (match as any).sets as
-      | Array<{ s1: number; s2: number }>
-      | undefined;
-    if (existingSets && existingSets.length > 0) {
-      setScoreInput({
-        score1: String(existingSets[0].s1),
-        score2: String(existingSets[0].s2),
-      });
-      setSets(
-        existingSets
-          .slice(1)
-          .map((s) => ({ s1: String(s.s1), s2: String(s.s2) })),
-      );
-      setShowSets(existingSets.length > 1);
-    } else {
-      setScoreInput({
-        score1: match.score1 !== null ? String(match.score1) : "",
-        score2: match.score2 !== null ? String(match.score2) : "",
-      });
-      setSets([]);
-      setShowSets(false);
-    }
-    setShowWO(false);
-  };
-
-  const handleSaveScore = async () => {
-    if (!scoreModal.match) return;
-    const s1 = parseInt(scoreInput.score1),
-      s2 = parseInt(scoreInput.score2);
-    if (isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0) {
-      alert("Insira resultados válidos no 1º set.");
-      return;
-    }
-    if (s1 === s2) {
-      alert("Não pode haver empate no 1º set.");
-      return;
-    }
-
-    const parsedSets: Array<{ s1: number; s2: number }> = [{ s1, s2 }];
-    for (let i = 0; i < sets.length; i++) {
-      const ps1 = parseInt(sets[i].s1),
-        ps2 = parseInt(sets[i].s2);
-      if (isNaN(ps1) || isNaN(ps2) || ps1 < 0 || ps2 < 0) {
-        alert(`Insira resultados válidos no ${i + 2}º set.`);
-        return;
-      }
-      if (ps1 === ps2) {
-        alert(`Não pode haver empate no ${i + 2}º set.`);
-        return;
-      }
-      parsedSets.push({ s1: ps1, s2: ps2 });
-    }
-
-    let wins1 = 0,
-      wins2 = 0;
-    for (const ps of parsedSets) {
-      if (ps.s1 > ps.s2) wins1++;
-      else wins2++;
-    }
-    if (wins1 === wins2) {
-      alert("Resultado final em sets empatado. Adicione um set desempate.");
-      return;
-    }
-
-    try {
-      await saveScore(scoreModal.groupId, scoreModal.match.id, {
-        score1: parsedSets[0].s1,
-        score2: parsedSets[0].s2,
-        sets: parsedSets,
-      });
-    } catch {
-      alert("Erro ao salvar resultado. Tente novamente.");
-      return;
-    }
-    setScoreModal({ open: false, groupId: "", match: null });
-    setSets([]);
-    setShowSets(false);
-    setShowWO(false);
-  };
-
-  const handleWO = async (winner: 1 | 2) => {
-    if (!scoreModal.match) return;
-    try {
-      await saveScore(scoreModal.groupId, scoreModal.match.id, {
-        score1: winner === 1 ? 9 : 0,
-        score2: winner === 2 ? 9 : 0,
-        wo: winner,
-      });
-    } catch {
-      alert("Erro ao registrar W.O.");
-      return;
-    }
-    setScoreModal({ open: false, groupId: "", match: null });
-    setShowWO(false);
   };
 
   const getTeamName = (group: Group, teamId: string) => {
@@ -787,283 +697,200 @@ export default function TabGrupos({
                     />
                   ))}
                 </div>
+
+                {/* ── Jogos de Playoff desta categoria ──────────────── */}
+                {(() => {
+                  const catBracket = brackets.find(
+                    (b) => b.category === category,
+                  );
+                  if (!catBracket) return null;
+                  const playoffMatches = catBracket.matches
+                    .filter((m) => !m.isBye)
+                    .sort((a, b) =>
+                      b.roundSize !== a.roundSize
+                        ? b.roundSize - a.roundSize
+                        : a.matchIndex - b.matchIndex,
+                    );
+                  if (playoffMatches.length === 0) return null;
+                  return (
+                    <div className="mt-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                        <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wide">
+                          Playoffs — {category}
+                        </h3>
+                        <span className="text-xs text-gray-400">
+                          {playoffMatches.filter((m) => m.played).length}/
+                          {playoffMatches.length} jogos
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        {playoffMatches.map((pm) => {
+                          const t1 = pm.team1Label ?? "A definir";
+                          const t2 = pm.team2Label ?? "A definir";
+                          const [t1a, t1b] = t1.split(" / ");
+                          const [t2a, t2b] = t2.split(" / ");
+                          const win1 = pm.played && pm.winnerId === pm.team1Id;
+                          const win2 = pm.played && pm.winnerId === pm.team2Id;
+                          const s = schedule[pm.id];
+                          const roundLabel =
+                            pm.roundSize === 2
+                              ? "Final"
+                              : pm.roundSize === 4
+                                ? "Semifinal"
+                                : pm.roundSize === 8
+                                  ? "Quartas de Final"
+                                  : `Fase ${pm.roundSize}`;
+                          const isClickable = !!pm.team1Id && !!pm.team2Id;
+                          return (
+                            <button
+                              key={pm.id}
+                              disabled={!isClickable}
+                              onClick={() =>
+                                isClickable && setPlayoffScoreModal(pm)
+                              }
+                              className={`w-full rounded-xl text-xs transition-colors border text-left ${
+                                pm.played
+                                  ? "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                                  : isClickable
+                                    ? "bg-white border-dashed border-gray-200 hover:bg-gray-50"
+                                    : "bg-white border-dashed border-gray-100 opacity-60 cursor-default"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 px-3 py-2.5">
+                                <div className="shrink-0 w-24">
+                                  <p className="text-[10px] font-bold text-gray-500">
+                                    {roundLabel}
+                                  </p>
+                                  {s?.court && (
+                                    <p className="text-[10px] text-blue-400 truncate">
+                                      {s.court}
+                                    </p>
+                                  )}
+                                  {s?.date && (
+                                    <p className="text-[10px] text-gray-400">
+                                      {s.date.split("-").reverse().join("/")}
+                                      {s.time ? ` ${s.time}` : ""}
+                                    </p>
+                                  )}
+                                </div>
+                                <div
+                                  className={`flex-1 min-w-0 ${win1 ? "opacity-100" : "opacity-60"}`}
+                                >
+                                  <p
+                                    className={`leading-tight truncate ${win1 ? "text-gray-900 font-semibold" : "text-gray-600"}`}
+                                  >
+                                    {t1a}
+                                  </p>
+                                  {t1b && (
+                                    <p
+                                      className={`leading-tight truncate mt-0.5 ${win1 ? "text-gray-900 font-semibold" : "text-gray-500"}`}
+                                    >
+                                      {t1b}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="shrink-0 text-center min-w-[48px]">
+                                  {pm.played ? (
+                                    <span className="font-black text-sm text-gray-800">
+                                      {pm.score1} × {pm.score2}
+                                    </span>
+                                  ) : (
+                                    <span className="text-gray-300 font-black text-sm">
+                                      — × —
+                                    </span>
+                                  )}
+                                </div>
+                                <div
+                                  className={`flex-1 min-w-0 text-right ${win2 ? "opacity-100" : "opacity-60"}`}
+                                >
+                                  <p
+                                    className={`leading-tight truncate ${win2 ? "text-gray-900 font-semibold" : "text-gray-600"}`}
+                                  >
+                                    {t2a}
+                                  </p>
+                                  {t2b && (
+                                    <p
+                                      className={`leading-tight truncate mt-0.5 ${win2 ? "text-gray-900 font-semibold" : "text-gray-500"}`}
+                                    >
+                                      {t2b}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             );
           },
         )
       )}
 
-      {/* ── Modal resultado ───────────────────────────────────────────────── */}
-      {scoreModal.open && scoreModal.match && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() =>
-              setScoreModal({ open: false, groupId: "", match: null })
-            }
-          />
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative z-10">
-            <h3 className="text-lg font-bold text-gray-900 mb-1">
-              Registrar Resultado
-            </h3>
-            <p className="text-sm text-gray-500 mb-5">
-              Insira o placar do jogo
-            </p>
-            {(() => {
-              const group = groups.find((g) => g.id === scoreModal.groupId);
-              if (!group) return null;
-              const t1 = getTeamName(group, scoreModal.match!.team1Id);
-              const t2 = getTeamName(group, scoreModal.match!.team2Id);
-              const [t1a, t1b] = t1.split(" / ");
-              const [t2a, t2b] = t2.split(" / ");
-              return (
-                <>
-                  {/* Nomes das duplas — header fixo */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="flex-1 text-center">
-                      <p className="text-sm text-gray-700 truncate leading-tight">
-                        {t1a}
-                      </p>
-                      {t1b && (
-                        <p className="text-sm text-gray-700 truncate leading-tight mt-0.5">
-                          {t1b}
-                        </p>
-                      )}
-                    </div>
-                    <span className="w-6 shrink-0" />
-                    <div className="flex-1 text-center">
-                      <p className="text-sm text-gray-700 truncate leading-tight">
-                        {t2a}
-                      </p>
-                      {t2b && (
-                        <p className="text-sm text-gray-700 truncate leading-tight mt-0.5">
-                          {t2b}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Sets */}
-                  <div className="space-y-2 mb-3">
-                    {/* Set 1 — sempre visível */}
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 pl-1">
-                        Set 1
-                      </p>
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="number"
-                          min={0}
-                          value={scoreInput.score1}
-                          onChange={(e) =>
-                            setScoreInput((s) => ({
-                              ...s,
-                              score1: e.target.value,
-                            }))
-                          }
-                          className="w-0 flex-1 text-center text-3xl font-black py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 text-gray-900 bg-gray-50"
-                          placeholder="0"
-                        />
-                        <span className="text-xl font-bold text-gray-300 shrink-0">
-                          ×
-                        </span>
-                        <input
-                          type="number"
-                          min={0}
-                          value={scoreInput.score2}
-                          onChange={(e) =>
-                            setScoreInput((s) => ({
-                              ...s,
-                              score2: e.target.value,
-                            }))
-                          }
-                          className="w-0 flex-1 text-center text-3xl font-black py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 text-gray-900 bg-gray-50"
-                          placeholder="0"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Sets adicionais */}
-                    {showSets &&
-                      sets.map((set, idx) => (
-                        <div key={idx}>
-                          <div className="flex items-center justify-between mb-1 pl-1">
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                              Set {idx + 2}
-                            </p>
-                            <button
-                              onClick={() => {
-                                setSets((prev) =>
-                                  prev.filter((_, i) => i !== idx),
-                                );
-                                if (sets.length === 1) setShowSets(false);
-                              }}
-                              className="w-5 h-5 rounded-full bg-gray-100 hover:bg-red-100 text-gray-400 hover:text-red-500 flex items-center justify-center transition-colors"
-                            >
-                              <svg
-                                className="w-3 h-3"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                strokeWidth={3}
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M6 18L18 6M6 6l12 12"
-                                />
-                              </svg>
-                            </button>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="number"
-                              min={0}
-                              value={set.s1}
-                              onChange={(e) =>
-                                setSets((prev) =>
-                                  prev.map((s, i) =>
-                                    i === idx
-                                      ? { ...s, s1: e.target.value }
-                                      : s,
-                                  ),
-                                )
-                              }
-                              className="w-0 flex-1 text-center text-3xl font-black py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 text-gray-900 bg-gray-50"
-                              placeholder="0"
-                            />
-                            <span className="text-xl font-bold text-gray-300 shrink-0">
-                              ×
-                            </span>
-                            <input
-                              type="number"
-                              min={0}
-                              value={set.s2}
-                              onChange={(e) =>
-                                setSets((prev) =>
-                                  prev.map((s, i) =>
-                                    i === idx
-                                      ? { ...s, s2: e.target.value }
-                                      : s,
-                                  ),
-                                )
-                              }
-                              className="w-0 flex-1 text-center text-3xl font-black py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 text-gray-900 bg-gray-50"
-                              placeholder="0"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-
-                  {/* Ações secundárias */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowWO((v) => !v);
-                        setShowSets(false);
-                        setSets([]);
-                      }}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 hover:text-amber-700 transition-colors"
-                    >
-                      <svg
-                        className="w-3.5 h-3.5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      Vitória por W.O.
-                    </button>
-                    <span className="text-gray-200">|</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowSets(true);
-                        setShowWO(false);
-                        setSets((prev) => [...prev, { s1: "", s2: "" }]);
-                      }}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-blue-500 hover:text-blue-600 transition-colors"
-                    >
-                      <svg
-                        className="w-3.5 h-3.5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M12 4v16m8-8H4"
-                        />
-                      </svg>
-                      Adicionar Set
-                    </button>
-                  </div>
-
-                  {/* WO expandido */}
-                  {showWO && (
-                    <div className="border border-amber-200 bg-amber-50 rounded-xl p-3 mb-4">
-                      <p className="text-xs font-semibold text-amber-700 mb-2 text-center">
-                        Quem venceu por W.O.?
-                      </p>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleWO(1)}
-                          className="flex-1 py-2 px-2 rounded-lg bg-white border border-amber-300 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition-colors text-center leading-tight"
-                        >
-                          <span className="block truncate">{t1a}</span>
-                          {t1b && (
-                            <span className="block truncate text-amber-600 font-normal">
-                              {t1b}
-                            </span>
-                          )}
-                        </button>
-                        <button
-                          onClick={() => handleWO(2)}
-                          className="flex-1 py-2 px-2 rounded-lg bg-white border border-amber-300 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition-colors text-center leading-tight"
-                        >
-                          <span className="block truncate">{t2a}</span>
-                          {t2b && (
-                            <span className="block truncate text-amber-600 font-normal">
-                              {t2b}
-                            </span>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              );
-            })()}
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setScoreModal({ open: false, groupId: "", match: null });
-                  setShowWO(false);
-                }}
-                className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-lg font-semibold text-sm hover:bg-gray-50 transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSaveScore}
-                className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
-              >
-                Salvar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── Modal resultado — Grupos ──────────────────────────────────────── */}
+      {scoreModal.open &&
+        scoreModal.match &&
+        (() => {
+          const group = groups.find((g) => g.id === scoreModal.groupId);
+          if (!group) return null;
+          const t1 = getTeamName(group, scoreModal.match!.team1Id);
+          const t2 = getTeamName(group, scoreModal.match!.team2Id);
+          const existingSets = (scoreModal.match as any).sets as
+            | Array<{ s1: number; s2: number }>
+            | undefined;
+          return (
+            <ScoreModal
+              team1Name={t1}
+              team2Name={t2}
+              initialScore1={scoreModal.match!.score1 ?? null}
+              initialScore2={scoreModal.match!.score2 ?? null}
+              initialSets={existingSets}
+              onSave={async (payload) => {
+                await saveScore(scoreModal.groupId, scoreModal.match!.id, {
+                  score1: payload.score1,
+                  score2: payload.score2,
+                  sets: payload.sets,
+                  ...(payload.wo ? { wo: payload.wo } : {}),
+                });
+              }}
+              onClose={() =>
+                setScoreModal({ open: false, groupId: "", match: null })
+              }
+            />
+          );
+        })()}
+      {/* ── Modal resultado — Playoffs ─────────────────────────────────── */}
+      {playoffScoreModal &&
+        (() => {
+          const t1 = playoffScoreModal.team1Label ?? "A definir";
+          const t2 = playoffScoreModal.team2Label ?? "A definir";
+          return (
+            <ScoreModal
+              team1Name={t1}
+              team2Name={t2}
+              initialScore1={playoffScoreModal.score1 ?? null}
+              initialScore2={playoffScoreModal.score2 ?? null}
+              onSave={async (payload) => {
+                const winnerId =
+                  payload.score1 > payload.score2
+                    ? playoffScoreModal.team1Id!
+                    : playoffScoreModal.team2Id!;
+                await saveMatchResult(
+                  playoffScoreModal.id,
+                  payload.score1,
+                  payload.score2,
+                  winnerId,
+                );
+                setPlayoffScoreModal(null);
+              }}
+              onClose={() => setPlayoffScoreModal(null)}
+            />
+          );
+        })()}
     </div>
   );
 }

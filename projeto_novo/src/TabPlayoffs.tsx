@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import ScoreModal from "./ScoreModal";
 import type { Group, Team, Tournament } from "./types";
 import { usePlayoffs, useGroups } from "./hooks";
 import type { PlayoffBracketData, PlayoffMatchData } from "./services/api";
@@ -139,133 +140,6 @@ function teamDisplayName(
 
 // ─── MODAL DE RESULTADO ───────────────────────────────────────────────────────
 
-interface ScoreModalProps {
-  match: PlayoffMatchData;
-  teams: Team[];
-  onSave: (score1: number, score2: number, winnerId: string) => Promise<void>;
-  onClose: () => void;
-}
-
-const ScoreModal = ({ match, teams, onSave, onClose }: ScoreModalProps) => {
-  const [s1, setS1] = useState(match.score1?.toString() ?? "");
-  const [s2, setS2] = useState(match.score2?.toString() ?? "");
-  const [saving, setSaving] = useState(false);
-
-  const t1Name = teamDisplayName(match.team1Id, match.team1Label, teams);
-  const t2Name = teamDisplayName(match.team2Id, match.team2Label, teams);
-
-  const handleSave = async () => {
-    const n1 = parseInt(s1);
-    const n2 = parseInt(s2);
-    if (isNaN(n1) || isNaN(n2) || n1 < 0 || n2 < 0) {
-      alert("Insira placares válidos.");
-      return;
-    }
-    if (n1 === n2) {
-      alert("Não pode haver empate.");
-      return;
-    }
-    const winnerId = n1 > n2 ? match.team1Id : match.team2Id;
-    if (!winnerId) {
-      alert("Dupla não identificada. Conclua a fase de grupos primeiro.");
-      return;
-    }
-    setSaving(true);
-    try {
-      await onSave(n1, n2, winnerId);
-      onClose();
-    } catch {
-      alert("Erro ao salvar resultado.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-bold text-gray-900">
-            Registrar Resultado
-          </h3>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg"
-          >
-            <svg
-              className="w-5 h-5 text-gray-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="flex-1 text-center">
-              <p className="text-xs text-gray-500 mb-1 font-medium truncate">
-                {t1Name}
-              </p>
-              <input
-                type="number"
-                min={0}
-                value={s1}
-                onChange={(e) => setS1(e.target.value)}
-                className="w-full text-center text-3xl font-black py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-gray-900"
-                placeholder="0"
-                autoFocus
-              />
-            </div>
-            <div className="text-2xl font-black text-gray-400">×</div>
-            <div className="flex-1 text-center">
-              <p className="text-xs text-gray-500 mb-1 font-medium truncate">
-                {t2Name}
-              </p>
-              <input
-                type="number"
-                min={0}
-                value={s2}
-                onChange={(e) => setS2(e.target.value)}
-                className="w-full text-center text-3xl font-black py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 text-gray-900"
-                placeholder="0"
-              />
-            </div>
-          </div>
-          {s1 !== "" && s2 !== "" && parseInt(s1) !== parseInt(s2) && (
-            <div className="text-center text-sm text-emerald-700 bg-emerald-50 rounded-lg py-2 font-semibold">
-              Vencedor: {parseInt(s1) > parseInt(s2) ? t1Name : t2Name}
-            </div>
-          )}
-        </div>
-        <div className="flex gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
-          >
-            {saving ? "Salvando..." : "Salvar"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ─── MATCH BOX ────────────────────────────────────────────────────────────────
-
 interface MatchBoxProps {
   match: PlayoffMatchData;
   teams: Team[];
@@ -318,19 +192,6 @@ const MatchBox = ({ match, teams, onClick, isClickable }: MatchBoxProps) => {
             {match.score1 ?? "—"}
           </span>
         )}
-        {t1Won && (
-          <svg
-            className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-              clipRule="evenodd"
-            />
-          </svg>
-        )}
       </div>
 
       {/* Time 2 */}
@@ -349,19 +210,6 @@ const MatchBox = ({ match, teams, onClick, isClickable }: MatchBoxProps) => {
           >
             {match.score2 ?? "—"}
           </span>
-        )}
-        {t2Won && (
-          <svg
-            className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-              clipRule="evenodd"
-            />
-          </svg>
         )}
       </div>
     </div>
@@ -572,13 +420,26 @@ export default function TabPlayoffs({ tournament, teams }: TabPlayoffsProps) {
     groups.map((g) => g.matches.filter((m) => m.played).length).join(","),
   ]);
 
-  const handleSaveScore = async (
-    score1: number,
-    score2: number,
-    winnerId: string,
-  ) => {
+  const handleSaveScore = async (payload: {
+    score1: number;
+    score2: number;
+    sets: Array<{ s1: number; s2: number }>;
+    wo?: 1 | 2;
+  }) => {
     if (!scoreModal) return;
-    await saveMatchResult(scoreModal.id, score1, score2, winnerId);
+    // Determina vencedor pelo placar do set 1
+    const winnerId =
+      payload.score1 > payload.score2 ? scoreModal.team1Id : scoreModal.team2Id;
+    if (!winnerId) {
+      alert("Dupla não identificada. Conclua a fase de grupos primeiro.");
+      return;
+    }
+    await saveMatchResult(
+      scoreModal.id,
+      payload.score1,
+      payload.score2,
+      winnerId,
+    );
     setScoreModal(null);
   };
 
@@ -701,14 +562,29 @@ export default function TabPlayoffs({ tournament, teams }: TabPlayoffsProps) {
       )}
 
       {/* Modal de resultado */}
-      {scoreModal && (
-        <ScoreModal
-          match={scoreModal}
-          teams={teams}
-          onSave={handleSaveScore}
-          onClose={() => setScoreModal(null)}
-        />
-      )}
+      {scoreModal &&
+        (() => {
+          const t1 = teamDisplayName(
+            scoreModal.team1Id,
+            scoreModal.team1Label,
+            teams,
+          );
+          const t2 = teamDisplayName(
+            scoreModal.team2Id,
+            scoreModal.team2Label,
+            teams,
+          );
+          return (
+            <ScoreModal
+              team1Name={t1}
+              team2Name={t2}
+              initialScore1={scoreModal.score1 ?? null}
+              initialScore2={scoreModal.score2 ?? null}
+              onSave={handleSaveScore}
+              onClose={() => setScoreModal(null)}
+            />
+          );
+        })()}
     </div>
   );
 }
