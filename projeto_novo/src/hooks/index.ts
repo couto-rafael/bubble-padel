@@ -332,7 +332,37 @@ export function useSchedule(tournamentId: string | undefined) {
     setScheduleRaw((prev) => ({ ...prev, [matchId]: { matchId, ...data } }));
   };
 
-  return { schedule, loading, reload: load, updateSchedule };
+  const bulkUpdateSchedule = async (
+    entries: Array<{
+      matchId: string;
+      court: string;
+      date: string;
+      time: string;
+    }>,
+  ) => {
+    if (!tournamentId || entries.length === 0) return;
+    await ScheduleService.bulkUpdate(tournamentId, entries);
+    setScheduleRaw((prev) => {
+      const next = { ...prev };
+      for (const e of entries) {
+        next[e.matchId] = {
+          matchId: e.matchId,
+          court: e.court,
+          date: e.date,
+          time: e.time,
+        };
+      }
+      return next;
+    });
+  };
+
+  return {
+    schedule,
+    loading,
+    reload: load,
+    updateSchedule,
+    bulkUpdateSchedule,
+  };
 }
 
 // ─── usePlayoffs ──────────────────────────────────────────────────────────────

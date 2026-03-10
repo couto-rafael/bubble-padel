@@ -75,6 +75,17 @@ const CAT_COLORS = [
 
 // ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────────────
 
+const getRoundLabel = (roundSize: number): string => {
+  if (roundSize === 1) return "Final";
+  if (roundSize === 2) return "Semifinal";
+  if (roundSize === 4) return "Quartas de Final";
+  if (roundSize === 8) return "Oitavas de Final";
+  if (roundSize === 16) return "16avos de Final";
+  if (roundSize === 32) return "32avos de Final";
+  if (roundSize === 64) return "64avos de Final";
+  return `Fase ${roundSize}`;
+};
+
 export default function TabGrupos({
   teams,
   tournament,
@@ -690,6 +701,7 @@ export default function TabGrupos({
                       colorIdx={ci}
                       locked={locked}
                       searchQuery={searchQuery}
+                      schedule={schedule}
                       onDragStart={handleDragStart}
                       onDrop={handleDropOnGroup}
                       onOpenScore={openScoreModal}
@@ -733,14 +745,7 @@ export default function TabGrupos({
                           const win1 = pm.played && pm.winnerId === pm.team1Id;
                           const win2 = pm.played && pm.winnerId === pm.team2Id;
                           const s = schedule[pm.id];
-                          const roundLabel =
-                            pm.roundSize === 2
-                              ? "Final"
-                              : pm.roundSize === 4
-                                ? "Semifinal"
-                                : pm.roundSize === 8
-                                  ? "Quartas de Final"
-                                  : `Fase ${pm.roundSize}`;
+                          const roundLabel = getRoundLabel(pm.roundSize);
                           const isClickable = !!pm.team1Id && !!pm.team2Id;
                           return (
                             <button
@@ -903,6 +908,7 @@ interface GroupCardProps {
   colorIdx: number;
   locked: boolean;
   searchQuery: string;
+  schedule: Record<string, { court?: string; date?: string; time?: string }>;
   onDragStart: (groupId: string, teamId: string) => void;
   onDrop: (groupId: string) => void;
   onOpenScore: (groupId: string, match: Match) => void;
@@ -932,6 +938,7 @@ function GroupCard({
   searchQuery,
   onDragStart,
   onDrop,
+  schedule,
   onOpenScore,
   getTeamName,
 }: GroupCardProps) {
@@ -1020,13 +1027,6 @@ function GroupCard({
                   </span>
                 ) : isEliminated ? (
                   <span className="w-5 h-5 rounded-full bg-red-400 text-white flex items-center justify-center text-[10px] font-black">
-                    {i + 1}
-                  </span>
-                ) : gt.qualified ? (
-                  <span
-                    className="w-5 h-5 rounded-full text-white flex items-center justify-center text-[10px] font-black"
-                    style={{ backgroundColor: "#1B2A4A" }}
-                  >
                     {i + 1}
                   </span>
                 ) : (
@@ -1208,6 +1208,29 @@ function GroupCard({
                     )}
                   </div>
                 </div>
+                {/* Quadra / data / hora */}
+                {(() => {
+                  const s = schedule[match.id];
+                  if (!s?.court && !s?.date) return null;
+                  return (
+                    <div className="flex items-center gap-2 px-3 pb-2 -mt-0.5">
+                      {s.court && (
+                        <span className="text-[10px] font-semibold text-blue-500 truncate">
+                          {s.court}
+                        </span>
+                      )}
+                      {s.court && s.date && (
+                        <span className="text-[10px] text-gray-300">·</span>
+                      )}
+                      {s.date && (
+                        <span className="text-[10px] text-gray-400 tabular-nums">
+                          {s.date.split("-").reverse().join("/")}
+                          {s.time ? ` ${s.time}` : ""}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
               </button>
             );
           })}
