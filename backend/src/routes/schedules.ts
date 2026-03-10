@@ -19,12 +19,28 @@ scheduleTournamentRoutes.get(
   requireAuth,
   async (req: AuthRequest, res, next) => {
     try {
+      const tournamentId = req.params.tournamentId;
+
+      // Busca IDs de jogos de grupo
+      const groups = await prisma.group.findMany({
+        where: { tournamentId },
+        include: { matches: { select: { id: true } } },
+      });
+      const groupMatchIds = groups.flatMap((g) => g.matches.map((m) => m.id));
+
+      // Busca IDs de jogos de playoff
+      const brackets = await prisma.playoffBracket.findMany({
+        where: { tournamentId },
+        include: { matches: { select: { id: true } } },
+      });
+      const playoffMatchIds = brackets.flatMap((b) =>
+        b.matches.map((m) => m.id),
+      );
+
+      const allMatchIds = [...groupMatchIds, ...playoffMatchIds];
+
       const schedules = await prisma.schedule.findMany({
-        where: {
-          match: {
-            group: { tournamentId: req.params.tournamentId },
-          },
-        },
+        where: { matchId: { in: allMatchIds } },
       });
 
       const result: Record<string, any> = {};

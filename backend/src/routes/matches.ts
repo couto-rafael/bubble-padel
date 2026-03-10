@@ -123,7 +123,7 @@ matchRoutes.patch(
         where: { id: match.groupId },
         include: {
           teams: { include: { team: true }, orderBy: { wins: "desc" } },
-          matches: { include: { schedule: true } },
+          matches: true,
         },
       });
 

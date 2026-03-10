@@ -30,9 +30,8 @@ groupRoutes.get(
         where: { tournamentId: req.params.tournamentId },
         include: {
           teams: { include: { team: true }, orderBy: { wins: "desc" } },
-          matches: { include: { schedule: true } },
+          matches: true,
         },
-        orderBy: { name: "asc" },
       });
       return res.json({ data: groups });
     } catch (err) {
