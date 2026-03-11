@@ -480,28 +480,8 @@ const ClubDashboard = () => {
                             </span>
                           </div>
                           <div>
-                            <div className="flex items-center justify-between text-xs font-medium text-gray-600 mb-2">
-                              <span>
-                                {tournament.teams} de {tournament.maxTeams}{" "}
-                                duplas
-                              </span>
-                              <span className="text-gray-900">
-                                {Math.round(progress)}%
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all ${
-                                  progress >= 75
-                                    ? "bg-emerald-500"
-                                    : progress >= 50
-                                      ? "bg-blue-500"
-                                      : progress >= 25
-                                        ? "bg-amber-500"
-                                        : "bg-gray-300"
-                                }`}
-                                style={{ width: `${progress}%` }}
-                              />
+                            <div className="text-xs font-medium text-gray-600">
+                              <span>{tournament.teams} duplas</span>
                             </div>
                           </div>
                         </div>

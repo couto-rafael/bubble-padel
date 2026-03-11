@@ -130,7 +130,11 @@ export default function TabGrupos({
     saveMatchResult,
     reload: reloadBrackets,
   } = usePlayoffs(tournament.id);
-  const { schedule, updateSchedule } = useSchedule(tournament.id);
+  const {
+    schedule,
+    updateSchedule,
+    reload: reloadSchedule,
+  } = useSchedule(tournament.id);
   const [playoffScoreModal, setPlayoffScoreModal] =
     useState<PlayoffMatchData | null>(null);
   const [scoreModal, setScoreModal] = useState<{
@@ -260,6 +264,7 @@ export default function TabGrupos({
 
       // Recarrega brackets e schedule para reflectir no UI imediatamente
       await reloadBrackets();
+      await reloadSchedule();
       onGroupsChange?.(savedGroups);
     } catch (err) {
       console.error("Erro ao gerar grupos:", err);

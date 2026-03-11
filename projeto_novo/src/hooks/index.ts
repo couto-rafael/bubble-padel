@@ -97,9 +97,14 @@ export function useTournaments() {
   };
 
   const updateTournament = async (id: string, data: Partial<Tournament>) => {
-    const updated = await TournamentService.update(id, data);
-    setTournaments((prev) => prev.map((t) => (t.id === id ? updated : t)));
-    return updated;
+    await TournamentService.update(id, data);
+    // Rebusca o torneio completo com _count para ter totalTeams correto
+    const fresh = await TournamentService.get(id);
+    if (fresh) {
+      setTournaments((prev) => prev.map((t) => (t.id === id ? fresh : t)));
+      return fresh;
+    }
+    return data as Tournament;
   };
 
   const deleteTournament = async (id: string) => {
@@ -341,7 +346,7 @@ export function useSchedule(tournamentId: string | undefined) {
     }>,
   ) => {
     if (!tournamentId || entries.length === 0) return;
-    await ScheduleService.bulkUpdate(tournamentId, entries);
+    // Actualiza estado local imediatamente (UI responde mesmo sem Railway)
     setScheduleRaw((prev) => {
       const next = { ...prev };
       for (const e of entries) {
@@ -354,6 +359,8 @@ export function useSchedule(tournamentId: string | undefined) {
       }
       return next;
     });
+    // Persiste no servidor (pode falhar se Railway estiver fora)
+    await ScheduleService.bulkUpdate(tournamentId, entries);
   };
 
   return {
