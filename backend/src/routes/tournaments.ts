@@ -13,8 +13,6 @@ const tournamentSchema = z.object({
   tournamentType: z.string().default("Grupos + Playoffs"),
   startDate: z.string(),
   endDate: z.string(),
-  registrationStartDate: z.string(),
-  registrationEndDate: z.string(),
   description: z.string().default(""),
   maxTeams: z.number().default(32),
   priceFirstCategory: z.number().default(0),
@@ -34,6 +32,7 @@ const tournamentSchema = z.object({
       }),
     )
     .default([]),
+  status: z.enum(["DRAFT", "PUBLISHED", "OPEN", "ONGOING", "COMPLETED"]).optional(),
 });
 
 // GET /api/tournaments — lista torneios do clube logado
@@ -79,8 +78,6 @@ tournamentRoutes.post("/", requireAuth, async (req: AuthRequest, res, next) => {
         clubId: req.clubId!,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
-        registrationStartDate: new Date(data.registrationStartDate),
-        registrationEndDate: new Date(data.registrationEndDate),
       },
     });
     return res.status(201).json({ data: tournament });
@@ -96,18 +93,14 @@ tournamentRoutes.patch(
   async (req: AuthRequest, res, next) => {
     try {
       const data = tournamentSchema.partial().parse(req.body);
+      const { status, ...rest } = data;
       const tournament = await prisma.tournament.updateMany({
         where: { id: req.params.id, clubId: req.clubId! },
         data: {
-          ...data,
-          ...(data.startDate && { startDate: new Date(data.startDate) }),
-          ...(data.endDate && { endDate: new Date(data.endDate) }),
-          ...(data.registrationStartDate && {
-            registrationStartDate: new Date(data.registrationStartDate),
-          }),
-          ...(data.registrationEndDate && {
-            registrationEndDate: new Date(data.registrationEndDate),
-          }),
+          ...rest,
+          ...(status && { status }),
+          ...(rest.startDate && { startDate: new Date(rest.startDate) }),
+          ...(rest.endDate && { endDate: new Date(rest.endDate) }),
         },
       });
       return res.json({ data: tournament });
@@ -178,3 +171,106 @@ tournamentRoutes.post(
     }
   },
 );
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROTAS PÚBLICAS (sem autenticação)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const publicTournamentRoutes = Router();
+
+const registerSchema = z.object({
+  player1Name: z.string().min(2),
+  player1Email: z.string().email(),
+  player2Name: z.string().min(2),
+  player2Email: z.string().email(),
+  category: z.string(),
+});
+
+// GET /api/public/tournaments — lista torneios publicados/abertos
+publicTournamentRoutes.get("/", async (req, res, next) => {
+  try {
+    const tournaments = await prisma.tournament.findMany({
+      where: { status: { in: ["PUBLISHED", "OPEN", "ONGOING", "COMPLETED"] } },
+      include: {
+        club: { select: { name: true, city: true, state: true, logoUrl: true } },
+        _count: { select: { teams: true } },
+      },
+      orderBy: { startDate: "asc" },
+    });
+    return res.json({ data: tournaments });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/public/tournaments/:id
+publicTournamentRoutes.get("/:id", async (req, res, next) => {
+  try {
+    const tournament = await prisma.tournament.findFirst({
+      where: {
+        id: req.params.id,
+        status: { in: ["PUBLISHED", "OPEN", "ONGOING", "COMPLETED"] },
+      },
+      include: {
+        club: { select: { name: true, city: true, state: true, logoUrl: true, phone: true } },
+        _count: { select: { teams: true } },
+        teams: {
+          where: { status: "CONFIRMED" },
+          select: {
+            id: true,
+            player1Name: true,
+            player2Name: true,
+            category: true,
+            status: true,
+          },
+          orderBy: { registrationDate: "asc" },
+        },
+      },
+    });
+    if (!tournament)
+      return res.status(404).json({ error: "Torneio não encontrado" });
+    return res.json({ data: tournament });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/public/tournaments/:id/register — inscrição pública
+publicTournamentRoutes.post("/:id/register", async (req, res, next) => {
+  try {
+    const tournamentId = req.params.id;
+    const data = registerSchema.parse(req.body);
+
+    const tournament = await prisma.tournament.findFirst({
+      where: { id: tournamentId, status: "OPEN" },
+      include: { _count: { select: { teams: true } } },
+    });
+
+    if (!tournament)
+      return res.status(404).json({ error: "Torneio não encontrado ou inscrições não estão abertas" });
+
+    if (tournament._count.teams >= tournament.maxTeams)
+      return res.status(400).json({ error: "Torneio lotado" });
+
+    const amount =
+      tournament.priceFirstCategory > 0 ? tournament.priceFirstCategory : 0;
+
+    const team = await prisma.team.create({
+      data: {
+        tournamentId,
+        player1Name: data.player1Name,
+        player1Email: data.player1Email,
+        player2Name: data.player2Name,
+        player2Email: data.player2Email,
+        category: data.category,
+        amount,
+        status: "PENDING",
+        paymentStatus: "PENDING",
+      },
+    });
+
+    return res.status(201).json({ data: team });
+  } catch (err) {
+    next(err);
+  }
+});

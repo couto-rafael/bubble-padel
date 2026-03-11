@@ -72,8 +72,8 @@ model Tournament {
   tournamentType         String           @default("Grupos + Playoffs")
   startDate              DateTime
   endDate                DateTime
-  registrationStartDate  DateTime
-  registrationEndDate    DateTime
+  registrationStartDate  DateTime?
+  registrationEndDate    DateTime?
   description            String           @default("")
   status                 TournamentStatus @default(DRAFT)
   maxTeams               Int              @default(32)
@@ -104,6 +104,7 @@ enum Sport {
 enum TournamentStatus {
   DRAFT
   PUBLISHED
+  OPEN
   ONGOING
   COMPLETED
 }
