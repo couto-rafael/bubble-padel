@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import AuthModal from "./AuthModal";
 import MobileMenu from "./MobileMenu";
+import { PublicTournamentService, type PublicTournament } from "./services/api";
 
 // Mock data
 const MOCK_TOURNAMENT = {
@@ -58,7 +59,7 @@ const MOCK_TOURNAMENT = {
   mapUrl: "https://maps.google.com/?q=-23.5505,-46.6333",
 };
 
-const MOCK_PARTICIPANTS = [
+const confirmedTeams = [
   {
     id: 1,
     player1: "João Silva",
@@ -236,6 +237,57 @@ const TournamentProfile = () => {
   const [selectedCourt, setSelectedCourt] = useState("Todas as Quadras");
   const [selectedDate, setSelectedDate] = useState("");
 
+  // Dados reais
+  const [tournament, setTournament] = useState<PublicTournament | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  // Formulário de inscrição
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [registerForm, setRegisterForm] = useState({
+    player1Name: "",
+    player1Email: "",
+    player2Name: "",
+    player2Email: "",
+    category: "",
+  });
+  const [registerLoading, setRegisterLoading] = useState(false);
+  const [registerSuccess, setRegisterSuccess] = useState(false);
+  const [registerError, setRegisterError] = useState("");
+
+  useEffect(() => {
+    if (!id) return;
+    PublicTournamentService.get(id)
+      .then(setTournament)
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  const handleRegister = async () => {
+    if (
+      !id ||
+      !registerForm.player1Name ||
+      !registerForm.player1Email ||
+      !registerForm.player2Name ||
+      !registerForm.player2Email ||
+      !registerForm.category
+    ) {
+      setRegisterError("Preencha todos os campos.");
+      return;
+    }
+    setRegisterLoading(true);
+    setRegisterError("");
+    try {
+      await PublicTournamentService.register(id, registerForm);
+      setRegisterSuccess(true);
+      setShowRegisterForm(false);
+    } catch (err: any) {
+      setRegisterError(err.message ?? "Erro ao realizar inscrição.");
+    } finally {
+      setRegisterLoading(false);
+    }
+  };
+
   const tabs = [
     { id: "info", label: "Informações" },
     { id: "participants", label: "Inscritos" },
@@ -269,6 +321,51 @@ const TournamentProfile = () => {
         return "bg-gray-500/20 text-gray-300 border-gray-500/30";
     }
   };
+
+  if (loading)
+    return (
+      <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center">
+        <div className="w-10 h-10 border-2 border-[#00ff88] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+
+  if (notFound || !tournament)
+    return (
+      <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center text-white">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Torneio não encontrado</h2>
+          <Link to="/tournaments" className="text-[#00ff88] hover:underline">
+            Ver todos os torneios
+          </Link>
+        </div>
+      </div>
+    );
+
+  // Helpers para dados reais
+  const tournamentName = tournament.name;
+  const clubName = tournament.club?.name ?? "—";
+  const clubCity = tournament.club?.city ?? "—";
+  const clubState = tournament.club?.state ?? "—";
+  const clubPhone = tournament.club?.phone ?? "—";
+  const totalTeams = tournament._count?.teams ?? tournament.totalTeams ?? 0;
+  const isOpen = tournament.status?.toLowerCase() === "open";
+  const sportMap: Record<string, string> = {
+    PADEL: "Padel",
+    BEACH_TENNIS: "Beach Tennis",
+    TENIS: "Tênis",
+    PICKLEBALL: "Pickleball",
+  };
+  const sportLabel = sportMap[tournament.sport] ?? tournament.sport;
+  const statusMap: Record<string, string> = {
+    open: "Inscrições Abertas",
+    published: "Em Breve",
+    ongoing: "Em Andamento",
+    completed: "Finalizado",
+    draft: "Rascunho",
+  };
+  const statusLabel =
+    statusMap[tournament.status?.toLowerCase()] ?? tournament.status;
+  const confirmedTeams = tournament.teams ?? [];
 
   return (
     <div className="min-h-screen bg-[#0a0e27] text-white">
@@ -340,22 +437,22 @@ const TournamentProfile = () => {
               Torneios
             </Link>
             <span className="mx-2">/</span>
-            <span>{MOCK_TOURNAMENT.name}</span>
+            <span>{tournamentName}</span>
           </div>
 
           <div className="grid lg:grid-cols-4 gap-8">
             <div className="lg:col-span-3">
               <div className="flex flex-wrap items-center gap-3 mb-4">
                 <span className="px-3 py-1 bg-[#00ff88]/20 text-[#00ff88] rounded-full text-sm font-semibold border border-[#00ff88]/30">
-                  {MOCK_TOURNAMENT.status}
+                  {statusLabel}
                 </span>
                 <span className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm font-semibold border border-blue-500/30">
-                  {MOCK_TOURNAMENT.sport}
+                  {sportLabel}
                 </span>
               </div>
 
               <h1 className="text-4xl md:text-5xl font-black mb-4">
-                {MOCK_TOURNAMENT.name}
+                {tournamentName}
               </h1>
 
               <div className="flex flex-wrap items-center gap-4 text-gray-300 mb-6">
@@ -373,7 +470,7 @@ const TournamentProfile = () => {
                       d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
                     />
                   </svg>
-                  <span>{MOCK_TOURNAMENT.club}</span>
+                  <span>{clubName}</span>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -397,7 +494,7 @@ const TournamentProfile = () => {
                     />
                   </svg>
                   <span>
-                    {MOCK_TOURNAMENT.city}/{MOCK_TOURNAMENT.state}
+                    {clubCity}/{clubState}
                   </span>
                 </div>
 
@@ -415,7 +512,7 @@ const TournamentProfile = () => {
                       d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                   </svg>
-                  <span>{MOCK_TOURNAMENT.dateRange}</span>
+                  <span>{`${new Date(tournament.startDate).toLocaleDateString("pt-BR")} – ${new Date(tournament.endDate).toLocaleDateString("pt-BR")}`}</span>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -433,7 +530,7 @@ const TournamentProfile = () => {
                     />
                   </svg>
                   <span>
-                    {MOCK_TOURNAMENT.teams}/{MOCK_TOURNAMENT.maxTeams} duplas
+                    {totalTeams}/{tournament.maxTeams} duplas
                   </span>
                 </div>
               </div>
@@ -441,15 +538,28 @@ const TournamentProfile = () => {
 
             <div>
               <div className="bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-5 rounded-xl border border-white/10 sticky top-28">
-                <button className="w-full py-3.5 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold text-base transition-all hover:scale-[1.02] shadow-lg mb-4">
-                  Inscrever-se Agora
-                </button>
+                {registerSuccess ? (
+                  <div className="w-full py-3.5 bg-green-600/20 border border-green-500/30 text-green-300 rounded-lg font-bold text-base text-center mb-4">
+                    ✓ Inscrição realizada! Aguarde confirmação do clube.
+                  </div>
+                ) : isOpen ? (
+                  <button
+                    onClick={() => setShowRegisterForm(true)}
+                    className="w-full py-3.5 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold text-base transition-all hover:scale-[1.02] shadow-lg mb-4"
+                  >
+                    Inscrever-se Agora
+                  </button>
+                ) : (
+                  <div className="w-full py-3.5 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold text-base text-center mb-4 cursor-not-allowed">
+                    Inscrições {statusLabel}
+                  </div>
+                )}
 
                 <div className="space-y-3 pt-4 border-t border-white/10">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-400">Vagas disponíveis</span>
                     <span className="font-semibold text-[#00ff88]">
-                      {MOCK_TOURNAMENT.maxTeams - MOCK_TOURNAMENT.teams}
+                      {tournament.maxTeams - totalTeams}
                     </span>
                   </div>
 
@@ -457,7 +567,7 @@ const TournamentProfile = () => {
                     <div
                       className="bg-gradient-to-r from-[#00ff88] to-[#00cc6a] h-full rounded-full transition-all"
                       style={{
-                        width: `${(MOCK_TOURNAMENT.teams / MOCK_TOURNAMENT.maxTeams) * 100}%`,
+                        width: `${(totalTeams / tournament.maxTeams) * 100}%`,
                       }}
                     ></div>
                   </div>
@@ -466,13 +576,13 @@ const TournamentProfile = () => {
                     <div className="flex items-center justify-between">
                       <span>Inscrições abertas</span>
                       <span className="text-white">
-                        {MOCK_TOURNAMENT.inscriptionStart}
+                        {"Controlado pelo clube"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>Inscrições encerram</span>
                       <span className="text-white">
-                        {MOCK_TOURNAMENT.inscriptionEnd}
+                        {"Controlado pelo clube"}
                       </span>
                     </div>
                   </div>
@@ -567,7 +677,7 @@ const TournamentProfile = () => {
                         Descrição do Torneio
                       </h2>
                       <p className="text-gray-300 leading-relaxed mb-6">
-                        {MOCK_TOURNAMENT.description}
+                        {tournament.description}
                       </p>
 
                       <div className="grid md:grid-cols-2 gap-4 pt-6 border-t border-white/10">
@@ -576,8 +686,8 @@ const TournamentProfile = () => {
                             Período de Inscrições
                           </h3>
                           <p className="text-gray-300">
-                            {MOCK_TOURNAMENT.inscriptionStart} -{" "}
-                            {MOCK_TOURNAMENT.inscriptionEnd}
+                            {"Controlado pelo clube"} -{" "}
+                            {"Controlado pelo clube"}
                           </p>
                         </div>
                         <div>
@@ -585,7 +695,8 @@ const TournamentProfile = () => {
                             Valor da Inscrição
                           </h3>
                           <p className="text-gray-300">
-                            {MOCK_TOURNAMENT.price} por dupla
+                            {`R$ ${tournament.priceFirstCategory.toFixed(2).replace(".", ",")}`}{" "}
+                            por dupla
                           </p>
                         </div>
                       </div>
@@ -596,7 +707,7 @@ const TournamentProfile = () => {
                         Categorias Disponíveis
                       </h2>
                       <div className="grid md:grid-cols-2 gap-4">
-                        {MOCK_TOURNAMENT.categories.map((category, index) => (
+                        {tournament.categories.map((category, index) => (
                           <div
                             key={index}
                             className="flex items-center gap-3 p-4 bg-white/5 rounded-lg border border-white/10"
@@ -644,7 +755,7 @@ const TournamentProfile = () => {
                           <div>
                             <p className="text-gray-400">Data do Evento</p>
                             <p className="text-white font-medium">
-                              {MOCK_TOURNAMENT.dateRange}
+                              {`${new Date(tournament.startDate).toLocaleDateString("pt-BR")} – ${new Date(tournament.endDate).toLocaleDateString("pt-BR")}`}
                             </p>
                           </div>
                         </div>
@@ -665,8 +776,7 @@ const TournamentProfile = () => {
                           <div>
                             <p className="text-gray-400">Inscritos</p>
                             <p className="text-white font-medium">
-                              {MOCK_TOURNAMENT.teams} de{" "}
-                              {MOCK_TOURNAMENT.maxTeams} duplas
+                              {totalTeams} de {tournament.maxTeams} duplas
                             </p>
                           </div>
                         </div>
@@ -687,7 +797,7 @@ const TournamentProfile = () => {
                           <div>
                             <p className="text-gray-400">Investimento</p>
                             <p className="text-white font-medium">
-                              {MOCK_TOURNAMENT.price}
+                              {`R$ ${tournament.priceFirstCategory.toFixed(2).replace(".", ",")}`}
                             </p>
                           </div>
                         </div>
@@ -696,11 +806,9 @@ const TournamentProfile = () => {
 
                     <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10">
                       <h3 className="font-bold mb-4">Sobre o Clube</h3>
-                      <p className="text-gray-300 text-sm mb-4">
-                        {MOCK_TOURNAMENT.club}
-                      </p>
+                      <p className="text-gray-300 text-sm mb-4">{clubName}</p>
                       <a
-                        href={`https://wa.me/${MOCK_TOURNAMENT.phone.replace(/\D/g, "")}`}
+                        href={`https://wa.me/${clubPhone.replace(/\D/g, "")}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2 w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
@@ -749,10 +857,10 @@ const TournamentProfile = () => {
                             Telefone
                           </h3>
                           <a
-                            href={`tel:${MOCK_TOURNAMENT.phone}`}
+                            href={`tel:${clubPhone}`}
                             className="text-gray-300 hover:text-white transition-colors"
                           >
-                            {MOCK_TOURNAMENT.phone}
+                            {clubPhone}
                           </a>
                         </div>
                       </div>
@@ -778,10 +886,10 @@ const TournamentProfile = () => {
                             Email
                           </h3>
                           <a
-                            href={`mailto:${MOCK_TOURNAMENT.email}`}
+                            href={`mailto:${"—"}`}
                             className="text-gray-300 hover:text-white transition-colors"
                           >
-                            {MOCK_TOURNAMENT.email}
+                            {"—"}
                           </a>
                         </div>
                       </div>
@@ -807,12 +915,12 @@ const TournamentProfile = () => {
                             Website
                           </h3>
                           <a
-                            href={`https://${MOCK_TOURNAMENT.website}`}
+                            href={`https://${"—"}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-gray-300 hover:text-white transition-colors"
                           >
-                            {MOCK_TOURNAMENT.website}
+                            {"—"}
                           </a>
                         </div>
                       </div>
@@ -888,9 +996,7 @@ const TournamentProfile = () => {
                           <h3 className="font-semibold text-[#00ccff] mb-2">
                             Endereço
                           </h3>
-                          <p className="text-gray-300">
-                            {MOCK_TOURNAMENT.address}
-                          </p>
+                          <p className="text-gray-300">{tournament.clubSede}</p>
                         </div>
                       </div>
 
@@ -907,7 +1013,7 @@ const TournamentProfile = () => {
 
                       <div className="flex gap-4">
                         <a
-                          href={MOCK_TOURNAMENT.mapUrl}
+                          href={"#"}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#00ff88] hover:bg-[#00dd77] text-[#0a0e27] rounded-lg font-semibold transition-colors"
@@ -968,7 +1074,7 @@ const TournamentProfile = () => {
                     </h2>
 
                     <div className="space-y-4">
-                      {MOCK_TOURNAMENT.rules.map((rule, index) => (
+                      {[].map((rule, index) => (
                         <div
                           key={index}
                           className="flex gap-4 p-4 bg-white/5 rounded-lg border border-white/10"
@@ -1026,30 +1132,32 @@ const TournamentProfile = () => {
                     </h2>
 
                     <div className="space-y-4">
-                      {MOCK_TOURNAMENT.faq.map((item, index) => (
-                        <div
-                          key={index}
-                          className="p-5 bg-white/5 rounded-lg border border-white/10"
-                        >
-                          <h3 className="font-semibold text-[#00ccff] mb-3 flex items-start gap-2">
-                            <svg
-                              className="w-5 h-5 flex-shrink-0 mt-0.5"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                              />
-                            </svg>
-                            {item.q}
-                          </h3>
-                          <p className="text-gray-300 ml-7">{item.a}</p>
-                        </div>
-                      ))}
+                      {([] as Array<{ q: string; a: string }>).map(
+                        (item, index) => (
+                          <div
+                            key={index}
+                            className="p-5 bg-white/5 rounded-lg border border-white/10"
+                          >
+                            <h3 className="font-semibold text-[#00ccff] mb-3 flex items-start gap-2">
+                              <svg
+                                className="w-5 h-5 flex-shrink-0 mt-0.5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                              {item.q}
+                            </h3>
+                            <p className="text-gray-300 ml-7">{item.a}</p>
+                          </div>
+                        ),
+                      )}
                     </div>
 
                     <div className="mt-8 p-6 bg-gradient-to-r from-[#00ff88]/10 to-[#00ccff]/10 border border-[#00ff88]/30 rounded-lg">
@@ -1062,7 +1170,7 @@ const TournamentProfile = () => {
                       </p>
                       <div className="flex flex-wrap gap-3">
                         <a
-                          href={`https://wa.me/${MOCK_TOURNAMENT.phone.replace(/\D/g, "")}`}
+                          href={`https://wa.me/${clubPhone.replace(/\D/g, "")}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors text-sm"
@@ -1070,7 +1178,7 @@ const TournamentProfile = () => {
                           WhatsApp
                         </a>
                         <a
-                          href={`mailto:${MOCK_TOURNAMENT.email}`}
+                          href={`mailto:${"—"}`}
                           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm"
                         >
                           Enviar Email
@@ -1090,7 +1198,7 @@ const TournamentProfile = () => {
                 <div>
                   <h2 className="text-2xl font-bold mb-2">Duplas Inscritas</h2>
                   <p className="text-gray-400">
-                    Total de {MOCK_PARTICIPANTS.length} duplas confirmadas
+                    Total de {confirmedTeams.length} duplas confirmadas
                   </p>
                 </div>
                 <select
@@ -1099,7 +1207,7 @@ const TournamentProfile = () => {
                   className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88]"
                 >
                   <option value="Todas">Todas as Categorias</option>
-                  {MOCK_TOURNAMENT.categories.map((cat) => (
+                  {tournament.categories.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
                     </option>
@@ -1108,39 +1216,42 @@ const TournamentProfile = () => {
               </div>
 
               <div className="grid gap-4">
-                {MOCK_PARTICIPANTS.filter(
-                  (p) =>
-                    selectedCategory === "Todas" ||
-                    p.category === selectedCategory,
-                ).map((participant) => (
-                  <div
-                    key={participant.id}
-                    className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10 hover:border-[#00ff88]/30 transition-colors"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-full flex items-center justify-center">
-                          <span className="text-[#0a0e27] font-bold">
-                            #{participant.id}
-                          </span>
+                {confirmedTeams
+                  .filter(
+                    (p) =>
+                      selectedCategory === "Todas" ||
+                      p.category === selectedCategory,
+                  )
+                  .map((participant) => (
+                    <div
+                      key={participant.id}
+                      className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10 hover:border-[#00ff88]/30 transition-colors"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-full flex items-center justify-center">
+                            <span className="text-[#0a0e27] font-bold">
+                              #{participant.id}
+                            </span>
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg">
+                              {participant.player1Name} /{" "}
+                              {participant.player2Name}
+                            </h3>
+                            <p className="text-gray-400 text-sm">
+                              Categoria: {participant.category}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-lg">
-                            {participant.player1} / {participant.player2}
-                          </h3>
-                          <p className="text-gray-400 text-sm">
-                            Categoria: {participant.category}
-                          </p>
-                        </div>
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(participant.status)}`}
+                        >
+                          {participant.status}
+                        </span>
                       </div>
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(participant.status)}`}
-                      >
-                        {participant.status}
-                      </span>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           )}
@@ -1188,7 +1299,7 @@ const TournamentProfile = () => {
                   }}
                 >
                   <option value="Todas">Categorias</option>
-                  {MOCK_TOURNAMENT.categories.map((cat) => (
+                  {tournament.categories.map((cat) => (
                     <option key={cat} value={cat}>
                       {cat}
                     </option>
@@ -1410,7 +1521,7 @@ const TournamentProfile = () => {
                     }}
                   >
                     <option value="Todas">Categorias</option>
-                    {MOCK_TOURNAMENT.categories.map((cat) => (
+                    {tournament.categories.map((cat) => (
                       <option key={cat} value={cat}>
                         {cat}
                       </option>
@@ -1847,6 +1958,121 @@ const TournamentProfile = () => {
           )}
         </div>
       </section>
+
+      {/* Modal de Inscrição */}
+      {showRegisterForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="bg-[#1a1f4a] border border-white/10 rounded-2xl p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-white">
+                Inscrição no Torneio
+              </h3>
+              <button
+                onClick={() => setShowRegisterForm(false)}
+                className="text-gray-400 hover:text-white text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">
+                  Categoria
+                </label>
+                <select
+                  value={registerForm.category}
+                  onChange={(e) =>
+                    setRegisterForm((p) => ({ ...p, category: e.target.value }))
+                  }
+                  className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-[#00ff88]"
+                >
+                  <option value="">Selecione a categoria</option>
+                  {tournament.categories.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide pt-2">
+                Jogador 1
+              </p>
+              <input
+                placeholder="Nome completo"
+                value={registerForm.player1Name}
+                onChange={(e) =>
+                  setRegisterForm((p) => ({
+                    ...p,
+                    player1Name: e.target.value,
+                  }))
+                }
+                className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#00ff88]"
+              />
+              <input
+                placeholder="Email"
+                type="email"
+                value={registerForm.player1Email}
+                onChange={(e) =>
+                  setRegisterForm((p) => ({
+                    ...p,
+                    player1Email: e.target.value,
+                  }))
+                }
+                className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#00ff88]"
+              />
+
+              <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide pt-2">
+                Jogador 2
+              </p>
+              <input
+                placeholder="Nome completo"
+                value={registerForm.player2Name}
+                onChange={(e) =>
+                  setRegisterForm((p) => ({
+                    ...p,
+                    player2Name: e.target.value,
+                  }))
+                }
+                className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#00ff88]"
+              />
+              <input
+                placeholder="Email"
+                type="email"
+                value={registerForm.player2Email}
+                onChange={(e) =>
+                  setRegisterForm((p) => ({
+                    ...p,
+                    player2Email: e.target.value,
+                  }))
+                }
+                className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#00ff88]"
+              />
+
+              {registerError && (
+                <p className="text-red-400 text-sm">{registerError}</p>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setShowRegisterForm(false)}
+                  className="flex-1 py-2.5 border border-white/20 text-gray-300 rounded-lg text-sm hover:bg-white/5 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleRegister}
+                  disabled={registerLoading}
+                  className="flex-1 py-2.5 bg-[#00ff88] text-[#0a0e27] rounded-lg font-bold text-sm hover:bg-[#00dd77] transition-all disabled:opacity-50"
+                >
+                  {registerLoading ? "A enviar..." : "Confirmar Inscrição"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="bg-[#0a0e27] border-t border-white/5 py-12 px-6 lg:px-8 mt-20">

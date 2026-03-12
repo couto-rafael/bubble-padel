@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AuthModal from "./AuthModal";
 import MobileMenu from "./MobileMenu";
+import { PublicTournamentService, type PublicTournament } from "./services/api";
 
 interface Tournament {
   id: string;
@@ -10,101 +11,68 @@ interface Tournament {
   city: string;
   state: string;
   dateRange: string;
-  status: "Aberto" | "Em Breve" | "Finalizado";
-  sport: "Padel" | "Beach Tennis" | "Tênis" | "Pickleball";
+  status: "Aberto" | "Em Breve" | "Finalizado" | "Em Andamento";
+  sport: string;
   teams: number;
 }
 
-const MOCK_TOURNAMENTS: Tournament[] = [
-  {
-    id: "1",
-    name: "Campeonato Primavera Open",
-    club: "São Paulo Padel Club",
-    city: "São Paulo",
-    state: "SP",
-    dateRange: "12–14 Mar",
-    status: "Aberto",
-    sport: "Padel",
-    teams: 24,
-  },
-  {
-    id: "2",
-    name: "Copa Iniciantes 2026",
-    club: "Rio Courts",
-    city: "Rio de Janeiro",
-    state: "RJ",
-    dateRange: "18–19 Mar",
-    status: "Aberto",
-    sport: "Beach Tennis",
-    teams: 12,
-  },
-  {
-    id: "3",
-    name: "Curitiba Masters",
-    club: "Curitiba Padel Arena",
-    city: "Curitiba",
-    state: "PR",
-    dateRange: "25–27 Mar",
-    status: "Em Breve",
-    sport: "Padel",
-    teams: 28,
-  },
-  {
-    id: "4",
-    name: "Finais da Liga de Inverno",
-    club: "Belo Horizonte Sports Center",
-    city: "Belo Horizonte",
-    state: "MG",
-    dateRange: "28 Fev–1 Mar",
-    status: "Finalizado",
-    sport: "Tênis",
-    teams: 16,
-  },
-  {
-    id: "5",
-    name: "Torneio Copa da Cidade",
-    club: "Porto Alegre Padel Hub",
-    city: "Porto Alegre",
-    state: "RS",
-    dateRange: "15–16 Mar",
-    status: "Aberto",
-    sport: "Pickleball",
-    teams: 18,
-  },
-  {
-    id: "6",
-    name: "Série Open Amador",
-    club: "Florianópolis Racket Club",
-    city: "Florianópolis",
-    state: "SC",
-    dateRange: "2–4 Abr",
-    status: "Em Breve",
-    sport: "Padel",
-    teams: 8,
-  },
-  {
-    id: "7",
-    name: "Circuito Pro Semana 1",
-    club: "Brasília Elite Courts",
-    city: "Brasília",
-    state: "DF",
-    dateRange: "8–10 Mar",
-    status: "Finalizado",
-    sport: "Beach Tennis",
-    teams: 32,
-  },
-  {
-    id: "8",
-    name: "Aquecimento de Verão",
-    club: "Salvador Padel Center",
-    city: "Salvador",
-    state: "BA",
-    dateRange: "8–10 Abr",
-    status: "Em Breve",
-    sport: "Padel",
-    teams: 14,
-  },
-];
+function normalizeSport(sport: string): string {
+  const map: Record<string, string> = {
+    PADEL: "Padel",
+    BEACH_TENNIS: "Beach Tennis",
+    TENIS: "Tênis",
+    PICKLEBALL: "Pickleball",
+  };
+  return map[sport] ?? sport;
+}
+
+function normalizeStatus(status: string): Tournament["status"] {
+  const map: Record<string, Tournament["status"]> = {
+    open: "Aberto",
+    published: "Em Breve",
+    ongoing: "Em Andamento",
+    completed: "Finalizado",
+    draft: "Em Breve",
+  };
+  return map[status.toLowerCase()] ?? "Em Breve";
+}
+
+function formatDateRange(start: string, end: string): string {
+  const s = new Date(start);
+  const e = new Date(end);
+  const months = [
+    "Jan",
+    "Fev",
+    "Mar",
+    "Abr",
+    "Mai",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Set",
+    "Out",
+    "Nov",
+    "Dez",
+  ];
+  if (s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear()) {
+    return `${s.getDate()}–${e.getDate()} ${months[s.getMonth()]}`;
+  }
+  return `${s.getDate()} ${months[s.getMonth()]}–${e.getDate()} ${months[e.getMonth()]}`;
+}
+
+function mapPublicTournament(t: PublicTournament): Tournament {
+  return {
+    id: t.id,
+    name: t.name,
+    club: t.club?.name ?? "—",
+    city: t.club?.city ?? "—",
+    state: t.club?.state ?? "—",
+    dateRange: formatDateRange(t.startDate, t.endDate),
+    status: normalizeStatus(t.status),
+    sport: normalizeSport(t.sport),
+    teams: t._count?.teams ?? t.totalTeams ?? 0,
+  };
+}
 
 const Tournaments = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -115,23 +83,30 @@ const Tournaments = () => {
   const [stateFilters, setStateFilters] = useState<string[]>([]);
   const [cityFilters, setCityFilters] = useState<string[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const [allTournaments, setAllTournaments] = useState<Tournament[]>([]);
+  const [loadingTournaments, setLoadingTournaments] = useState(true);
+
+  useEffect(() => {
+    PublicTournamentService.list()
+      .then((data) => setAllTournaments(data.map(mapPublicTournament)))
+      .catch(() => setAllTournaments([]))
+      .finally(() => setLoadingTournaments(false));
+  }, []);
 
   // Get unique states and cities from tournaments
   const uniqueStates = Array.from(
-    new Set(MOCK_TOURNAMENTS.map((t) => t.state)),
+    new Set(allTournaments.map((t) => t.state)),
   ).sort();
   const uniqueCities = Array.from(
-    new Set(MOCK_TOURNAMENTS.map((t) => t.city)),
+    new Set(allTournaments.map((t) => t.city)),
   ).sort();
-  const uniqueSports: Tournament["sport"][] = [
-    "Padel",
-    "Beach Tennis",
-    "Tênis",
-    "Pickleball",
-  ];
+  const uniqueSports = Array.from(
+    new Set(allTournaments.map((t) => t.sport)),
+  ).sort();
   const uniqueStatuses: Tournament["status"][] = [
     "Aberto",
     "Em Breve",
+    "Em Andamento",
     "Finalizado",
   ];
 
@@ -149,7 +124,7 @@ const Tournaments = () => {
     }
   };
 
-  const filteredTournaments = MOCK_TOURNAMENTS.filter((tournament) => {
+  const filteredTournaments = allTournaments.filter((tournament) => {
     const matchesSearch =
       tournament.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       tournament.club.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -714,7 +689,12 @@ const Tournaments = () => {
       {/* Tournament Grid */}
       <section className="pb-20 px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          {filteredTournaments.length === 0 ? (
+          {loadingTournaments ? (
+            <div className="text-center py-20">
+              <div className="w-10 h-10 border-2 border-[#00ff88] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-gray-400">A carregar torneios...</p>
+            </div>
+          ) : filteredTournaments.length === 0 ? (
             /* Empty State */
             <div className="text-center py-20">
               <div className="w-20 h-20 bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] rounded-2xl flex items-center justify-center mx-auto mb-6">

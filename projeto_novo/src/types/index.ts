@@ -51,7 +51,12 @@ export interface AuthState {
 
 // ─── TORNEIO ──────────────────────────────────────────────────────────────────
 
-export type TournamentStatus = "draft" | "published" | "ongoing" | "completed";
+export type TournamentStatus =
+  | "draft"
+  | "published"
+  | "open"
+  | "ongoing"
+  | "completed";
 export type Sport = "Padel" | "Beach Tennis" | "Tenis" | "Pickleball";
 
 export interface Tournament {

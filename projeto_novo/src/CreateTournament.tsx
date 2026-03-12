@@ -50,8 +50,6 @@ interface TournamentForm {
   name: string;
   startDate: string;
   endDate: string;
-  registrationStartDate: string;
-  registrationEndDate: string;
   description: string;
   hasLimit: boolean;
   maxTeams: string;
@@ -91,8 +89,6 @@ const INITIAL_FORM: TournamentForm = {
   name: "",
   startDate: "",
   endDate: "",
-  registrationStartDate: "",
-  registrationEndDate: "",
   description: "",
   hasLimit: false,
   maxTeams: "",
@@ -261,8 +257,6 @@ const CreateTournament = () => {
     }));
   }, [club]);
   const [dateErrors, setDateErrors] = useState({
-    registrationStartDate: "",
-    registrationEndDate: "",
     startDate: "",
     endDate: "",
   });
@@ -279,47 +273,15 @@ const CreateTournament = () => {
   const [newCategoryName, setNewCategoryName] = useState("");
 
   // Validar datas
-  const validateDates = (
-    registrationStart: string,
-    registrationEnd: string,
-    tournamentStart: string,
-    tournamentEnd: string,
-  ) => {
+  const validateDates = (tournamentStart: string, tournamentEnd: string) => {
     const errors = {
-      registrationStartDate: "",
-      registrationEndDate: "",
       startDate: "",
       endDate: "",
     };
 
-    // Validar se fim das inscrições é depois do início
-    if (registrationStart && registrationEnd) {
-      if (new Date(registrationEnd) <= new Date(registrationStart)) {
-        errors.registrationEndDate =
-          "Fim das inscrições deve ser depois do início";
-      }
-    }
-
-    // Validar se fim das inscrições é ANTES do início do torneio
-    if (registrationEnd && tournamentStart) {
-      if (new Date(registrationEnd) >= new Date(tournamentStart)) {
-        errors.registrationEndDate =
-          "Inscrições devem terminar antes do início do torneio";
-      }
-    }
-
-    // Validar se início do torneio é antes do fim (datas iguais = torneio 1 dia, OK)
     if (tournamentStart && tournamentEnd) {
       if (new Date(tournamentEnd) < new Date(tournamentStart)) {
         errors.endDate = "Data fim deve ser depois da data início";
-      }
-    }
-
-    // Validar se início das inscrições é antes do torneio
-    if (registrationStart && tournamentStart) {
-      if (new Date(registrationStart) >= new Date(tournamentStart)) {
-        errors.registrationStartDate =
-          "Inscrições devem começar antes do torneio";
       }
     }
 
@@ -331,19 +293,8 @@ const CreateTournament = () => {
     setForm((prev) => {
       const updated = { ...prev, [field]: value };
 
-      // Validar datas quando alguma delas mudar
-      if (
-        field === "registrationStartDate" ||
-        field === "registrationEndDate" ||
-        field === "startDate" ||
-        field === "endDate"
-      ) {
-        validateDates(
-          updated.registrationStartDate,
-          updated.registrationEndDate,
-          updated.startDate,
-          updated.endDate,
-        );
+      if (field === "startDate" || field === "endDate") {
+        validateDates(updated.startDate, updated.endDate);
       }
 
       return updated;
@@ -560,12 +511,7 @@ const CreateTournament = () => {
     }
 
     // Validar datas
-    validateDates(
-      form.registrationStartDate,
-      form.registrationEndDate,
-      updated.startDate,
-      updated.endDate,
-    );
+    validateDates(updated.startDate, updated.endDate);
 
     setForm(updated);
   };
@@ -622,10 +568,6 @@ const CreateTournament = () => {
     if (!form.name.trim()) errors.push("Nome do torneio é obrigatório");
     if (!form.startDate) errors.push("Data de início é obrigatória");
     if (!singleDay && !form.endDate) errors.push("Data de fim é obrigatória");
-    if (!form.registrationStartDate)
-      errors.push("Data de início das inscrições é obrigatória");
-    if (!form.registrationEndDate)
-      errors.push("Data de fim das inscrições é obrigatória");
     if (Object.values(dateErrors).some((e) => e !== ""))
       errors.push("Corrija os erros nas datas antes de continuar");
     if (form.selectedCategories.length === 0)
@@ -656,8 +598,6 @@ const CreateTournament = () => {
         tournamentType: form.tournamentType,
         startDate: form.startDate,
         endDate: form.endDate,
-        registrationStartDate: form.registrationStartDate,
-        registrationEndDate: form.registrationEndDate,
         description: form.description,
         maxTeams: form.hasLimit ? parseInt(form.maxTeams) : 999,
         priceFirstCategory: parseFloat(form.priceFirstCategory),
@@ -863,70 +803,6 @@ const CreateTournament = () => {
                         onChange={(e) => handleChange("name", e.target.value)}
                         className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                       />
-                    </div>
-
-                    {/* Datas de Inscrição */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm text-gray-500 mb-2 font-medium">
-                          Início das Inscrições{" "}
-                          <span className="text-red-400">*</span>
-                        </label>
-                        <input
-                          type="date"
-                          value={form.registrationStartDate}
-                          onChange={(e) =>
-                            handleChange(
-                              "registrationStartDate",
-                              e.target.value,
-                            )
-                          }
-                          onClick={(e) => e.currentTarget.showPicker?.()}
-                          className={`w-full px-4 py-3 bg-white border rounded-lg text-sm text-gray-900 focus:outline-none transition-all cursor-pointer ${
-                            dateErrors.registrationStartDate
-                              ? "border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                              : "border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                          }`}
-                        />
-                        {dateErrors.registrationStartDate ? (
-                          <p className="text-xs text-red-600 mt-1.5 font-medium">
-                            ⚠️ {dateErrors.registrationStartDate}
-                          </p>
-                        ) : (
-                          <p className="text-xs text-gray-500 mt-1.5">
-                            Quando as inscrições começam a ser aceitas
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm text-gray-500 mb-2 font-medium">
-                          Fim das Inscrições{" "}
-                          <span className="text-red-400">*</span>
-                        </label>
-                        <input
-                          type="date"
-                          value={form.registrationEndDate}
-                          onChange={(e) =>
-                            handleChange("registrationEndDate", e.target.value)
-                          }
-                          onClick={(e) => e.currentTarget.showPicker?.()}
-                          className={`w-full px-4 py-3 bg-white border rounded-lg text-sm text-gray-900 focus:outline-none transition-all cursor-pointer ${
-                            dateErrors.registrationEndDate
-                              ? "border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                              : "border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                          }`}
-                        />
-                        {dateErrors.registrationEndDate ? (
-                          <p className="text-xs text-red-600 mt-1.5 font-medium">
-                            ⚠️ {dateErrors.registrationEndDate}
-                          </p>
-                        ) : (
-                          <p className="text-xs text-gray-500 mt-1.5">
-                            Deve ser antes do início do torneio
-                          </p>
-                        )}
-                      </div>
                     </div>
 
                     {/* Datas do Torneio */}

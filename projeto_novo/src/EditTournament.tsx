@@ -23,7 +23,7 @@ type Tab =
 const StatusBadge = ({
   status,
 }: {
-  status: "draft" | "published" | "ongoing" | "completed";
+  status: "draft" | "published" | "open" | "ongoing" | "completed";
 }) => {
   const config = {
     draft: {
@@ -39,6 +39,13 @@ const StatusBadge = ({
       dot: "bg-emerald-600",
       label: "✓ Publicado",
       shadow: "",
+    },
+    open: {
+      bg: "bg-green-100 border-2 border-green-500",
+      text: "text-green-900",
+      dot: "bg-green-600",
+      label: "🟢 Inscrições Abertas",
+      shadow: "shadow-lg shadow-green-200",
     },
     ongoing: {
       bg: "bg-blue-50 border-2 border-blue-400",
@@ -56,13 +63,13 @@ const StatusBadge = ({
     },
   };
 
-  const style = config[status];
+  const style = config[status] ?? config.draft;
 
   return (
     <span
-      className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-extrabold ${style.bg} ${style.text} ${style.shadow}`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${style.bg} ${style.text} ${style.shadow}`}
     >
-      <span className={`w-2.5 h-2.5 rounded-full ${style.dot} animate-pulse`} />
+      <span className={`w-2 h-2 rounded-full ${style.dot}`} />
       {style.label}
     </span>
   );
@@ -201,12 +208,12 @@ const EditTournament = () => {
   };
 
   const handleStatusChange = (
-    newStatus: "draft" | "published" | "ongoing" | "completed",
+    newStatus: "draft" | "published" | "open" | "ongoing" | "completed",
   ) => {
     if (tournament) {
-      const updated = { ...tournament, status: newStatus };
-      setTournament(updated);
-      updateTournament(tournament.id, { status: newStatus });
+      updateTournament(tournament.id, {
+        status: newStatus.toUpperCase() as any,
+      });
     }
   };
 
@@ -376,10 +383,10 @@ const EditTournament = () => {
                 {tournament.status === "published" && (
                   <>
                     <button
-                      onClick={() => handleStatusChange("ongoing")}
-                      className="px-6 py-3 bg-emerald-600 text-white rounded-lg font-bold text-sm hover:bg-emerald-700 shadow-lg transition-all whitespace-nowrap"
+                      onClick={() => handleStatusChange("open")}
+                      className="px-6 py-3 bg-green-600 text-white rounded-lg font-bold text-sm hover:bg-green-700 shadow-lg transition-all whitespace-nowrap"
                     >
-                      Iniciar Torneio
+                      Abrir Inscrições
                     </button>
                     <button
                       onClick={() => handleStatusChange("draft")}
@@ -388,6 +395,14 @@ const EditTournament = () => {
                       Voltar p/ Rascunho
                     </button>
                   </>
+                )}
+                {tournament.status === "open" && (
+                  <button
+                    onClick={() => handleStatusChange("published")}
+                    className="px-6 py-3 bg-red-500 text-white rounded-lg font-bold text-sm hover:bg-red-600 shadow-lg transition-all whitespace-nowrap"
+                  >
+                    Encerrar Inscrições
+                  </button>
                 )}
                 {tournament.status === "ongoing" && (
                   <button
@@ -508,44 +523,6 @@ const EditTournament = () => {
                           "endDate",
                           e.target.value,
                           "a data de término",
-                        )
-                      }
-                      onClick={(e) => e.currentTarget.showPicker?.()}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">
-                      Início das Inscrições
-                    </label>
-                    <input
-                      type="date"
-                      value={tournament.registrationStartDate}
-                      onChange={(e) =>
-                        handleFieldChange(
-                          "registrationStartDate",
-                          e.target.value,
-                          "o início das inscrições",
-                        )
-                      }
-                      onClick={(e) => e.currentTarget.showPicker?.()}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">
-                      Fim das Inscrições
-                    </label>
-                    <input
-                      type="date"
-                      value={tournament.registrationEndDate}
-                      onChange={(e) =>
-                        handleFieldChange(
-                          "registrationEndDate",
-                          e.target.value,
-                          "o fim das inscrições",
                         )
                       }
                       onClick={(e) => e.currentTarget.showPicker?.()}
@@ -877,11 +854,7 @@ const EditTournament = () => {
 
           {/* TAB CONTENT - Playoffs */}
           {activeTab === "playoffs" && (
-            <TabPlayoffs
-              tournament={tournament}
-              groups={groups}
-              teams={teams}
-            />
+            <TabPlayoffs tournament={tournament} teams={teams} />
           )}
 
           {/* TAB CONTENT - Configurações */}
