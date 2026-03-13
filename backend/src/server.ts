@@ -7,7 +7,7 @@ import { groupRoutes } from "./routes/groups";
 import { matchRoutes } from "./routes/matches";
 import { scheduleRoutes, scheduleTournamentRoutes } from "./routes/schedules";
 import { playoffTournamentRoutes, playoffRoutes } from "./routes/playoffs";
-import { clubRoutes } from "./routes/club";
+import { clubRoutes, publicClubRoutes } from "./routes/club";
 import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
@@ -34,6 +34,7 @@ app.use("/api/matches", matchRoutes);
 app.use("/api/matches", scheduleRoutes); // PATCH /:id/schedule
 app.use("/api/playoffs", playoffRoutes); // PATCH /matches/:id
 app.use("/api/club", clubRoutes); // GET/PATCH /profile
+app.use("/api/public/clubs", publicClubRoutes); // GET /:id
 
 // Health check
 app.get("/api/health", (_req, res) => {

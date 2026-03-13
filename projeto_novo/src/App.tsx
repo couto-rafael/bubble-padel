@@ -20,7 +20,7 @@ import AthleteProfile from "./AthleteProfile";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 30,        // 30s antes de refetch automático
+      staleTime: 1000 * 30, // 30s antes de refetch automático
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -43,8 +43,15 @@ const App = () => {
             <Route path="/dashboard/profile" element={<ClubProfile />} />
             <Route path="/dashboard/settings" element={<ClubSettings />} />
             <Route path="/dashboard/tournaments" element={<MyTournaments />} />
-            <Route path="/dashboard/tournaments/create" element={<CreateTournament />} />
-            <Route path="/dashboard/tournaments/:id/edit" element={<EditTournament />} />
+            <Route
+              path="/dashboard/tournaments/create"
+              element={<CreateTournament />}
+            />
+            <Route
+              path="/dashboard/tournaments/:id/edit"
+              element={<EditTournament />}
+            />
+            <Route path="/clubs/:id" element={<ClubProfile />} />
 
             {/* Rotas do Atleta */}
             <Route path="/athlete/dashboard" element={<AthleteDashboard />} />

@@ -61,3 +61,49 @@ router.patch("/profile", requireAuth, async (req: AuthRequest, res) => {
 });
 
 export { router as clubRoutes };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROTAS PÚBLICAS
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const publicClubRoutes = Router();
+
+// GET /api/public/clubs/:id
+publicClubRoutes.get("/:id", async (req, res, next) => {
+  try {
+    const club = await prisma.club.findUnique({
+      where: { id: req.params.id },
+      select: {
+        id: true,
+        name: true,
+        city: true,
+        state: true,
+        phone: true,
+        logoUrl: true,
+        courts: true,
+        tournaments: {
+          where: {
+            status: { in: ["PUBLISHED", "OPEN", "ONGOING", "COMPLETED"] },
+          },
+          select: {
+            id: true,
+            name: true,
+            sport: true,
+            status: true,
+            startDate: true,
+            endDate: true,
+            categories: true,
+            priceFirstCategory: true,
+            _count: { select: { teams: true } },
+          },
+          orderBy: { startDate: "desc" },
+        },
+      },
+    });
+
+    if (!club) return res.status(404).json({ error: "Clube não encontrado" });
+    return res.json({ data: club });
+  } catch (err) {
+    next(err);
+  }
+});
