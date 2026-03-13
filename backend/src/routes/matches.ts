@@ -118,6 +118,21 @@ matchRoutes.patch(
         ),
       );
 
+      // Se o torneio ainda não está ONGOING, passa automaticamente ao 1º placar
+      const group = await prisma.group.findUnique({
+        where: { id: match.groupId },
+        select: { tournamentId: true },
+      });
+      if (group) {
+        await prisma.tournament.updateMany({
+          where: {
+            id: group.tournamentId,
+            status: { notIn: ["ONGOING", "COMPLETED"] },
+          },
+          data: { status: "ONGOING" },
+        });
+      }
+
       // Retorna o grupo completo atualizado
       const updatedGroup = await prisma.group.findUnique({
         where: { id: match.groupId },
