@@ -293,8 +293,9 @@ const TournamentProfile = () => {
     { id: "participants", label: "Inscritos" },
     { id: "groups", label: "Grupos" },
     { id: "matches", label: "Jogos" },
-    { id: "results", label: "Resultados" },
+    { id: "playoffs", label: "Playoffs" },
     { id: "live", label: "Ao Vivo" },
+    { id: "results", label: "Resultados" },
   ];
 
   const infoSubTabs = [
@@ -551,7 +552,11 @@ const TournamentProfile = () => {
                   </button>
                 ) : (
                   <div className="w-full py-3.5 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold text-base text-center mb-4 cursor-not-allowed">
-                    Inscrições {statusLabel}
+                    {tournament.status?.toLowerCase() === "ongoing"
+                      ? "Torneio em Andamento"
+                      : tournament.status?.toLowerCase() === "completed"
+                        ? "Torneio Finalizado"
+                        : "Inscrições Em Breve"}
                   </div>
                 )}
 
@@ -683,11 +688,17 @@ const TournamentProfile = () => {
                       <div className="grid md:grid-cols-2 gap-4 pt-6 border-t border-white/10">
                         <div>
                           <h3 className="font-semibold text-[#00ccff] mb-2">
-                            Período de Inscrições
+                            Inscrições
                           </h3>
                           <p className="text-gray-300">
-                            {"Controlado pelo clube"} -{" "}
-                            {"Controlado pelo clube"}
+                            {isOpen
+                              ? "Abertas"
+                              : tournament.status?.toLowerCase() ===
+                                    "ongoing" ||
+                                  tournament.status?.toLowerCase() ===
+                                    "completed"
+                                ? "Encerradas"
+                                : "Não abertas"}
                           </p>
                         </div>
                         <div>
@@ -776,7 +787,11 @@ const TournamentProfile = () => {
                           <div>
                             <p className="text-gray-400">Inscritos</p>
                             <p className="text-white font-medium">
-                              {totalTeams} de {tournament.maxTeams} duplas
+                              {totalTeams}
+                              {tournament.maxTeams < 999
+                                ? ` de ${tournament.maxTeams}`
+                                : ""}{" "}
+                              duplas
                             </p>
                           </div>
                         </div>
@@ -1690,6 +1705,52 @@ const TournamentProfile = () => {
                   <p className="text-gray-500">
                     Tente ajustar os filtros para ver mais resultados
                   </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* PLAYOFFS TAB */}
+          {activeTab === "playoffs" && (
+            <div>
+              <div className="mb-8 text-center">
+                <h2 className="text-3xl font-bold mb-2">Playoffs</h2>
+                <p className="text-gray-400">
+                  Bracket eliminatório por categoria
+                </p>
+              </div>
+              {tournament.categories.length === 0 ? (
+                <div className="text-center py-20 text-gray-400">
+                  Sem categorias disponíveis.
+                </div>
+              ) : (
+                <div className="space-y-10">
+                  {tournament.categories.map((cat) => (
+                    <div
+                      key={cat}
+                      className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10"
+                    >
+                      <h3 className="text-xl font-bold text-[#00ccff] mb-6">
+                        {cat}
+                      </h3>
+                      <div className="text-center py-10 text-gray-400">
+                        <svg
+                          className="w-12 h-12 mx-auto mb-3 opacity-30"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                          />
+                        </svg>
+                        Playoffs ainda não disponíveis para esta categoria.
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

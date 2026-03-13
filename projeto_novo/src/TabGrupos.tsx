@@ -13,7 +13,12 @@ import {
   generateAutoSchedule,
   buildDaySchedules,
 } from "./utils/scheduleUtils";
-import { GroupService, PlayoffService, ScheduleService } from "./services/api";
+import {
+  GroupService,
+  PlayoffService,
+  ScheduleService,
+  TournamentService,
+} from "./services/api";
 import type { PlayoffBracketData, PlayoffMatchData } from "./services/api";
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
@@ -266,6 +271,17 @@ export default function TabGrupos({
       await reloadBrackets();
       await reloadSchedule();
       onGroupsChange?.(savedGroups);
+
+      // Fecha inscrições automaticamente ao gerar grupos (OPEN → PUBLISHED)
+      if (tournament.status?.toLowerCase() === "open") {
+        try {
+          await TournamentService.update(tournament.id, {
+            status: "PUBLISHED" as any,
+          });
+        } catch (e) {
+          console.error("Erro ao fechar inscrições:", e);
+        }
+      }
     } catch (err) {
       console.error("Erro ao gerar grupos:", err);
       alert("Erro ao gerar grupos. Tente novamente.");

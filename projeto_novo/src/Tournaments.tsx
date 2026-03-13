@@ -835,9 +835,23 @@ const Tournaments = () => {
                   </div>
 
                   {/* Main CTA Button */}
-                  <button className="w-full py-3 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold transition-all hover:scale-[1.02] shadow-lg hover:shadow-[0_0_20px_rgba(0,255,136,0.3)]">
-                    Inscrever-se
-                  </button>
+                  {tournament.status === "Aberto" ? (
+                    <button className="w-full py-3 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold transition-all hover:scale-[1.02] shadow-lg hover:shadow-[0_0_20px_rgba(0,255,136,0.3)]">
+                      Inscrever-se
+                    </button>
+                  ) : tournament.status === "Em Breve" ? (
+                    <button className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold cursor-default">
+                      Inscrições Em Breve
+                    </button>
+                  ) : tournament.status === "Em Andamento" ? (
+                    <button className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold cursor-default">
+                      Torneio em Andamento
+                    </button>
+                  ) : (
+                    <button className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold cursor-default">
+                      Torneio Finalizado
+                    </button>
+                  )}
                 </Link>
               ))}
             </div>
