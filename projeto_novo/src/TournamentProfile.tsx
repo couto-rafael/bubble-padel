@@ -531,7 +531,11 @@ const TournamentProfile = () => {
                     />
                   </svg>
                   <span>
-                    {totalTeams}/{tournament.maxTeams} duplas
+                    {totalTeams}
+                    {tournament.maxTeams < 999
+                      ? `/${tournament.maxTeams}`
+                      : ""}{" "}
+                    duplas
                   </span>
                 </div>
               </div>
@@ -561,33 +565,39 @@ const TournamentProfile = () => {
                 )}
 
                 <div className="space-y-3 pt-4 border-t border-white/10">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-400">Vagas disponíveis</span>
-                    <span className="font-semibold text-[#00ff88]">
-                      {tournament.maxTeams - totalTeams}
-                    </span>
-                  </div>
-
-                  <div className="w-full bg-[#0a0e27] rounded-full h-2">
-                    <div
-                      className="bg-gradient-to-r from-[#00ff88] to-[#00cc6a] h-full rounded-full transition-all"
-                      style={{
-                        width: `${(totalTeams / tournament.maxTeams) * 100}%`,
-                      }}
-                    ></div>
-                  </div>
-
-                  <div className="pt-4 space-y-2 text-sm text-gray-400">
+                  {tournament.maxTeams < 999 && (
+                    <>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-400">Vagas disponíveis</span>
+                        <span className="font-semibold text-[#00ff88]">
+                          {tournament.maxTeams - totalTeams}
+                        </span>
+                      </div>
+                      <div className="w-full bg-[#0a0e27] rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-[#00ff88] to-[#00cc6a] h-full rounded-full transition-all"
+                          style={{
+                            width: `${Math.min((totalTeams / tournament.maxTeams) * 100, 100)}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </>
+                  )}
+                  <div className="pt-2 text-sm">
                     <div className="flex items-center justify-between">
-                      <span>Inscrições abertas</span>
-                      <span className="text-white">
-                        {"Controlado pelo clube"}
+                      <span className="text-gray-400">
+                        Estado das inscrições
                       </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Inscrições encerram</span>
-                      <span className="text-white">
-                        {"Controlado pelo clube"}
+                      <span
+                        className={`font-semibold ${isOpen ? "text-[#00ff88]" : "text-gray-300"}`}
+                      >
+                        {isOpen
+                          ? "Abertas"
+                          : ["ongoing", "completed"].includes(
+                                tournament.status?.toLowerCase() ?? "",
+                              )
+                            ? "Encerradas"
+                            : "Não abertas"}
                       </span>
                     </div>
                   </div>
