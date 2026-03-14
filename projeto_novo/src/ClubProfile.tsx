@@ -1,41 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface PublicTournament {
-  id: string;
-  name: string;
-  sport: string;
-  status: string;
-  startDate: string;
-  endDate: string;
-  categories: string[];
-  priceFirstCategory: number;
-  _count: { teams: number };
-}
-
-interface PublicClub {
-  id: string;
-  name: string;
-  city: string | null;
-  state: string | null;
-  phone: string | null;
-  logoUrl: string | null;
-  courts: string[];
-  tournaments: PublicTournament[];
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
-
-async function fetchPublicClub(id: string): Promise<PublicClub> {
-  const res = await fetch(`${API_BASE}/api/public/clubs/${id}`);
-  if (!res.ok) throw new Error("Clube não encontrado");
-  const json = await res.json();
-  return json.data;
-}
+import { PublicClubService, type PublicClub } from "./services/api";
 
 function normalizeStatus(s: string) {
   switch (s.toUpperCase()) {
@@ -111,7 +76,7 @@ export default function ClubProfile() {
   useEffect(() => {
     if (!id) return;
     setLoading(true);
-    fetchPublicClub(id)
+    PublicClubService.get(id)
       .then(setClub)
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));

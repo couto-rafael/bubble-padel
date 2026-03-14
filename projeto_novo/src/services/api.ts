@@ -383,83 +383,6 @@ export interface PlayoffBracketData {
   matches: PlayoffMatchData[];
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TORNEIOS PÚBLICOS (sem autenticação)
-// ─────────────────────────────────────────────────────────────────────────────
-
-export interface PublicTournament {
-  id: string;
-  name: string;
-  sport: string;
-  status: string;
-  startDate: string;
-  endDate: string;
-  categories: string[];
-  maxTeams: number;
-  totalTeams: number;
-  description: string;
-  priceFirstCategory: number;
-  hasSecondCategoryPrice: boolean;
-  priceSecondCategory: number;
-  pixKey: string;
-  clubSede: string;
-  courts: string[];
-  matchDuration: number;
-  daySchedules: Array<{ date: string; startTime: string; endTime: string }>;
-  club: {
-    name: string;
-    city: string;
-    state: string;
-    logoUrl: string | null;
-    phone?: string | null;
-  };
-  teams?: Array<{
-    id: string;
-    player1Name: string;
-    player2Name: string;
-    category: string;
-    status: string;
-  }>;
-  _count?: { teams: number };
-}
-
-export const PublicTournamentService = {
-  list: async (): Promise<PublicTournament[]> => {
-    const res = await fetch(`${API_URL}/public/tournaments`, {
-      headers: { "Content-Type": "application/json" },
-    });
-    return handleResponse<PublicTournament[]>(res);
-  },
-
-  get: async (id: string): Promise<PublicTournament> => {
-    const res = await fetch(`${API_URL}/public/tournaments/${id}`, {
-      headers: { "Content-Type": "application/json" },
-    });
-    return handleResponse<PublicTournament>(res);
-  },
-
-  register: async (
-    tournamentId: string,
-    data: {
-      player1Name: string;
-      player1Email: string;
-      player2Name: string;
-      player2Email: string;
-      category: string;
-    },
-  ): Promise<{ id: string }> => {
-    const res = await fetch(
-      `${API_URL}/public/tournaments/${tournamentId}/register`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      },
-    );
-    return handleResponse<{ id: string }>(res);
-  },
-};
-
 export const PlayoffService = {
   list: async (tournamentId: string): Promise<PlayoffBracketData[]> => {
     const res = await fetch(`${API_URL}/tournaments/${tournamentId}/playoffs`, {
@@ -509,5 +432,99 @@ export const PlayoffService = {
       { method: "POST", headers: authHeaders() },
     );
     return handleResponse<PlayoffBracketData>(res);
+  },
+};
+
+// ─── Public Club Service ──────────────────────────────────────────────────────
+
+export interface PublicClub {
+  id: string;
+  name: string;
+  city: string | null;
+  state: string | null;
+  phone: string | null;
+  logoUrl: string | null;
+  courts: string[];
+  tournaments: Array<{
+    id: string;
+    name: string;
+    sport: string;
+    status: string;
+    startDate: string;
+    endDate: string;
+    categories: string[];
+    priceFirstCategory: number;
+    _count: { teams: number };
+  }>;
+}
+
+export const PublicClubService = {
+  get: async (id: string): Promise<PublicClub> => {
+    const res = await fetch(`${API_URL}/public/clubs/${id}`);
+    return handleResponse<PublicClub>(res);
+  },
+};
+
+// ─── Public Tournament Service ────────────────────────────────────────────────
+
+export interface PublicTournament {
+  id: string;
+  name: string;
+  sport: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  categories: string[];
+  priceFirstCategory: number;
+  maxTeams: number;
+  description?: string;
+  clubSede?: string;
+  clubId: string;
+  club?: {
+    id?: string;
+    name: string;
+    city: string | null;
+    state: string | null;
+    phone: string | null;
+    logoUrl: string | null;
+  };
+  _count?: { teams: number };
+  totalTeams?: number;
+  teams?: Array<{
+    id: string;
+    player1Name: string;
+    player2Name: string;
+    category: string;
+    status: string;
+  }>;
+}
+
+export const PublicTournamentService = {
+  list: async (): Promise<PublicTournament[]> => {
+    const res = await fetch(`${API_URL}/public/tournaments`);
+    return handleResponse<PublicTournament[]>(res);
+  },
+
+  get: async (id: string): Promise<PublicTournament> => {
+    const res = await fetch(`${API_URL}/public/tournaments/${id}`);
+    return handleResponse<PublicTournament>(res);
+  },
+
+  register: async (
+    id: string,
+    data: {
+      player1Name: string;
+      player1Email: string;
+      player2Name: string;
+      player2Email: string;
+      category: string;
+    },
+  ): Promise<void> => {
+    const res = await fetch(`${API_URL}/public/tournaments/${id}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    return handleResponse<void>(res);
   },
 };

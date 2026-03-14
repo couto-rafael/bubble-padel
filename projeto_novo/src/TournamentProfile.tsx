@@ -738,29 +738,31 @@ const TournamentProfile = () => {
                         Categorias Disponíveis
                       </h2>
                       <div className="grid md:grid-cols-2 gap-4">
-                        {tournament.categories.map((category, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-3 p-4 bg-white/5 rounded-lg border border-white/10"
-                          >
-                            <div className="w-10 h-10 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-full flex items-center justify-center">
-                              <svg
-                                className="w-5 h-5 text-[#0a0e27]"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M5 13l4 4L19 7"
-                                />
-                              </svg>
+                        {tournament.categories.map(
+                          (category: string, index: number) => (
+                            <div
+                              key={index}
+                              className="flex items-center gap-3 p-4 bg-white/5 rounded-lg border border-white/10"
+                            >
+                              <div className="w-10 h-10 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-full flex items-center justify-center">
+                                <svg
+                                  className="w-5 h-5 text-[#0a0e27]"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
+                              </div>
+                              <span className="font-medium">{category}</span>
                             </div>
-                            <span className="font-medium">{category}</span>
-                          </div>
-                        ))}
+                          ),
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1242,7 +1244,7 @@ const TournamentProfile = () => {
                   className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88]"
                 >
                   <option value="Todas">Todas as Categorias</option>
-                  {tournament.categories.map((cat) => (
+                  {tournament.categories.map((cat: string) => (
                     <option key={cat} value={cat}>
                       {cat}
                     </option>
@@ -1253,40 +1255,48 @@ const TournamentProfile = () => {
               <div className="grid gap-4">
                 {confirmedTeams
                   .filter(
-                    (p) =>
+                    (p: { category: string }) =>
                       selectedCategory === "Todas" ||
                       p.category === selectedCategory,
                   )
-                  .map((participant) => (
-                    <div
-                      key={participant.id}
-                      className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10 hover:border-[#00ff88]/30 transition-colors"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-full flex items-center justify-center">
-                            <span className="text-[#0a0e27] font-bold">
-                              #{participant.id}
-                            </span>
+                  .map(
+                    (participant: {
+                      id: string;
+                      player1Name: string;
+                      player2Name: string;
+                      category: string;
+                      status: string;
+                    }) => (
+                      <div
+                        key={participant.id}
+                        className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10 hover:border-[#00ff88]/30 transition-colors"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-full flex items-center justify-center">
+                              <span className="text-[#0a0e27] font-bold">
+                                #{participant.id}
+                              </span>
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-lg">
+                                {participant.player1Name} /{" "}
+                                {participant.player2Name}
+                              </h3>
+                              <p className="text-gray-400 text-sm">
+                                Categoria: {participant.category}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <h3 className="font-semibold text-lg">
-                              {participant.player1Name} /{" "}
-                              {participant.player2Name}
-                            </h3>
-                            <p className="text-gray-400 text-sm">
-                              Categoria: {participant.category}
-                            </p>
-                          </div>
+                          <span
+                            className={`px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(participant.status)}`}
+                          >
+                            {participant.status}
+                          </span>
                         </div>
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(participant.status)}`}
-                        >
-                          {participant.status}
-                        </span>
                       </div>
-                    </div>
-                  ))}
+                    ),
+                  )}
               </div>
             </div>
           )}
@@ -1334,7 +1344,7 @@ const TournamentProfile = () => {
                   }}
                 >
                   <option value="Todas">Categorias</option>
-                  {tournament.categories.map((cat) => (
+                  {tournament.categories.map((cat: string) => (
                     <option key={cat} value={cat}>
                       {cat}
                     </option>
@@ -1556,7 +1566,7 @@ const TournamentProfile = () => {
                     }}
                   >
                     <option value="Todas">Categorias</option>
-                    {tournament.categories.map((cat) => (
+                    {tournament.categories.map((cat: string) => (
                       <option key={cat} value={cat}>
                         {cat}
                       </option>
@@ -1745,7 +1755,7 @@ const TournamentProfile = () => {
                 </div>
               ) : (
                 <div className="space-y-10">
-                  {tournament.categories.map((cat) => (
+                  {tournament.categories.map((cat: string) => (
                     <div
                       key={cat}
                       className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10"
