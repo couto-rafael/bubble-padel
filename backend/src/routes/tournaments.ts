@@ -32,7 +32,9 @@ const tournamentSchema = z.object({
       }),
     )
     .default([]),
-  status: z.enum(["DRAFT", "PUBLISHED", "OPEN", "ONGOING", "COMPLETED"]).optional(),
+  status: z
+    .enum(["DRAFT", "PUBLISHED", "OPEN", "ONGOING", "COMPLETED"])
+    .optional(),
 });
 
 // GET /api/tournaments — lista torneios do clube logado
@@ -192,7 +194,15 @@ publicTournamentRoutes.get("/", async (req, res, next) => {
     const tournaments = await prisma.tournament.findMany({
       where: { status: { in: ["PUBLISHED", "OPEN", "ONGOING", "COMPLETED"] } },
       include: {
-        club: { select: { name: true, city: true, state: true, logoUrl: true } },
+        club: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+            state: true,
+            logoUrl: true,
+          },
+        },
         _count: { select: { teams: true } },
       },
       orderBy: { startDate: "asc" },
@@ -212,7 +222,16 @@ publicTournamentRoutes.get("/:id", async (req, res, next) => {
         status: { in: ["PUBLISHED", "OPEN", "ONGOING", "COMPLETED"] },
       },
       include: {
-        club: { select: { name: true, city: true, state: true, logoUrl: true, phone: true } },
+        club: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+            state: true,
+            logoUrl: true,
+            phone: true,
+          },
+        },
         _count: { select: { teams: true } },
         teams: {
           where: { status: "CONFIRMED" },
@@ -247,7 +266,11 @@ publicTournamentRoutes.post("/:id/register", async (req, res, next) => {
     });
 
     if (!tournament)
-      return res.status(404).json({ error: "Torneio não encontrado ou inscrições não estão abertas" });
+      return res
+        .status(404)
+        .json({
+          error: "Torneio não encontrado ou inscrições não estão abertas",
+        });
 
     if (tournament._count.teams >= tournament.maxTeams)
       return res.status(400).json({ error: "Torneio lotado" });

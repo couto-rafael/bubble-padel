@@ -9,6 +9,7 @@ import Contact from "./Contact";
 import TournamentProfile from "./TournamentProfile";
 import ClubDashboard from "./ClubDashboard";
 import ClubProfile from "./ClubProfile";
+import ClubDashboardProfile from "./ClubDashboardProfile";
 import ClubSettings from "./ClubSettings";
 import MyTournaments from "./MyTournaments";
 import CreateTournament from "./CreateTournament";
@@ -40,7 +41,10 @@ const App = () => {
 
             {/* Rotas do Clube */}
             <Route path="/dashboard" element={<ClubDashboard />} />
-            <Route path="/dashboard/profile" element={<ClubProfile />} />
+            <Route
+              path="/dashboard/profile"
+              element={<ClubDashboardProfile />}
+            />
             <Route path="/dashboard/settings" element={<ClubSettings />} />
             <Route path="/dashboard/tournaments" element={<MyTournaments />} />
             <Route
