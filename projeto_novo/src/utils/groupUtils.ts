@@ -1,6 +1,7 @@
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 // Re-exportados de types/index.ts — não duplicar aqui
 
+import type { Team, GroupTeam, Match, Group, Set } from "../types";
 export type { Team, GroupTeam, Match, Group, Set } from "../types";
 
 // ─── CONSTANTES ───────────────────────────────────────────────────────────────
@@ -82,6 +83,7 @@ function createMatch(
 ): Match {
   return {
     id: `${groupId}_m${index}`,
+    groupId,
     team1Id,
     team2Id,
     score1: null,
@@ -132,6 +134,7 @@ export function generateGroupsForCategory(
       id: groupId,
       name: `Grupo ${groupLetter}`,
       category,
+      tournamentId: "",
       teams: groupTeams,
       matches,
     });
@@ -371,4 +374,116 @@ export function getRoundName(totalInBracket: number, round: number): string {
  */
 export function tournamentHasStarted(groups: Group[]): boolean {
   return groups.some((g) => g.matches.some((m) => m.played));
+}
+
+// ─── CÁLCULO DE CAPACIDADE ────────────────────────────────────────────────────
+
+/**
+ * Calcula jogos necessários para N duplas usando a lógica real de distribuição.
+ */
+export function calcSlotsNeeded(numTeams: number): number {
+  if (numTeams < 2) return 0;
+
+  // Replica a lógica de distributeTeamsIntoGroups sem precisar do tipo Team
+  const n = numTeams;
+  const sizes: number[] = [];
+
+  if (n <= 2) {
+    sizes.push(n);
+  } else if (n === 4) {
+    sizes.push(4);
+  } else if (n % 3 === 0) {
+    for (let i = 0; i < n / 3; i++) sizes.push(3);
+  } else if (n % 3 === 1) {
+    sizes.push(2, 2);
+    const remaining = n - 4;
+    for (let i = 0; i < remaining / 3; i++) sizes.push(3);
+  } else {
+    sizes.push(2);
+    const remaining = n - 2;
+    for (let i = 0; i < remaining / 3; i++) sizes.push(3);
+  }
+
+  const matchesPerGroup = (size: number) => (size * (size - 1)) / 2;
+  const groupMatches = sizes.reduce((acc, s) => acc + matchesPerGroup(s), 0);
+  const classified = sizes.length * 2;
+  const bracket = nextPowerOf2(classified);
+  const playoffMatches = bracket - 1;
+
+  return groupMatches + playoffMatches;
+}
+
+export interface CapacityResult {
+  slotsAvailable: number;
+  maxTeams: number;
+  slotsNeeded: number;
+  breakdown: {
+    courts: number;
+    days: number;
+    hoursPerDay: number;
+    durationHours: number;
+  };
+}
+
+/**
+ * Calcula capacidade máxima de duplas dado:
+ * - courts: número de quadras
+ * - daySchedules: array de { startTime, endTime } por dia
+ * - matchDurationMinutes: duração de cada jogo em minutos
+ */
+export function calculateCapacity(
+  courts: string[],
+  daySchedules: Array<{ startTime: string; endTime: string }>,
+  matchDurationMinutes: number,
+): CapacityResult | null {
+  if (
+    courts.length === 0 ||
+    daySchedules.length === 0 ||
+    matchDurationMinutes <= 0
+  ) {
+    return null;
+  }
+
+  // Calcula horas médias por dia
+  const parseHours = (time: string) => {
+    const [h, m] = time.split(":").map(Number);
+    return h + (m || 0) / 60;
+  };
+
+  const validDays = daySchedules.filter((s) => s.startTime && s.endTime);
+  if (validDays.length === 0) return null;
+
+  const totalHours = validDays.reduce((acc, s) => {
+    const hours = parseHours(s.endTime) - parseHours(s.startTime);
+    return acc + (hours > 0 ? hours : 0);
+  }, 0);
+
+  const durationHours = matchDurationMinutes / 60;
+  const slotsAvailable = Math.floor(
+    (totalHours / durationHours) * courts.length,
+  );
+
+  if (slotsAvailable < 1) return null;
+
+  // Itera de 2 até 200 duplas e encontra o máximo que cabe
+  let maxTeams = 0;
+  let slotsNeeded = 0;
+  for (let n = 2; n <= 200; n++) {
+    const needed = calcSlotsNeeded(n);
+    if (needed > slotsAvailable) break;
+    maxTeams = n;
+    slotsNeeded = needed;
+  }
+
+  return {
+    slotsAvailable,
+    maxTeams,
+    slotsNeeded,
+    breakdown: {
+      courts: courts.length,
+      days: validDays.length,
+      hoursPerDay: totalHours / validDays.length,
+      durationHours,
+    },
+  };
 }
