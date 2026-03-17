@@ -89,7 +89,7 @@ authRoutes.post("/login", async (req, res, next) => {
     const data = loginSchema.parse(req.body);
     const user = await prisma.user.findUnique({
       where: { email: data.email },
-      include: { club: true },
+      include: { club: true, athlete: true },
     });
 
     if (!user || !(await bcrypt.compare(data.password, user.passwordHash))) {
@@ -97,7 +97,12 @@ authRoutes.post("/login", async (req, res, next) => {
     }
 
     const token = jwt.sign(
-      { userId: user.id, userType: user.type, clubId: user.club?.id },
+      {
+        userId: user.id,
+        userType: user.type,
+        clubId: user.club?.id,
+        athleteId: user.athlete?.id,
+      },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" },
     );
@@ -111,6 +116,7 @@ authRoutes.post("/login", async (req, res, next) => {
           name: user.name,
           type: user.type,
           clubId: user.club?.id,
+          athleteId: user.athlete?.id,
         },
       },
     });
