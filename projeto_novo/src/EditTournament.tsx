@@ -219,11 +219,32 @@ const EditTournament = () => {
   const handleStatusChange = (
     newStatus: "draft" | "published" | "open" | "ongoing" | "completed",
   ) => {
-    if (tournament) {
-      updateTournament(tournament.id, {
-        status: newStatus.toUpperCase() as any,
-      });
+    if (!tournament) return;
+
+    // Ao encerrar inscrições (OPEN → PUBLISHED), verifica capacidade
+    if (newStatus === "published" && tournament.status === "open") {
+      const confirmedTeams = teams.filter((t) => t.status === "confirmed");
+      const capacity = calculateCapacity(
+        (tournament as any).courts ?? [],
+        (tournament as any).daySchedules ?? [],
+        (tournament as any).matchDuration ?? 60,
+      );
+
+      if (capacity && confirmedTeams.length > capacity.maxTeams) {
+        const slotsShort = confirmedTeams.length - capacity.maxTeams;
+        alert(
+          `⚠️ Não é possível encerrar as inscrições agora.\n\n` +
+            `Tens ${confirmedTeams.length} duplas confirmadas mas a estrutura atual só comporta ${capacity.maxTeams} duplas.\n\n` +
+            `Faltam ${slotsShort} slots (${capacity.slotsAvailable} disponíveis, ${capacity.slotsAvailable + slotsShort * Math.ceil(capacity.slotsNeeded / capacity.maxTeams)} necessários).\n\n` +
+            `Ajusta a estrutura (quadras, dias ou duração dos jogos) antes de encerrar as inscrições.`,
+        );
+        return;
+      }
     }
+
+    updateTournament(tournament.id, {
+      status: newStatus.toUpperCase() as any,
+    });
   };
 
   // ── CATEGORIAS ──────────────────────────────────────────

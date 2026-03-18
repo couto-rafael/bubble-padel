@@ -600,9 +600,7 @@ const CreateTournament = () => {
         startDate: form.startDate,
         endDate: form.endDate,
         description: form.description,
-        maxTeams: form.hasLimit
-          ? parseInt(form.maxTeams)
-          : (capacity?.maxTeams ?? 999),
+        maxTeams: form.hasLimit ? parseInt(form.maxTeams) : 999,
         priceFirstCategory: parseFloat(form.priceFirstCategory),
         hasSecondCategoryPrice: form.hasSecondCategoryPrice,
         priceSecondCategory: parseFloat(form.priceSecondCategory),
@@ -1016,73 +1014,6 @@ const CreateTournament = () => {
                         }
                         className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none"
                       />
-                    </div>
-
-                    {/* Capacidade Calculada */}
-                    <div>
-                      <label className="block text-sm text-gray-500 mb-2 font-medium">
-                        Capacidade do Torneio
-                      </label>
-                      {capacity ? (
-                        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-semibold text-blue-800">
-                              Máximo calculado: {capacity.maxTeams} duplas
-                            </span>
-                            <span className="text-xs text-blue-500">
-                              {capacity.slotsNeeded}/{capacity.slotsAvailable}{" "}
-                              slots usados
-                            </span>
-                          </div>
-                          <div className="w-full bg-blue-100 rounded-full h-1.5">
-                            <div
-                              className="bg-blue-500 h-1.5 rounded-full"
-                              style={{
-                                width: `${Math.min((capacity.slotsNeeded / capacity.slotsAvailable) * 100, 100)}%`,
-                              }}
-                            />
-                          </div>
-                          <p className="text-xs text-blue-600">
-                            {capacity.breakdown.courts} quadra
-                            {capacity.breakdown.courts !== 1 ? "s" : ""} ×{" "}
-                            {capacity.breakdown.days} dia
-                            {capacity.breakdown.days !== 1 ? "s" : ""} ×{" "}
-                            {capacity.breakdown.hoursPerDay.toFixed(1)}h/dia ÷{" "}
-                            {capacity.breakdown.durationHours.toFixed(1)}h/jogo
-                          </p>
-                          <div className="pt-2 border-t border-blue-200">
-                            <label className="flex items-center gap-2 cursor-pointer mb-2">
-                              <input
-                                type="checkbox"
-                                checked={form.hasLimit}
-                                onChange={(e) =>
-                                  handleChange("hasLimit", e.target.checked)
-                                }
-                                className="w-4 h-4 rounded border-gray-300 text-blue-600"
-                              />
-                              <span className="text-xs text-blue-700 font-medium">
-                                Definir limite diferente do calculado
-                              </span>
-                            </label>
-                            {form.hasLimit && (
-                              <input
-                                type="number"
-                                placeholder={String(capacity.maxTeams)}
-                                value={form.maxTeams}
-                                onChange={(e) =>
-                                  handleChange("maxTeams", e.target.value)
-                                }
-                                className="w-full px-3 py-2 bg-white border border-blue-200 rounded-lg text-sm focus:outline-none focus:border-blue-500"
-                              />
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="p-4 bg-gray-50 border border-dashed border-gray-200 rounded-lg text-sm text-gray-400 text-center">
-                          Preencha as quadras, datas e horários para calcular a
-                          capacidade
-                        </div>
-                      )}
                     </div>
                   </div>
                 )}
@@ -1603,6 +1534,52 @@ const CreateTournament = () => {
                           className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                         />
                       </div>
+                    </div>
+                    {/* Limite de Duplas */}
+                    <div>
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={form.hasLimit}
+                          onChange={(e) =>
+                            handleChange("hasLimit", e.target.checked)
+                          }
+                          className="w-5 h-5 rounded border-gray-300 bg-white text-blue-600 focus:ring-blue-600 focus:ring-offset-0"
+                        />
+                        <span className="text-sm text-gray-900 font-medium">
+                          Limite de Duplas?
+                        </span>
+                      </label>
+                      {form.hasLimit && (
+                        <div className="mt-4">
+                          <label className="block text-sm text-gray-500 mb-2 font-medium">
+                            Número máximo de duplas
+                          </label>
+                          <input
+                            type="number"
+                            placeholder="Ex: 32"
+                            value={form.maxTeams}
+                            onChange={(e) =>
+                              handleChange("maxTeams", e.target.value)
+                            }
+                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                          />
+                          {capacity && (
+                            <p className="mt-2 text-xs text-blue-600">
+                              💡 Com a estrutura atual (
+                              {capacity.breakdown.courts} quadra
+                              {capacity.breakdown.courts !== 1 ? "s" : ""},{" "}
+                              {capacity.breakdown.days} dia
+                              {capacity.breakdown.days !== 1 ? "s" : ""},{" "}
+                              {Math.round(
+                                capacity.breakdown.durationHours * 60,
+                              )}
+                              min/jogo), estimamos até{" "}
+                              <strong>{capacity.maxTeams} duplas</strong>.
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
