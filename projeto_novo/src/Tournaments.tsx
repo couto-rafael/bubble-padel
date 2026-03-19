@@ -81,13 +81,8 @@ function mapPublicTournament(t: PublicTournament): Tournament {
 const Tournaments = () => {
   const navigate = useNavigate();
   const currentUser = AuthService.getCurrentUser();
-  const userTypeNorm =
-    currentUser?.userType?.toUpperCase() ??
-    currentUser?.type?.toUpperCase() ??
-    currentUser?.role?.toUpperCase() ??
-    "";
-  const isAthlete = userTypeNorm === "ATHLETE";
-  const isClub = userTypeNorm === "CLUB";
+  const isAthlete = currentUser?.type?.toUpperCase() === "ATHLETE";
+  const isClub = currentUser?.type?.toUpperCase() === "CLUB";
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");

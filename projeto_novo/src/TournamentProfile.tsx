@@ -249,12 +249,8 @@ const TournamentProfile = () => {
 
   // Auth
   const currentUser = AuthService.getCurrentUser();
-  const userTypeNorm =
-    currentUser?.userType?.toUpperCase() ??
-    currentUser?.type?.toUpperCase() ??
-    "";
-  const isAthlete = userTypeNorm === "ATHLETE";
-  const isClub = userTypeNorm === "CLUB";
+  const isAthlete = currentUser?.type?.toUpperCase() === "ATHLETE";
+  const isClub = currentUser?.type?.toUpperCase() === "CLUB";
 
   // Formulário de inscrição
   const [showRegisterForm, setShowRegisterForm] = useState(false);
@@ -290,9 +286,7 @@ const TournamentProfile = () => {
           const status = t.status?.toLowerCase() ?? "";
           if (status === "open") {
             const user = AuthService.getCurrentUser();
-            const uType =
-              user?.userType?.toUpperCase() ?? user?.type?.toUpperCase() ?? "";
-            if (uType === "ATHLETE") {
+            if (user?.type?.toUpperCase() === "ATHLETE") {
               setRegisterForm((prev) => ({
                 ...prev,
                 player1Name: user.name ?? "",
