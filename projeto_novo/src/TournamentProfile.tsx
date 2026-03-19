@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import AuthModal from "./AuthModal";
 import MobileMenu from "./MobileMenu";
 import {
@@ -232,6 +232,7 @@ const MOCK_LIVE_MATCHES = [
 
 const TournamentProfile = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("info");
   const [activeSubTab, setActiveSubTab] = useState("general");
@@ -248,8 +249,12 @@ const TournamentProfile = () => {
 
   // Auth
   const currentUser = AuthService.getCurrentUser();
-  const isAthlete = currentUser?.userType === "ATHLETE";
-  const isClub = currentUser?.userType === "CLUB";
+  const userTypeNorm =
+    currentUser?.userType?.toUpperCase() ??
+    currentUser?.type?.toUpperCase() ??
+    "";
+  const isAthlete = userTypeNorm === "ATHLETE";
+  const isClub = userTypeNorm === "CLUB";
 
   // Formulário de inscrição
   const [showRegisterForm, setShowRegisterForm] = useState(false);
@@ -278,10 +283,31 @@ const TournamentProfile = () => {
   useEffect(() => {
     if (!id) return;
     PublicTournamentService.get(id)
-      .then(setTournament)
+      .then((t) => {
+        setTournament(t);
+        // Auto-abrir modal se vier com ?register=true
+        if (searchParams.get("register") === "true") {
+          const status = t.status?.toLowerCase() ?? "";
+          if (status === "open") {
+            const user = AuthService.getCurrentUser();
+            const uType =
+              user?.userType?.toUpperCase() ?? user?.type?.toUpperCase() ?? "";
+            if (uType === "ATHLETE") {
+              setRegisterForm((prev) => ({
+                ...prev,
+                player1Name: user.name ?? "",
+                player1Email: user.email ?? "",
+              }));
+              setShowRegisterForm(true);
+            } else if (!user) {
+              setIsAuthModalOpen(true);
+            }
+          }
+        }
+      })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, searchParams]);
 
   const handleRegister = async () => {
     if (
@@ -370,7 +396,8 @@ const TournamentProfile = () => {
   const clubState = tournament.club?.state ?? "—";
   const clubPhone = tournament.club?.phone ?? "—";
   const totalTeams = tournament._count?.teams ?? tournament.totalTeams ?? 0;
-  const isOpen = tournament.status?.toLowerCase() === "open";
+  const statusRaw = tournament.status?.toLowerCase() ?? "";
+  const isOpen = statusRaw === "open";
   const sportMap: Record<string, string> = {
     PADEL: "Padel",
     BEACH_TENNIS: "Beach Tennis",
@@ -438,12 +465,32 @@ const TournamentProfile = () => {
               >
                 Contato
               </Link>
-              <button
-                onClick={() => setIsAuthModalOpen(true)}
-                className="px-6 py-2.5 bg-[#00ff88] text-[#0a0e27] rounded-lg font-semibold text-sm hover:bg-[#00dd77] transition-all"
-              >
-                Entrar
-              </button>
+              {currentUser ? (
+                <div className="flex items-center gap-3">
+                  <Link
+                    to={isAthlete ? "/athlete/dashboard" : "/dashboard"}
+                    className="px-6 py-2.5 bg-white/10 border border-white/20 text-white rounded-lg font-semibold text-sm hover:bg-white/20 transition-all"
+                  >
+                    {currentUser.name?.split(" ")[0] ?? "Painel"}
+                  </Link>
+                  <button
+                    onClick={async () => {
+                      await AuthService.logout();
+                      window.location.reload();
+                    }}
+                    className="px-4 py-2.5 text-gray-400 hover:text-white text-sm transition-colors"
+                  >
+                    Sair
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="px-6 py-2.5 bg-[#00ff88] text-[#0a0e27] rounded-lg font-semibold text-sm hover:bg-[#00dd77] transition-all"
+                >
+                  Entrar
+                </button>
+              )}
             </div>
 
             <MobileMenu onLoginClick={() => setIsAuthModalOpen(true)} />

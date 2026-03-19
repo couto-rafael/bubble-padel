@@ -81,8 +81,13 @@ function mapPublicTournament(t: PublicTournament): Tournament {
 const Tournaments = () => {
   const navigate = useNavigate();
   const currentUser = AuthService.getCurrentUser();
-  const isAthlete = currentUser?.userType === "ATHLETE";
-  const isClub = currentUser?.userType === "CLUB";
+  const userTypeNorm =
+    currentUser?.userType?.toUpperCase() ??
+    currentUser?.type?.toUpperCase() ??
+    currentUser?.role?.toUpperCase() ??
+    "";
+  const isAthlete = userTypeNorm === "ATHLETE";
+  const isClub = userTypeNorm === "CLUB";
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -237,12 +242,32 @@ const Tournaments = () => {
               >
                 Contato
               </Link>
-              <button
-                onClick={() => setIsAuthModalOpen(true)}
-                className="px-6 py-2.5 bg-[#00ff88] text-[#0a0e27] rounded-lg font-semibold text-sm hover:bg-[#00dd77] transition-all"
-              >
-                Entrar
-              </button>
+              {currentUser ? (
+                <div className="flex items-center gap-3">
+                  <Link
+                    to={isAthlete ? "/athlete/dashboard" : "/dashboard"}
+                    className="px-6 py-2.5 bg-white/10 border border-white/20 text-white rounded-lg font-semibold text-sm hover:bg-white/20 transition-all"
+                  >
+                    {currentUser.name?.split(" ")[0] ?? "Painel"}
+                  </Link>
+                  <button
+                    onClick={async () => {
+                      await AuthService.logout();
+                      window.location.reload();
+                    }}
+                    className="px-4 py-2.5 text-gray-400 hover:text-white text-sm transition-colors"
+                  >
+                    Sair
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="px-6 py-2.5 bg-[#00ff88] text-[#0a0e27] rounded-lg font-semibold text-sm hover:bg-[#00dd77] transition-all"
+                >
+                  Entrar
+                </button>
+              )}
             </div>
 
             {/* Mobile Menu */}
@@ -872,13 +897,13 @@ const Tournaments = () => {
                       }}
                       className="w-full py-3 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold transition-all hover:scale-[1.02] shadow-lg"
                     >
-                      Entrar para se inscrever
+                      Inscrever-se
                     </button>
                   ) : tournament.status === "Aberto" && isAthlete ? (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/tournaments/${tournament.id}`);
+                        navigate(`/tournaments/${tournament.id}?register=true`);
                       }}
                       className="w-full py-3 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold transition-all hover:scale-[1.02] shadow-lg"
                     >

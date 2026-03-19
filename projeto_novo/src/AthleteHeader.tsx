@@ -1,10 +1,18 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthService } from "./services/api";
 
 const AthleteHeader: React.FC = () => {
+  const navigate = useNavigate();
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isTorneiosOpen, setIsTorneiosOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const handleLogout = async () => {
+    setIsProfileOpen(false);
+    await AuthService.logout();
+    navigate("/");
+  };
 
   return (
     <header className="bg-white border-b border-gray-200">
@@ -313,11 +321,7 @@ const AthleteHeader: React.FC = () => {
                   </Link>
                   <div className="border-t border-gray-200 my-2"></div>
                   <button
-                    onClick={() => {
-                      setIsProfileOpen(false);
-                      // Aqui você pode adicionar a lógica de logout
-                      window.location.href = "/";
-                    }}
+                    onClick={handleLogout}
                     className="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full"
                   >
                     <svg

@@ -69,8 +69,10 @@ export const AuthService = {
 
   getCurrentUser: () => {
     try {
+      const token = localStorage.getItem("auth_token");
       const raw = localStorage.getItem("auth_user");
-      return raw ? JSON.parse(raw) : null;
+      if (!token || !raw) return null;
+      return JSON.parse(raw);
     } catch {
       return null;
     }
