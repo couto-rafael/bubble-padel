@@ -6,6 +6,7 @@ import {
   generateGroupsForCategory,
   recalculateStandings,
   tournamentHasStarted,
+  calculateCapacity,
 } from "./utils/groupUtils";
 import {
   buildSeeds,
@@ -156,11 +157,29 @@ export default function TabGrupos({
   const { club } = useClub();
 
   const [generating, setGenerating] = useState(false);
+  const [capacityWarning, setCapacityWarning] = useState<{
+    confirmed: number;
+    maxTeams: number;
+  } | null>(null);
 
   const handleGenerate = async () => {
     const confirmedTeams = teams.filter((t) => t.status === "confirmed");
     if (confirmedTeams.length === 0) {
       alert("Não há duplas confirmadas para gerar grupos.");
+      return;
+    }
+
+    // Verifica capacidade antes de gerar
+    const capacity = calculateCapacity(
+      (tournament as any).courts ?? [],
+      (tournament as any).daySchedules ?? [],
+      (tournament as any).matchDuration ?? 60,
+    );
+    if (capacity && confirmedTeams.length > capacity.maxTeams) {
+      setCapacityWarning({
+        confirmed: confirmedTeams.length,
+        maxTeams: capacity.maxTeams,
+      });
       return;
     }
 
@@ -967,11 +986,67 @@ export default function TabGrupos({
             />
           );
         })()}
+
+      {/* ── Modal — Capacidade Insuficiente ──────────────────────────────── */}
+      {capacityWarning && (
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{ zIndex: 9999 }}
+        >
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setCapacityWarning(null)}
+          />
+          <div
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6"
+            style={{ zIndex: 10000 }}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg
+                  className="w-5 h-5 text-amber-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-900">
+                Estrutura Insuficiente
+              </h3>
+            </div>
+            <p className="text-gray-600 mb-2">
+              Tens{" "}
+              <strong>{capacityWarning.confirmed} duplas confirmadas</strong>{" "}
+              mas a estrutura atual só comporta{" "}
+              <strong>{capacityWarning.maxTeams} duplas</strong>.
+            </p>
+            <p className="text-gray-600 mb-5">
+              Para gerar os grupos, ajusta a estrutura do torneio — adiciona
+              mais quadras, dias ou aumenta a duração dos jogos.
+            </p>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-5 text-sm text-amber-700">
+              💡 Vai à aba <strong>Configurações</strong> para ver a capacidade
+              calculada e perceber o que falta.
+            </div>
+            <button
+              onClick={() => setCapacityWarning(null)}
+              className="w-full py-3 bg-[#1a1f4a] hover:bg-[#0f1540] text-white rounded-xl font-semibold transition-colors"
+            >
+              OK, vou ajustar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-// ─── CARD DE GRUPO ────────────────────────────────────────────────────────────
 
 interface GroupCardProps {
   group: Group;
