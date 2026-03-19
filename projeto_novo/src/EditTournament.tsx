@@ -187,7 +187,13 @@ const EditTournament = () => {
         setEstruturaDuration(
           String((tournamentData as any).matchDuration ?? 60),
         );
-        setEstruturaSchedules((tournamentData as any).daySchedules ?? []);
+        setEstruturaSchedules(
+          ((tournamentData as any).daySchedules ?? []).map((s: any) => ({
+            date: s.date?.slice(0, 10) ?? s.date,
+            startTime: s.startTime,
+            endTime: s.endTime,
+          })),
+        );
       }
     }
     setLoading(false);
@@ -213,7 +219,11 @@ const EditTournament = () => {
     const origCourts = (tournament as any).courts ?? [];
     const origDuration = String((tournament as any).matchDuration ?? 60);
     const origSchedules = JSON.stringify(
-      (tournament as any).daySchedules ?? [],
+      ((tournament as any).daySchedules ?? []).map((s: any) => ({
+        date: s.date?.slice(0, 10) ?? s.date,
+        startTime: s.startTime,
+        endTime: s.endTime,
+      })),
     );
     return (
       JSON.stringify(estruturaCourts) !== JSON.stringify(origCourts) ||
@@ -905,11 +915,14 @@ const EditTournament = () => {
                           className="p-3 bg-gray-50 rounded-lg border border-gray-100"
                         >
                           <p className="text-xs font-medium text-gray-500 mb-2">
-                            {new Date(s.date).toLocaleDateString("pt-BR", {
-                              weekday: "short",
-                              day: "2-digit",
-                              month: "2-digit",
-                            })}
+                            {new Date(s.date + "T12:00:00").toLocaleDateString(
+                              "pt-BR",
+                              {
+                                weekday: "short",
+                                day: "2-digit",
+                                month: "2-digit",
+                              },
+                            )}
                           </p>
                           <div className="flex items-center gap-2 flex-wrap">
                             <input
