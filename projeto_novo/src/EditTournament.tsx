@@ -12,7 +12,6 @@ import { calculateCapacity } from "./utils/groupUtils";
 // ─── TIPOS ────────────────────────────────────────────────
 type Tab =
   | "torneio"
-  | "estrutura"
   | "inscricoes"
   | "categorias"
   | "financeiro"
@@ -155,9 +154,9 @@ const EditTournament = () => {
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
 
-  // Estrutura local state for editing
+  // Estrutura editável
   const [estruturaCourts, setEstruturaCourts] = useState<string[]>([]);
-  const [estruturaDuration, setEstruturaDuration] = useState<string>("60");
+  const [estruturaDuration, setEstruturaDuration] = useState("60");
   const [estruturaSchedules, setEstruturaSchedules] = useState<
     Array<{ date: string; startTime: string; endTime: string }>
   >([]);
@@ -205,6 +204,51 @@ const EditTournament = () => {
       title: "Confirmar Alteração",
       message: `Tem certeza que deseja alterar ${fieldLabel}? Esta alteração pode impactar inscritos e configurações existentes.`,
     });
+  };
+
+  // Verifica se há mudanças na estrutura
+  const estruturaHasChanges = useMemo(() => {
+    if (!tournament) return false;
+    const origCourts = (tournament as any).courts ?? [];
+    const origDuration = String((tournament as any).matchDuration ?? 60);
+    const origSchedules = JSON.stringify(
+      (tournament as any).daySchedules ?? [],
+    );
+    return (
+      JSON.stringify(estruturaCourts) !== JSON.stringify(origCourts) ||
+      estruturaDuration !== origDuration ||
+      JSON.stringify(estruturaSchedules) !== origSchedules
+    );
+  }, [tournament, estruturaCourts, estruturaDuration, estruturaSchedules]);
+
+  // Grupos gerados = bloquear edição de estrutura
+  const groupsGenerated = groups.length > 0;
+
+  // Capacidade em tempo real baseada nos campos da aba Estrutura
+  const estruturaCapacity = useMemo(
+    () =>
+      calculateCapacity(
+        estruturaCourts,
+        estruturaSchedules,
+        parseInt(estruturaDuration) || 60,
+      ),
+    [estruturaCourts, estruturaSchedules, estruturaDuration],
+  );
+
+  const handleSaveEstrutura = async () => {
+    if (!tournament || !estruturaHasChanges || groupsGenerated) return;
+    setEstruturaSaving(true);
+    try {
+      await updateTournament(tournament.id, {
+        courts: estruturaCourts as any,
+        matchDuration: parseInt(estruturaDuration) || (60 as any),
+        daySchedules: estruturaSchedules as any,
+      });
+    } catch (e) {
+      console.error("Erro ao salvar estrutura:", e);
+    } finally {
+      setEstruturaSaving(false);
+    }
   };
 
   const capacity = useMemo(() => {
@@ -314,32 +358,6 @@ const EditTournament = () => {
       </div>
     );
   }
-
-  const handleSaveEstrutura = async () => {
-    if (!tournament) return;
-    setEstruturaSaving(true);
-    try {
-      await updateTournament(tournament.id, {
-        courts: estruturaCourts as any,
-        matchDuration: parseInt(estruturaDuration) || (60 as any),
-        daySchedules: estruturaSchedules as any,
-      });
-      setTournament((prev) =>
-        prev
-          ? {
-              ...prev,
-              courts: estruturaCourts as any,
-              matchDuration: parseInt(estruturaDuration) as any,
-              daySchedules: estruturaSchedules as any,
-            }
-          : prev,
-      );
-    } catch (e) {
-      console.error("Erro ao salvar estrutura:", e);
-    } finally {
-      setEstruturaSaving(false);
-    }
-  };
 
   const tabs = [
     {
@@ -557,27 +575,6 @@ const EditTournament = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-600 mb-2">
-                        Clube Sub-sede{" "}
-                        <span className="text-gray-400 font-normal">
-                          (opcional)
-                        </span>
-                      </label>
-                      <input
-                        type="text"
-                        value={(tournament as any).subSedeName || ""}
-                        onChange={(e) =>
-                          handleFieldChange(
-                            "subSedeName" as any,
-                            e.target.value,
-                            "o clube sub-sede",
-                          )
-                        }
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
-                        placeholder="Nome do clube sub-sede"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">
                         Data de Início
                       </label>
                       <input
@@ -634,6 +631,62 @@ const EditTournament = () => {
 
               {/* COLUNA DIREITA — 1/3 */}
               <div className="space-y-6">
+                {/* Estrutura */}
+                <div className="bg-white border border-gray-200 rounded-xl p-6">
+                  <h3 className="text-base font-bold text-gray-900 mb-3">
+                    Estrutura
+                  </h3>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+                        Quadras
+                      </p>
+                      <p className="font-semibold text-gray-900 text-sm">
+                        {((tournament as any).courts ?? []).length > 0
+                          ? `${((tournament as any).courts ?? []).length} quadra${((tournament as any).courts ?? []).length !== 1 ? "s" : ""}`
+                          : "—"}
+                      </p>
+                      {((tournament as any).courts ?? []).length > 0 && (
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {((tournament as any).courts ?? []).join(", ")}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+                        Duração por Jogo
+                      </p>
+                      <p className="font-semibold text-gray-900 text-sm">
+                        {(tournament as any).matchDuration ?? 60} min
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+                        Horários
+                      </p>
+                      {((tournament as any).daySchedules ?? []).length > 0 ? (
+                        <div className="space-y-1">
+                          {((tournament as any).daySchedules ?? []).map(
+                            (s: any, i: number) => (
+                              <div key={i} className="text-xs text-gray-600">
+                                <span className="text-gray-400">
+                                  {new Date(s.date).toLocaleDateString("pt-BR")}
+                                </span>{" "}
+                                {s.startTime}–{s.endTime}
+                              </div>
+                            ),
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-400">—</p>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-xs text-blue-500 mt-4">
+                    Para alterar, recrie o torneio.
+                  </p>
+                </div>
+
                 {/* Capacidade */}
                 <div className="bg-white border border-gray-200 rounded-xl p-6">
                   <h3 className="text-base font-bold text-gray-900 mb-3">
@@ -734,169 +787,159 @@ const EditTournament = () => {
           {/* TAB CONTENT - Estrutura */}
           {activeTab === "estrutura" && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                {/* Quadras */}
-                <div className="bg-white border border-gray-200 rounded-xl p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">
-                    Quadras
-                  </h3>
-                  <button
-                    onClick={() =>
-                      setEstruturaCourts((prev) => [
-                        ...prev,
-                        `Quadra ${prev.length + 1}`,
-                      ])
-                    }
-                    className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-semibold transition-colors mb-4"
+              {/* COLUNA 1 — Quadras */}
+              <div className="bg-white border border-gray-200 rounded-xl p-6">
+                <h3 className="text-base font-bold text-gray-900 mb-4">
+                  Quadras
+                </h3>
+                {groupsGenerated && (
+                  <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700">
+                    🔒 Grupos gerados — estrutura bloqueada
+                  </div>
+                )}
+                <button
+                  onClick={() =>
+                    setEstruturaCourts((prev) => [
+                      ...prev,
+                      `Quadra ${prev.length + 1}`,
+                    ])
+                  }
+                  disabled={groupsGenerated}
+                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-semibold transition-colors mb-4 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                    Adicionar Quadra
-                  </button>
-                  {estruturaCourts.length === 0 ? (
-                    <p className="text-sm text-gray-400 italic">
-                      Nenhuma quadra adicionada
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {estruturaCourts.map((court, idx) => (
-                        <div key={idx} className="flex items-center gap-3">
-                          <input
-                            type="text"
-                            value={court}
-                            onChange={(e) => {
-                              const updated = [...estruturaCourts];
-                              updated[idx] = e.target.value;
-                              setEstruturaCourts(updated);
-                            }}
-                            className="flex-1 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                          />
-                          <button
-                            onClick={() =>
-                              setEstruturaCourts((prev) =>
-                                prev.filter((_, i) => i !== idx),
-                              )
-                            }
-                            className="p-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-400 rounded-lg transition-all"
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  Adicionar Quadra
+                </button>
+                {estruturaCourts.length === 0 ? (
+                  <p className="text-sm text-gray-400 italic">
+                    Nenhuma quadra adicionada
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {estruturaCourts.map((court, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={court}
+                          disabled={groupsGenerated}
+                          onChange={(e) => {
+                            const updated = [...estruturaCourts];
+                            updated[idx] = e.target.value;
+                            setEstruturaCourts(updated);
+                          }}
+                          className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                        />
+                        <button
+                          onClick={() =>
+                            setEstruturaCourts((prev) =>
+                              prev.filter((_, i) => i !== idx),
+                            )
+                          }
+                          disabled={groupsGenerated}
+                          className="p-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-400 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
                           >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-                {/* Duração */}
+              {/* COLUNA 2 — Duração + Horários */}
+              <div className="space-y-6">
                 <div className="bg-white border border-gray-200 rounded-xl p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">
+                  <h3 className="text-base font-bold text-gray-900 mb-4">
                     Tempo por Partida
                   </h3>
                   <div className="flex items-center gap-3">
                     <input
                       type="number"
                       value={estruturaDuration}
+                      disabled={groupsGenerated}
                       onChange={(e) => setEstruturaDuration(e.target.value)}
-                      className="w-32 px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                      placeholder="60"
-                      min="15"
-                      step="5"
+                      className="w-28 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
                     />
-                    <span className="text-gray-500 text-sm">minutos</span>
+                    <span className="text-sm text-gray-500">minutos</span>
                   </div>
                 </div>
 
-                {/* Horários por dia */}
                 <div className="bg-white border border-gray-200 rounded-xl p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">
+                  <h3 className="text-base font-bold text-gray-900 mb-4">
                     Horários por Dia
                   </h3>
                   {estruturaSchedules.length === 0 ? (
                     <p className="text-sm text-gray-400 italic">
-                      Nenhum horário configurado.
+                      Sem horários configurados
                     </p>
                   ) : (
                     <div className="space-y-3">
                       {estruturaSchedules.map((s, idx) => (
                         <div
                           key={idx}
-                          className="bg-blue-50 border border-blue-100 rounded-lg p-4"
+                          className="p-3 bg-gray-50 rounded-lg border border-gray-100"
                         >
-                          <div className="flex items-center gap-3 flex-wrap">
-                            <span className="text-sm font-medium text-gray-700 w-28">
-                              {new Date(s.date).toLocaleDateString("pt-BR", {
-                                weekday: "short",
-                                day: "2-digit",
-                                month: "2-digit",
-                              })}
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <svg
-                                className="w-4 h-4 text-blue-500"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                              </svg>
-                              <input
-                                type="time"
-                                value={s.startTime}
-                                onChange={(e) => {
-                                  const updated = [...estruturaSchedules];
-                                  updated[idx] = {
-                                    ...updated[idx],
-                                    startTime: e.target.value,
-                                  };
-                                  setEstruturaSchedules(updated);
-                                }}
-                                className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm focus:outline-none focus:border-blue-500"
-                              />
-                            </div>
+                          <p className="text-xs font-medium text-gray-500 mb-2">
+                            {new Date(s.date).toLocaleDateString("pt-BR", {
+                              weekday: "short",
+                              day: "2-digit",
+                              month: "2-digit",
+                            })}
+                          </p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <input
+                              type="time"
+                              value={s.startTime}
+                              disabled={groupsGenerated}
+                              onChange={(e) => {
+                                const updated = [...estruturaSchedules];
+                                updated[idx] = {
+                                  ...updated[idx],
+                                  startTime: e.target.value,
+                                };
+                                setEstruturaSchedules(updated);
+                              }}
+                              className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-900 focus:outline-none focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
+                            />
                             <span className="text-gray-400 text-sm">até</span>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="time"
-                                value={s.endTime}
-                                onChange={(e) => {
-                                  const updated = [...estruturaSchedules];
-                                  updated[idx] = {
-                                    ...updated[idx],
-                                    endTime: e.target.value,
-                                  };
-                                  setEstruturaSchedules(updated);
-                                }}
-                                className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm focus:outline-none focus:border-blue-500"
-                              />
-                            </div>
+                            <input
+                              type="time"
+                              value={s.endTime}
+                              disabled={groupsGenerated}
+                              onChange={(e) => {
+                                const updated = [...estruturaSchedules];
+                                updated[idx] = {
+                                  ...updated[idx],
+                                  endTime: e.target.value,
+                                };
+                                setEstruturaSchedules(updated);
+                              }}
+                              className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-900 focus:outline-none focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
+                            />
                           </div>
                         </div>
                       ))}
@@ -905,61 +948,70 @@ const EditTournament = () => {
                 </div>
               </div>
 
-              {/* Coluna direita — resumo + guardar */}
+              {/* COLUNA 3 — Resumo + Guardar */}
               <div className="space-y-6">
                 <div className="bg-white border border-gray-200 rounded-xl p-6">
-                  <h3 className="text-base font-bold text-gray-900 mb-3">
+                  <h3 className="text-base font-bold text-gray-900 mb-4">
                     Resumo
                   </h3>
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-500">Quadras</span>
-                      <span className="font-semibold">
+                      <span className="font-semibold text-gray-900">
                         {estruturaCourts.length}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Duração/jogo</span>
-                      <span className="font-semibold">
-                        {estruturaDuration} min
+                      <span className="font-semibold text-gray-900">
+                        {estruturaDuration || "—"} min
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Dias</span>
-                      <span className="font-semibold">
+                      <span className="font-semibold text-gray-900">
                         {estruturaSchedules.length}
                       </span>
                     </div>
                   </div>
-                  {(() => {
-                    const cap = calculateCapacity(
-                      estruturaCourts,
-                      estruturaSchedules,
-                      parseInt(estruturaDuration) || 60,
-                    );
-                    return cap ? (
-                      <div className="mt-4 pt-4 border-t border-gray-100">
-                        <p className="text-xs text-gray-400 mb-1">
-                          Capacidade estimada
-                        </p>
-                        <p className="text-2xl font-black text-blue-700">
-                          {cap.maxTeams}{" "}
-                          <span className="text-sm font-normal text-gray-500">
-                            duplas
-                          </span>
-                        </p>
+
+                  {estruturaCapacity && (
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <p className="text-xs text-gray-400 mb-1">
+                        Capacidade estimada
+                      </p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-black text-blue-600">
+                          {estruturaCapacity.maxTeams}
+                        </span>
+                        <span className="text-sm text-gray-500">duplas</span>
                       </div>
-                    ) : null;
-                  })()}
+                      <p className="text-xs text-gray-400 mt-1">
+                        {estruturaCapacity.slotsAvailable} slots totais
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <button
                   onClick={handleSaveEstrutura}
-                  disabled={estruturaSaving}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl font-semibold transition-colors"
+                  disabled={
+                    !estruturaHasChanges || groupsGenerated || estruturaSaving
+                  }
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {estruturaSaving ? "A guardar..." : "Guardar Estrutura"}
+                  {estruturaSaving
+                    ? "A guardar..."
+                    : groupsGenerated
+                      ? "🔒 Bloqueado (grupos gerados)"
+                      : "Guardar Estrutura"}
                 </button>
+
+                {!estruturaHasChanges && !groupsGenerated && (
+                  <p className="text-xs text-center text-gray-400">
+                    Sem alterações pendentes
+                  </p>
+                )}
               </div>
             </div>
           )}
