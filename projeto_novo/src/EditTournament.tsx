@@ -148,7 +148,7 @@ const EditTournament = () => {
     updateTeam,
     deleteTeam,
   } = useTeams(id);
-  const { groups } = useGroups(id);
+  const { groups, loading: groupsLoading } = useGroups(id);
   const [activeTab, setActiveTab] = useState<Tab>("torneio");
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
@@ -233,7 +233,7 @@ const EditTournament = () => {
   }, [tournament, estruturaCourts, estruturaDuration, estruturaSchedules]);
 
   // Grupos gerados = bloquear edição de estrutura
-  const groupsGenerated = groups.length > 0;
+  const groupsGenerated = !groupsLoading && groups.length > 0;
 
   // Capacidade em tempo real baseada nos campos da aba Estrutura
   const estruturaCapacity = useMemo(
