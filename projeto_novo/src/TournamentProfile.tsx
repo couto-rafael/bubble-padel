@@ -2,7 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import AuthModal from "./AuthModal";
 import MobileMenu from "./MobileMenu";
-import { PublicTournamentService, type PublicTournament } from "./services/api";
+import {
+  PublicTournamentService,
+  AuthService,
+  type PublicTournament,
+} from "./services/api";
 
 // Mock data
 const MOCK_TOURNAMENT = {
@@ -242,6 +246,11 @@ const TournamentProfile = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
+  // Auth
+  const currentUser = AuthService.getCurrentUser();
+  const isAthlete = currentUser?.userType === "ATHLETE";
+  const isClub = currentUser?.userType === "CLUB";
+
   // Formulário de inscrição
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [registerForm, setRegisterForm] = useState({
@@ -254,6 +263,18 @@ const TournamentProfile = () => {
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerSuccess, setRegisterSuccess] = useState(false);
   const [registerError, setRegisterError] = useState("");
+
+  const handleOpenRegister = () => {
+    // Pré-preencher jogador 1 com dados do atleta logado
+    if (isAthlete && currentUser) {
+      setRegisterForm((prev) => ({
+        ...prev,
+        player1Name: currentUser.name ?? "",
+        player1Email: currentUser.email ?? "",
+      }));
+    }
+    setShowRegisterForm(true);
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -278,7 +299,10 @@ const TournamentProfile = () => {
     setRegisterLoading(true);
     setRegisterError("");
     try {
-      await PublicTournamentService.register(id, registerForm);
+      await PublicTournamentService.register(id, {
+        ...registerForm,
+        athleteId: isAthlete ? currentUser?.athleteId : undefined,
+      });
       setRegisterSuccess(true);
       setShowRegisterForm(false);
     } catch (err: any) {
@@ -557,9 +581,20 @@ const TournamentProfile = () => {
                   <div className="w-full py-3.5 bg-green-600/20 border border-green-500/30 text-green-300 rounded-lg font-bold text-base text-center mb-4">
                     ✓ Inscrição realizada! Aguarde confirmação do clube.
                   </div>
-                ) : isOpen ? (
+                ) : isOpen && isClub ? (
+                  <div className="w-full py-3.5 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold text-base text-center mb-4 cursor-not-allowed">
+                    Inscrição exclusiva para atletas
+                  </div>
+                ) : isOpen && !currentUser ? (
                   <button
-                    onClick={() => setShowRegisterForm(true)}
+                    onClick={() => setIsAuthModalOpen(true)}
+                    className="w-full py-3.5 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold text-base transition-all hover:scale-[1.02] shadow-lg mb-4"
+                  >
+                    Entrar para se inscrever
+                  </button>
+                ) : isOpen && isAthlete ? (
+                  <button
+                    onClick={handleOpenRegister}
                     className="w-full py-3.5 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold text-base transition-all hover:scale-[1.02] shadow-lg mb-4"
                   >
                     Inscrever-se Agora
@@ -2087,59 +2122,81 @@ const TournamentProfile = () => {
                 </select>
               </div>
 
-              <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide pt-2">
-                Jogador 1
-              </p>
-              <input
-                placeholder="Nome completo"
-                value={registerForm.player1Name}
-                onChange={(e) =>
-                  setRegisterForm((p) => ({
-                    ...p,
-                    player1Name: e.target.value,
-                  }))
-                }
-                className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#00ff88]"
-              />
-              <input
-                placeholder="Email"
-                type="email"
-                value={registerForm.player1Email}
-                onChange={(e) =>
-                  setRegisterForm((p) => ({
-                    ...p,
-                    player1Email: e.target.value,
-                  }))
-                }
-                className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#00ff88]"
-              />
+              {/* Jogador 1 — pré-preenchido e bloqueado se atleta logado */}
+              <div className="pt-2">
+                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2">
+                  Você (Jogador 1)
+                </p>
+                {isAthlete ? (
+                  <div className="bg-[#00ff88]/5 border border-[#00ff88]/20 rounded-lg px-3 py-2.5 flex items-center gap-2">
+                    <span className="text-[#00ff88] text-sm">✓</span>
+                    <div>
+                      <p className="text-white text-sm font-medium">
+                        {registerForm.player1Name}
+                      </p>
+                      <p className="text-gray-400 text-xs">
+                        {registerForm.player1Email}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      placeholder="Nome completo"
+                      value={registerForm.player1Name}
+                      onChange={(e) =>
+                        setRegisterForm((p) => ({
+                          ...p,
+                          player1Name: e.target.value,
+                        }))
+                      }
+                      className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#00ff88] mb-2"
+                    />
+                    <input
+                      placeholder="Email"
+                      type="email"
+                      value={registerForm.player1Email}
+                      onChange={(e) =>
+                        setRegisterForm((p) => ({
+                          ...p,
+                          player1Email: e.target.value,
+                        }))
+                      }
+                      className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#00ff88]"
+                    />
+                  </>
+                )}
+              </div>
 
-              <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide pt-2">
-                Jogador 2
-              </p>
-              <input
-                placeholder="Nome completo"
-                value={registerForm.player2Name}
-                onChange={(e) =>
-                  setRegisterForm((p) => ({
-                    ...p,
-                    player2Name: e.target.value,
-                  }))
-                }
-                className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#00ff88]"
-              />
-              <input
-                placeholder="Email"
-                type="email"
-                value={registerForm.player2Email}
-                onChange={(e) =>
-                  setRegisterForm((p) => ({
-                    ...p,
-                    player2Email: e.target.value,
-                  }))
-                }
-                className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#00ff88]"
-              />
+              {/* Jogador 2 — parceiro */}
+              <div className="pt-2">
+                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2">
+                  {isAthlete ? "Parceiro (Jogador 2)" : "Jogador 2"}
+                </p>
+                <input
+                  placeholder="Nome completo"
+                  value={registerForm.player2Name}
+                  onChange={(e) =>
+                    setRegisterForm((p) => ({
+                      ...p,
+                      player2Name: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#00ff88] mb-2"
+                />
+                <input
+                  placeholder="Email"
+                  type="email"
+                  value={registerForm.player2Email}
+                  onChange={(e) =>
+                    setRegisterForm((p) => ({
+                      ...p,
+                      player2Email: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#00ff88]"
+                />
+              </div>
 
               {registerError && (
                 <p className="text-red-400 text-sm">{registerError}</p>

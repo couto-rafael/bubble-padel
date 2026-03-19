@@ -518,6 +518,7 @@ export const PublicTournamentService = {
       player2Name: string;
       player2Email: string;
       category: string;
+      athleteId?: string;
     },
   ): Promise<void> => {
     const res = await fetch(`${API_URL}/public/tournaments/${id}/register`, {
