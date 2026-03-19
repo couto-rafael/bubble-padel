@@ -12,6 +12,7 @@ import { calculateCapacity } from "./utils/groupUtils";
 // ─── TIPOS ────────────────────────────────────────────────
 type Tab =
   | "torneio"
+  | "estrutura"
   | "inscricoes"
   | "categorias"
   | "financeiro"
