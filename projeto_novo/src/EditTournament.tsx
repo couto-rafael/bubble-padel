@@ -11,14 +11,13 @@ import { calculateCapacity } from "./utils/groupUtils";
 
 // ─── TIPOS ────────────────────────────────────────────────
 type Tab =
-  | "geral"
+  | "torneio"
   | "inscricoes"
   | "categorias"
   | "financeiro"
   | "grupos"
   | "jogos"
-  | "playoffs"
-  | "configuracoes";
+  | "playoffs";
 
 // ─── STATUS BADGE ─────────────────────────────────────────
 const StatusBadge = ({
@@ -149,7 +148,7 @@ const EditTournament = () => {
     deleteTeam,
   } = useTeams(id);
   const { groups } = useGroups(id);
-  const [activeTab, setActiveTab] = useState<Tab>("geral");
+  const [activeTab, setActiveTab] = useState<Tab>("torneio");
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
@@ -201,6 +200,11 @@ const EditTournament = () => {
     const matchDuration = (tournament as any).matchDuration ?? 60;
     return calculateCapacity(courts, daySchedules, matchDuration);
   }, [tournament]);
+
+  const confirmedCount = useMemo(
+    () => teams.filter((t) => t.status === "confirmed").length,
+    [teams],
+  );
 
   const confirmFieldChange = () => {
     if (tournament && confirmModal.field) {
@@ -299,8 +303,8 @@ const EditTournament = () => {
 
   const tabs = [
     {
-      key: "geral",
-      label: "Geral",
+      key: "torneio",
+      label: "Torneio",
       icon: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
     },
     {
@@ -332,11 +336,6 @@ const EditTournament = () => {
       key: "playoffs",
       label: "Playoffs",
       icon: "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z",
-    },
-    {
-      key: "configuracoes",
-      label: "Estrutura",
-      icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z",
     },
   ];
 
@@ -456,9 +455,10 @@ const EditTournament = () => {
             </div>
           </div>
 
-          {/* TAB CONTENT - Geral */}
-          {activeTab === "geral" && (
+          {/* TAB CONTENT - Torneio (Geral + Estrutura) */}
+          {activeTab === "torneio" && (
             <div className="space-y-6">
+              {/* Informações Básicas */}
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-6">
                   Informações Básicas
@@ -482,25 +482,14 @@ const EditTournament = () => {
                       placeholder="Clique para alterar"
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">
                       Esporte
                     </label>
-                    <select
-                      value={tournament.sport}
-                      onChange={(e) =>
-                        handleFieldChange("sport", e.target.value, "o esporte")
-                      }
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
-                    >
-                      <option>Padel</option>
-                      <option>Beach Tennis</option>
-                      <option>Tenis</option>
-                      <option>Pickleball</option>
-                    </select>
+                    <div className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-sm text-gray-500 cursor-not-allowed">
+                      {tournament.sport}
+                    </div>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">
                       Data de Início
@@ -519,7 +508,6 @@ const EditTournament = () => {
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-2">
                       Data de Término
@@ -538,7 +526,6 @@ const EditTournament = () => {
                       className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
                     />
                   </div>
-
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-600 mb-2">
                       Clube Sede
@@ -558,8 +545,7 @@ const EditTournament = () => {
                     />
                   </div>
                 </div>
-
-                <div className="mt-6 pt-6 border-t border-gray-200 flex items-center justify-between">
+                <div className="mt-6 pt-6 border-t border-gray-200">
                   <p className="text-sm text-gray-500 italic flex items-center gap-2">
                     <svg
                       className="w-4 h-4 text-amber-500"
@@ -576,9 +562,192 @@ const EditTournament = () => {
                   </p>
                 </div>
               </div>
+
+              {/* Estrutura */}
+              <div className="bg-white border border-gray-200 rounded-xl p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">
+                  Estrutura
+                </h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  Quadras, duração e horários configurados para este torneio.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+                      Quadras
+                    </p>
+                    <p className="font-semibold text-gray-900">
+                      {((tournament as any).courts ?? []).length > 0
+                        ? `${((tournament as any).courts ?? []).length} quadra${((tournament as any).courts ?? []).length !== 1 ? "s" : ""}`
+                        : "—"}
+                    </p>
+                    {((tournament as any).courts ?? []).length > 0 && (
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {((tournament as any).courts ?? []).join(", ")}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+                      Duração por Jogo
+                    </p>
+                    <p className="font-semibold text-gray-900">
+                      {(tournament as any).matchDuration ?? 60} min
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+                      Dias com Horário
+                    </p>
+                    <p className="font-semibold text-gray-900">
+                      {((tournament as any).daySchedules ?? []).length} dia
+                      {((tournament as any).daySchedules ?? []).length !== 1
+                        ? "s"
+                        : ""}
+                    </p>
+                  </div>
+                </div>
+                {((tournament as any).daySchedules ?? []).length > 0 && (
+                  <div className="mt-4 space-y-1">
+                    {((tournament as any).daySchedules ?? []).map(
+                      (s: any, i: number) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-3 text-sm text-gray-600"
+                        >
+                          <span className="text-gray-400 w-24">
+                            {new Date(s.date).toLocaleDateString("pt-BR")}
+                          </span>
+                          <span>
+                            {s.startTime} – {s.endTime}
+                          </span>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                )}
+                <p className="text-xs text-blue-500 mt-4">
+                  Para alterar a estrutura, cria um novo torneio ou contacta o
+                  suporte.
+                </p>
+              </div>
+
+              {/* Capacidade calculada */}
+              <div className="bg-white border border-gray-200 rounded-xl p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">
+                  Capacidade do Torneio
+                </h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  Calculada automaticamente com base nas quadras, horários e
+                  duração dos jogos.
+                </p>
+                {capacity ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
+                        <div className="text-3xl font-black text-blue-700">
+                          {capacity.maxTeams}
+                        </div>
+                        <div className="text-xs text-blue-500 mt-1">
+                          Duplas máx.
+                        </div>
+                      </div>
+                      <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+                        <div className="text-3xl font-black text-gray-700">
+                          {capacity.slotsAvailable}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          Slots totais
+                        </div>
+                      </div>
+                      <div
+                        className={`border rounded-xl p-4 text-center ${confirmedCount > capacity.maxTeams ? "bg-red-50 border-red-100" : "bg-gray-50 border-gray-100"}`}
+                      >
+                        <div
+                          className={`text-3xl font-black ${confirmedCount > capacity.maxTeams ? "text-red-600" : "text-gray-700"}`}
+                        >
+                          {confirmedCount}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          Duplas confirmadas
+                        </div>
+                      </div>
+                      <div
+                        className={`border rounded-xl p-4 text-center ${capacity.maxTeams - confirmedCount < 0 ? "bg-red-50 border-red-100" : "bg-gray-50 border-gray-100"}`}
+                      >
+                        <div
+                          className={`text-3xl font-black ${capacity.maxTeams - confirmedCount < 0 ? "text-red-600" : "text-gray-700"}`}
+                        >
+                          {capacity.maxTeams - confirmedCount}
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          Vagas restantes
+                        </div>
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all ${confirmedCount > capacity.maxTeams ? "bg-red-500" : "bg-blue-500"}`}
+                        style={{
+                          width: `${Math.min((confirmedCount / capacity.maxTeams) * 100, 100)}%`,
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      {capacity.breakdown.courts} quadra
+                      {capacity.breakdown.courts !== 1 ? "s" : ""} ×{" "}
+                      {capacity.breakdown.days} dia
+                      {capacity.breakdown.days !== 1 ? "s" : ""} ×{" "}
+                      {capacity.breakdown.hoursPerDay.toFixed(1)}h/dia ÷{" "}
+                      {capacity.breakdown.durationHours.toFixed(1)}h/jogo ={" "}
+                      {capacity.slotsAvailable} slots
+                    </p>
+                    {confirmedCount > capacity.maxTeams && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                        ⚠️ Tens {confirmedCount - capacity.maxTeams} dupla
+                        {confirmedCount - capacity.maxTeams !== 1 ? "s" : ""} a
+                        mais do que a estrutura comporta. Não será possível
+                        gerar grupos sem ajustar a estrutura.
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="p-8 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-center text-gray-400">
+                    <p className="text-sm">
+                      Sem dados suficientes para calcular.
+                    </p>
+                    <p className="text-xs mt-1">
+                      Configure quadras, datas e horários ao criar o torneio.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Limite de Inscrições */}
+              {tournament && (
+                <div className="bg-white border border-gray-200 rounded-xl p-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">
+                    Limite de Inscrições
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-3">
+                    Limite atual configurado para este torneio.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl font-black text-gray-900">
+                      {(tournament as any).maxTeams >= 999
+                        ? "Sem limite"
+                        : `${(tournament as any).maxTeams} duplas`}
+                    </div>
+                    {capacity && (tournament as any).maxTeams >= 999 && (
+                      <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full">
+                        Recomendado: {capacity.maxTeams} duplas
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
-
           {/* TAB CONTENT - Inscrições */}
           {activeTab === "inscricoes" && (
             <TabInscricoes
@@ -864,123 +1033,6 @@ const EditTournament = () => {
           {/* TAB CONTENT - Playoffs */}
           {activeTab === "playoffs" && (
             <TabPlayoffs tournament={tournament} teams={teams} />
-          )}
-
-          {/* TAB CONTENT - Configurações */}
-          {activeTab === "configuracoes" && (
-            <div className="space-y-6">
-              {/* Capacidade calculada */}
-              <div className="bg-white border border-gray-200 rounded-xl p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-1">
-                  Capacidade do Torneio
-                </h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  Calculada automaticamente com base nas quadras, horários e
-                  duração dos jogos.
-                </p>
-                {capacity ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center">
-                        <div className="text-3xl font-black text-blue-700">
-                          {capacity.maxTeams}
-                        </div>
-                        <div className="text-xs text-blue-500 mt-1">
-                          Duplas máx.
-                        </div>
-                      </div>
-                      <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
-                        <div className="text-3xl font-black text-gray-700">
-                          {capacity.slotsAvailable}
-                        </div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          Slots totais
-                        </div>
-                      </div>
-                      <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
-                        <div className="text-3xl font-black text-gray-700">
-                          {capacity.slotsNeeded}
-                        </div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          Slots usados
-                        </div>
-                      </div>
-                      <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
-                        <div className="text-3xl font-black text-gray-700">
-                          {capacity.slotsAvailable - capacity.slotsNeeded}
-                        </div>
-                        <div className="text-xs text-gray-400 mt-1">
-                          Slots livres
-                        </div>
-                      </div>
-                    </div>
-                    <div className="w-full bg-gray-100 rounded-full h-2">
-                      <div
-                        className="bg-blue-500 h-2 rounded-full transition-all"
-                        style={{
-                          width: `${Math.min((capacity.slotsNeeded / capacity.slotsAvailable) * 100, 100)}%`,
-                        }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-400">
-                      {capacity.breakdown.courts} quadra
-                      {capacity.breakdown.courts !== 1 ? "s" : ""} ×{" "}
-                      {capacity.breakdown.days} dia
-                      {capacity.breakdown.days !== 1 ? "s" : ""} ×{" "}
-                      {capacity.breakdown.hoursPerDay.toFixed(1)}h/dia ÷{" "}
-                      {capacity.breakdown.durationHours.toFixed(1)}h/jogo ={" "}
-                      {capacity.slotsAvailable} slots
-                    </p>
-                  </div>
-                ) : (
-                  <div className="p-8 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-center text-gray-400">
-                    <svg
-                      className="w-10 h-10 mx-auto mb-3 opacity-30"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z"
-                      />
-                    </svg>
-                    <p className="text-sm">
-                      Sem dados suficientes para calcular.
-                    </p>
-                    <p className="text-xs mt-1">
-                      Configure quadras, datas e horários ao criar o torneio.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Limite atual */}
-              {tournament && (
-                <div className="bg-white border border-gray-200 rounded-xl p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">
-                    Limite de Inscrições
-                  </h3>
-                  <p className="text-sm text-gray-500 mb-3">
-                    Limite atual configurado para este torneio.
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl font-black text-gray-900">
-                      {(tournament as any).maxTeams >= 999
-                        ? "Sem limite"
-                        : `${(tournament as any).maxTeams} duplas`}
-                    </div>
-                    {capacity && (tournament as any).maxTeams >= 999 && (
-                      <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full">
-                        Recomendado: {capacity.maxTeams} duplas
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
           )}
         </div>
       </main>
