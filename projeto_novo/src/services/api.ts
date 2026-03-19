@@ -499,6 +499,43 @@ export interface PublicTournament {
     category: string;
     status: string;
   }>;
+  groups?: Array<{
+    id: string;
+    name: string;
+    category: string;
+    teams: Array<{
+      team: {
+        id: string;
+        player1Name: string;
+        player2Name: string;
+      };
+    }>;
+    matches: Array<{
+      id: string;
+      team1Id: string | null;
+      team2Id: string | null;
+      score1: number | null;
+      score2: number | null;
+      played: boolean;
+    }>;
+  }>;
+  playoffBrackets?: Array<{
+    id: string;
+    category: string;
+    matches: Array<{
+      id: string;
+      roundSize: number;
+      matchIndex: number;
+      team1Id: string | null;
+      team2Id: string | null;
+      team1Label: string | null;
+      team2Label: string | null;
+      score1: number | null;
+      score2: number | null;
+      winnerId: string | null;
+      played: boolean;
+    }>;
+  }>;
 }
 
 export const PublicTournamentService = {

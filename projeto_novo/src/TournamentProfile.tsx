@@ -122,114 +122,6 @@ const confirmedTeams = [
   },
 ];
 
-const MOCK_GROUPS = [
-  {
-    name: "Grupo A - Elite",
-    teams: [
-      { name: "João Silva / Maria Santos", points: 6, wins: 2, losses: 0 },
-      { name: "Rafael Souza / Beatriz Alves", points: 3, wins: 1, losses: 1 },
-      { name: "Rodrigo Castro / Amanda Silva", points: 0, wins: 0, losses: 2 },
-    ],
-  },
-  {
-    name: "Grupo B - Elite",
-    teams: [
-      { name: "Carlos Mendes / Juliana Lima", points: 6, wins: 2, losses: 0 },
-      { name: "Lucas Ferreira / Camila Rocha", points: 3, wins: 1, losses: 1 },
-      { name: "Bruno Dias / Fernanda Nunes", points: 0, wins: 0, losses: 2 },
-    ],
-  },
-];
-
-const MOCK_MATCHES = [
-  {
-    id: 1,
-    court: "Quadra 1",
-    time: "09:00",
-    date: "12 Mar",
-    team1: "João Silva / Maria Santos",
-    team2: "Rafael Souza / Beatriz Alves",
-    score: "6-4, 6-3",
-    status: "Finalizado",
-    category: "Elite",
-  },
-  {
-    id: 2,
-    court: "Quadra 2",
-    time: "10:30",
-    date: "12 Mar",
-    team1: "Pedro Oliveira / Ana Costa",
-    team2: "Lucas Ferreira / Camila Rocha",
-    score: "4-6, 7-5, 6-3",
-    status: "Finalizado",
-    category: "Avançado",
-  },
-  {
-    id: 3,
-    court: "Quadra 1",
-    time: "14:00",
-    date: "13 Mar",
-    team1: "Carlos Mendes / Juliana Lima",
-    team2: "Bruno Dias / Fernanda Nunes",
-    score: "-",
-    status: "Agendado",
-    category: "Intermediário",
-  },
-  {
-    id: 4,
-    court: "Quadra 3",
-    time: "15:30",
-    date: "13 Mar",
-    team1: "Thiago Martins / Patricia Gomes",
-    team2: "Rodrigo Castro / Amanda Silva",
-    score: "-",
-    status: "Agendado",
-    category: "Elite",
-  },
-];
-
-const MOCK_RESULTS = [
-  {
-    category: "Elite",
-    podium: [
-      { position: 1, team: "João Silva / Maria Santos", trophy: "🥇" },
-      { position: 2, team: "Carlos Mendes / Juliana Lima", trophy: "🥈" },
-      { position: 3, team: "Rafael Souza / Beatriz Alves", trophy: "🥉" },
-    ],
-  },
-  {
-    category: "Avançado",
-    podium: [
-      { position: 1, team: "Pedro Oliveira / Ana Costa", trophy: "🥇" },
-      { position: 2, team: "Lucas Ferreira / Camila Rocha", trophy: "🥈" },
-      { position: 3, team: "Bruno Dias / Fernanda Nunes", trophy: "🥉" },
-    ],
-  },
-];
-
-const MOCK_LIVE_MATCHES = [
-  {
-    id: 1,
-    court: "Quadra Central",
-    team1: "João Silva / Maria Santos",
-    team2: "Rafael Souza / Beatriz Alves",
-    score1: 6,
-    score2: 4,
-    set: 1,
-    status: "Ao Vivo",
-  },
-  {
-    id: 2,
-    court: "Quadra 2",
-    team1: "Pedro Oliveira / Ana Costa",
-    team2: "Lucas Ferreira / Camila Rocha",
-    score1: 3,
-    score2: 3,
-    set: 1,
-    status: "Ao Vivo",
-  },
-];
-
 const TournamentProfile = () => {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -1426,125 +1318,153 @@ const TournamentProfile = () => {
 
               {/* Groups Grid */}
               <div className="grid lg:grid-cols-2 gap-6">
-                {MOCK_GROUPS.map((group, groupIndex) => (
-                  <div
-                    key={groupIndex}
-                    className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden"
-                  >
-                    {/* Group Header */}
-                    <div className="bg-gradient-to-r from-purple-600/30 to-purple-700/30 px-6 py-4 border-b border-white/10 flex items-center justify-between">
-                      <h3 className="font-bold text-lg">
-                        {group.name.split(" - ")[0]}
-                      </h3>
-                      <span className="px-3 py-1 bg-white/10 rounded-full text-sm font-semibold">
-                        {group.name.split(" - ")[1]}
-                      </span>
-                    </div>
+                {(tournament.groups ?? [])
+                  .filter(
+                    (g: any) =>
+                      selectedCategory === "Todas" ||
+                      g.category === selectedCategory,
+                  )
+                  .map((group: any, groupIndex: number) => {
+                    // Calcular standings a partir dos jogos reais
+                    const standings = (group.teams ?? [])
+                      .map((gt: any) => {
+                        const t = gt.team;
+                        let wins = 0,
+                          losses = 0,
+                          gamesFor = 0,
+                          gamesAgainst = 0;
+                        (group.matches ?? []).forEach((m: any) => {
+                          if (!m.played) return;
+                          const isT1 = m.team1Id === t.id;
+                          const isT2 = m.team2Id === t.id;
+                          if (!isT1 && !isT2) return;
+                          const myScore = isT1 ? m.score1 : m.score2;
+                          const oppScore = isT1 ? m.score2 : m.score1;
+                          if (myScore > oppScore) wins++;
+                          else losses++;
+                          gamesFor += myScore ?? 0;
+                          gamesAgainst += oppScore ?? 0;
+                        });
+                        return {
+                          ...t,
+                          wins,
+                          losses,
+                          gamesFor,
+                          gamesAgainst,
+                          points: wins * 2,
+                        };
+                      })
+                      .sort(
+                        (a: any, b: any) =>
+                          b.points - a.points ||
+                          b.gamesFor -
+                            b.gamesAgainst -
+                            (a.gamesFor - a.gamesAgainst),
+                      );
 
-                    {/* Standings Table */}
-                    <div className="p-6">
-                      <div className="mb-4">
-                        <div className="grid grid-cols-[auto,1fr,auto,auto,auto] gap-3 text-xs font-semibold text-gray-400 uppercase pb-3 border-b border-white/10">
-                          <div className="w-8"></div>
-                          <div>Dupla</div>
-                          <div className="text-center w-12">V</div>
-                          <div className="text-center w-16">Saldo</div>
-                          <div className="text-center w-16">Games</div>
+                    return (
+                      <div
+                        key={group.id ?? groupIndex}
+                        className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden"
+                      >
+                        <div className="bg-gradient-to-r from-purple-600/30 to-purple-700/30 px-6 py-4 border-b border-white/10 flex items-center justify-between">
+                          <h3 className="font-bold text-lg">{group.name}</h3>
+                          <span className="px-3 py-1 bg-white/10 rounded-full text-sm font-semibold">
+                            {group.category}
+                          </span>
+                        </div>
+                        <div className="p-6">
+                          {/* Standings */}
+                          <div className="mb-4">
+                            <div className="grid grid-cols-[auto,1fr,auto,auto,auto] gap-3 text-xs font-semibold text-gray-400 uppercase pb-3 border-b border-white/10">
+                              <div className="w-8"></div>
+                              <div>Dupla</div>
+                              <div className="text-center w-12">V</div>
+                              <div className="text-center w-16">Saldo</div>
+                              <div className="text-center w-16">Pts</div>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            {standings.map((team: any, ti: number) => (
+                              <div
+                                key={team.id}
+                                className="grid grid-cols-[auto,1fr,auto,auto,auto] gap-3 items-center py-2 hover:bg-white/5 rounded-lg transition-colors"
+                              >
+                                <div
+                                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${ti === 0 ? "bg-gradient-to-br from-[#00ff88] to-[#00cc6a] text-[#0a0e27]" : ti === 1 ? "bg-gradient-to-br from-purple-500 to-purple-600 text-white" : "bg-white/10 text-gray-400"}`}
+                                >
+                                  {ti + 1}
+                                </div>
+                                <div className="font-medium text-white truncate">
+                                  {team.player1Name} / {team.player2Name}
+                                </div>
+                                <div className="text-center w-12 font-bold text-green-400">
+                                  {team.wins}
+                                </div>
+                                <div
+                                  className={`text-center w-16 font-bold ${team.gamesFor - team.gamesAgainst >= 0 ? "text-green-400" : "text-red-400"}`}
+                                >
+                                  {team.gamesFor - team.gamesAgainst > 0
+                                    ? "+"
+                                    : ""}
+                                  {team.gamesFor - team.gamesAgainst}
+                                </div>
+                                <div className="text-center w-16 font-bold text-white">
+                                  {team.points}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          {/* Matches */}
+                          <div className="mt-6 pt-6 border-t border-white/10">
+                            <h4 className="font-semibold text-sm text-gray-400 mb-3">
+                              Jogos
+                            </h4>
+                            <div className="space-y-2">
+                              {(group.matches ?? []).map((m: any) => {
+                                const getTeamName = (teamId: string | null) => {
+                                  if (!teamId) return "A definir";
+                                  const gt = group.teams.find(
+                                    (gt: any) => gt.team.id === teamId,
+                                  );
+                                  return gt
+                                    ? `${gt.team.player1Name} / ${gt.team.player2Name}`
+                                    : "A definir";
+                                };
+                                const t1Name = getTeamName(m.team1Id);
+                                const t2Name = getTeamName(m.team2Id);
+                                return (
+                                  <div
+                                    key={m.id}
+                                    className="bg-white/5 rounded-lg p-3"
+                                  >
+                                    <div className="flex items-center justify-between text-sm mb-1">
+                                      <span className="text-white truncate">
+                                        {t1Name}
+                                      </span>
+                                      <span className="text-purple-400 font-bold ml-2 flex-shrink-0">
+                                        {m.played
+                                          ? `${m.score1}-${m.score2}`
+                                          : "vs"}
+                                      </span>
+                                    </div>
+                                    <div className="text-gray-400 text-sm truncate">
+                                      {t2Name}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
                         </div>
                       </div>
-
-                      {/* Teams */}
-                      <div className="space-y-2">
-                        {group.teams.map((team, teamIndex) => (
-                          <div
-                            key={teamIndex}
-                            className="grid grid-cols-[auto,1fr,auto,auto,auto] gap-3 items-center py-2 hover:bg-white/5 rounded-lg transition-colors"
-                          >
-                            {/* Position Badge */}
-                            <div
-                              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                                teamIndex === 0
-                                  ? "bg-gradient-to-br from-[#00ff88] to-[#00cc6a] text-[#0a0e27]"
-                                  : teamIndex === 1
-                                    ? "bg-gradient-to-br from-purple-500 to-purple-600 text-white"
-                                    : "bg-white/10 text-gray-400"
-                              }`}
-                            >
-                              {teamIndex + 1}
-                            </div>
-
-                            {/* Team Name */}
-                            <div className="font-medium text-white">
-                              {team.name}
-                            </div>
-
-                            {/* Wins */}
-                            <div className="text-center w-12 font-bold text-green-400">
-                              {team.wins}
-                            </div>
-
-                            {/* Goal Difference */}
-                            <div
-                              className={`text-center w-16 font-bold ${
-                                team.points > 3
-                                  ? "text-green-400"
-                                  : team.points === 3
-                                    ? "text-yellow-400"
-                                    : "text-red-400"
-                              }`}
-                            >
-                              {team.points > 3
-                                ? `+${team.wins * 2}`
-                                : `-${team.losses * 2}`}
-                            </div>
-
-                            {/* Games/Points */}
-                            <div className="text-center w-16 font-bold text-white">
-                              {team.wins * 12 + team.losses * 8}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Matches Section */}
-                      <div className="mt-6 pt-6 border-t border-white/10">
-                        <h4 className="font-semibold text-sm text-gray-400 mb-3">
-                          Jogos
-                        </h4>
-                        <div className="space-y-3">
-                          {/* Sample matches for this group */}
-                          <div className="bg-white/5 rounded-lg p-3">
-                            <div className="flex items-center justify-between text-sm mb-1">
-                              <span className="text-white">
-                                {group.teams[0].name}
-                              </span>
-                              <span className="text-purple-400 font-bold">
-                                6-4, 6-3
-                              </span>
-                            </div>
-                            <div className="text-gray-400 text-sm">
-                              {group.teams[1].name}
-                            </div>
-                          </div>
-
-                          <div className="bg-white/5 rounded-lg p-3">
-                            <div className="flex items-center justify-between text-sm mb-1">
-                              <span className="text-white">
-                                {group.teams[0].name}
-                              </span>
-                              <span className="text-purple-400 font-bold">
-                                vs
-                              </span>
-                            </div>
-                            <div className="text-gray-400 text-sm">
-                              {group.teams[2].name}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    );
+                  })}
+                {(tournament.groups ?? []).length === 0 && (
+                  <div className="col-span-2 text-center py-20 text-gray-400">
+                    Grupos ainda não foram gerados para este torneio.
                   </div>
-                ))}
+                )}
               </div>
             </div>
           )}
@@ -1656,159 +1576,131 @@ const TournamentProfile = () => {
               </div>
 
               {/* Matches List */}
-              <div className="space-y-4">
-                {MOCK_MATCHES.filter((m) => {
-                  const matchesCategory =
+              {(() => {
+                const allMatches = (tournament.groups ?? []).flatMap(
+                  (g: any) => {
+                    const getTeamName = (teamId: string | null) => {
+                      if (!teamId) return "A definir";
+                      const gt = (g.teams ?? []).find(
+                        (gt: any) => gt.team.id === teamId,
+                      );
+                      return gt
+                        ? `${gt.team.player1Name} / ${gt.team.player2Name}`
+                        : "A definir";
+                    };
+                    return (g.matches ?? []).map((m: any) => ({
+                      id: m.id,
+                      team1: getTeamName(m.team1Id),
+                      team2: getTeamName(m.team2Id),
+                      score1: m.score1,
+                      score2: m.score2,
+                      played: m.played,
+                      category: g.category,
+                      court: null,
+                      date: null,
+                      time: null,
+                      status: m.played ? "Finalizado" : "A Realizar",
+                    }));
+                  },
+                );
+                const filtered = allMatches.filter((m: any) => {
+                  const cat =
                     selectedCategory === "Todas" ||
                     m.category === selectedCategory;
-                  const matchesCourt =
+                  const court =
                     selectedCourt === "Todas as Quadras" ||
                     m.court === selectedCourt;
-                  const matchesSearch =
+                  const search =
                     searchTerm === "" ||
                     m.team1.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     m.team2.toLowerCase().includes(searchTerm.toLowerCase());
-                  return matchesCategory && matchesCourt && matchesSearch;
-                }).map((match) => (
-                  <div
-                    key={match.id}
-                    className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden hover:border-[#00ff88]/30 transition-all"
-                  >
-                    <div className="p-4 md:p-6">
-                      {/* Match Header - Desktop */}
-                      <div className="hidden md:flex items-center gap-3 mb-4">
-                        {/* Status Badge */}
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(match.status)}`}
-                        >
-                          {match.status}
-                        </span>
-                      </div>
-
-                      {/* Match Info - Mobile First Layout */}
-                      <div className="space-y-3">
-                        {/* Date, Time, Court, Category - Mobile/Desktop */}
-                        <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm text-gray-400">
-                          <span className="font-medium">{match.time}</span>
-                          <span>•</span>
-                          <span>{match.court}</span>
-                          <span>•</span>
-                          <span>{match.date}</span>
-                          <span>•</span>
-                          <span className="text-[#00ccff]">
-                            {match.category}
-                          </span>
-                        </div>
-
-                        {/* Status Badge - Mobile Only */}
-                        <div className="md:hidden">
-                          <span
-                            className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold border ${getStatusColor(match.status)}`}
-                          >
-                            {match.status}
-                          </span>
-                        </div>
-
-                        {/* Teams and Score */}
-                        <div className="space-y-2">
-                          {/* Team 1 */}
-                          <div className="flex items-center justify-between">
-                            <p className="font-semibold text-base md:text-lg text-white">
-                              {match.team1}
-                            </p>
-                            {match.status === "Finalizado" && (
-                              <span className="text-2xl md:text-3xl font-bold text-white ml-4">
-                                {match.score.split(",")[0]?.split("-")[0] ||
-                                  "-"}
-                              </span>
+                  return cat && court && search;
+                });
+                if (filtered.length === 0)
+                  return (
+                    <div className="text-center py-12">
+                      <h3 className="text-xl font-bold mb-2 text-gray-400">
+                        Nenhum jogo encontrado
+                      </h3>
+                      <p className="text-gray-500">
+                        {allMatches.length === 0
+                          ? "Grupos ainda não foram gerados."
+                          : "Tente ajustar os filtros."}
+                      </p>
+                    </div>
+                  );
+                return (
+                  <div className="space-y-4">
+                    {filtered.map((match: any) => (
+                      <div
+                        key={match.id}
+                        className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden hover:border-[#00ff88]/30 transition-all"
+                      >
+                        <div className="p-4 md:p-6">
+                          <div className="flex flex-wrap items-center gap-2 text-xs md:text-sm text-gray-400 mb-3">
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${getStatusColor(match.status)}`}
+                            >
+                              {match.status}
+                            </span>
+                            {match.time && (
+                              <>
+                                <span>•</span>
+                                <span className="font-medium">
+                                  {match.time}
+                                </span>
+                              </>
                             )}
-                          </div>
-
-                          {/* Team 2 */}
-                          <div className="flex items-center justify-between">
-                            <p className="font-semibold text-base md:text-lg text-white">
-                              {match.team2}
-                            </p>
-                            {match.status === "Finalizado" && (
-                              <span className="text-2xl md:text-3xl font-bold text-white ml-4">
-                                {match.score.split(",")[0]?.split("-")[1] ||
-                                  "-"}
-                              </span>
+                            {match.court && (
+                              <>
+                                <span>•</span>
+                                <span>{match.court}</span>
+                              </>
                             )}
-                          </div>
-                        </div>
-
-                        {/* Full Score - Desktop Only for Finished Matches */}
-                        {match.status === "Finalizado" && (
-                          <div className="hidden md:block pt-3 border-t border-white/10">
-                            <p className="text-sm text-gray-400">
-                              <span className="font-medium text-[#00ccff]">
-                                Placar completo:
-                              </span>{" "}
-                              {match.score}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* VS indicator for scheduled matches - Mobile */}
-                        {match.status === "Agendado" && (
-                          <div className="md:hidden text-center">
-                            <span className="text-[#00ccff] font-bold text-sm">
-                              VS
+                            {match.date && (
+                              <>
+                                <span>•</span>
+                                <span>{match.date}</span>
+                              </>
+                            )}
+                            <span>•</span>
+                            <span className="text-[#00ccff]">
+                              {match.category}
                             </span>
                           </div>
-                        )}
-                      </div>
-
-                      {/* Action Button - Optional */}
-                      {match.status === "Agendado" && (
-                        <div className="mt-4 pt-4 border-t border-white/10 hidden md:block">
-                          <button className="text-sm text-[#00ff88] hover:text-[#00dd77] font-medium transition-colors">
-                            Ver detalhes →
-                          </button>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <p className="font-semibold text-base md:text-lg text-white">
+                                {match.team1}
+                              </p>
+                              {match.played && (
+                                <span className="text-2xl md:text-3xl font-bold text-white ml-4">
+                                  {match.score1}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <p className="font-semibold text-base md:text-lg text-white">
+                                {match.team2}
+                              </p>
+                              {match.played && (
+                                <span className="text-2xl md:text-3xl font-bold text-white ml-4">
+                                  {match.score2}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {!match.played && (
+                            <p className="mt-3 text-xs text-gray-500">
+                              Horário a definir
+                            </p>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-
-              {/* Empty State */}
-              {MOCK_MATCHES.filter((m) => {
-                const matchesCategory =
-                  selectedCategory === "Todas" ||
-                  m.category === selectedCategory;
-                const matchesCourt =
-                  selectedCourt === "Todas as Quadras" ||
-                  m.court === selectedCourt;
-                const matchesSearch =
-                  searchTerm === "" ||
-                  m.team1.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  m.team2.toLowerCase().includes(searchTerm.toLowerCase());
-                return matchesCategory && matchesCourt && matchesSearch;
-              }).length === 0 && (
-                <div className="text-center py-12">
-                  <svg
-                    className="w-16 h-16 mx-auto mb-4 text-gray-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                  <h3 className="text-xl font-bold mb-2 text-gray-400">
-                    Nenhum jogo encontrado
-                  </h3>
-                  <p className="text-gray-500">
-                    Tente ajustar os filtros para ver mais resultados
-                  </p>
-                </div>
-              )}
+                );
+              })()}
             </div>
           )}
 
@@ -1821,38 +1713,97 @@ const TournamentProfile = () => {
                   Bracket eliminatório por categoria
                 </p>
               </div>
-              {tournament.categories.length === 0 ? (
+              {(tournament.playoffBrackets ?? []).length === 0 ? (
                 <div className="text-center py-20 text-gray-400">
-                  Sem categorias disponíveis.
+                  Playoffs ainda não foram gerados para este torneio.
                 </div>
               ) : (
                 <div className="space-y-10">
-                  {tournament.categories.map((cat: string) => (
-                    <div
-                      key={cat}
-                      className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10"
-                    >
-                      <h3 className="text-xl font-bold text-[#00ccff] mb-6">
-                        {cat}
-                      </h3>
-                      <div className="text-center py-10 text-gray-400">
-                        <svg
-                          className="w-12 h-12 mx-auto mb-3 opacity-30"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                          />
-                        </svg>
-                        Playoffs ainda não disponíveis para esta categoria.
+                  {(tournament.playoffBrackets ?? []).map((bracket: any) => {
+                    const rounds = [
+                      ...new Set(bracket.matches.map((m: any) => m.roundSize)),
+                    ].sort((a: any, b: any) => b - a);
+                    const getRoundName = (size: number) => {
+                      if (size === 1) return "Final";
+                      if (size === 2) return "Semifinal";
+                      if (size === 4) return "Quartas";
+                      if (size === 8) return "Oitavas";
+                      return `Rodada de ${size * 2}`;
+                    };
+                    return (
+                      <div
+                        key={bracket.id}
+                        className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10"
+                      >
+                        <h3 className="text-xl font-bold text-[#00ccff] mb-6">
+                          {bracket.category}
+                        </h3>
+                        <div className="overflow-x-auto">
+                          <div className="flex gap-8 min-w-max">
+                            {(rounds as number[]).map((roundSize: number) => {
+                              const roundMatches = bracket.matches.filter(
+                                (m: any) => m.roundSize === roundSize,
+                              );
+                              return (
+                                <div
+                                  key={roundSize}
+                                  className="flex flex-col gap-4"
+                                >
+                                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wide text-center mb-2">
+                                    {getRoundName(roundSize)}
+                                  </p>
+                                  {roundMatches.map((m: any) => {
+                                    const t1 = m.team1Label || "A definir";
+                                    const t2 = m.team2Label || "A definir";
+                                    const winner = m.winnerId;
+                                    return (
+                                      <div
+                                        key={m.id}
+                                        className="w-56 bg-[#0a0e27]/60 border border-white/10 rounded-lg overflow-hidden"
+                                      >
+                                        <div
+                                          className={`px-3 py-2 flex items-center justify-between border-b border-white/10 ${winner && winner === m.team1Id ? "bg-[#00ff88]/10" : ""}`}
+                                        >
+                                          <span
+                                            className={`text-sm font-medium truncate ${winner && winner === m.team1Id ? "text-[#00ff88]" : "text-white"}`}
+                                          >
+                                            {t1}
+                                          </span>
+                                          {m.played && (
+                                            <span
+                                              className={`ml-2 text-lg font-bold flex-shrink-0 ${winner === m.team1Id ? "text-[#00ff88]" : "text-gray-400"}`}
+                                            >
+                                              {m.score1}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div
+                                          className={`px-3 py-2 flex items-center justify-between ${winner && winner === m.team2Id ? "bg-[#00ff88]/10" : ""}`}
+                                        >
+                                          <span
+                                            className={`text-sm font-medium truncate ${winner && winner === m.team2Id ? "text-[#00ff88]" : "text-white"}`}
+                                          >
+                                            {t2}
+                                          </span>
+                                          {m.played && (
+                                            <span
+                                              className={`ml-2 text-lg font-bold flex-shrink-0 ${winner === m.team2Id ? "text-[#00ff88]" : "text-gray-400"}`}
+                                            >
+                                              {m.score2}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -1866,97 +1817,114 @@ const TournamentProfile = () => {
                 <p className="text-gray-400">Resultados finais do torneio</p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-8">
-                {MOCK_RESULTS.map((result, index) => (
-                  <div
-                    key={index}
-                    className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden"
-                  >
-                    {/* Header */}
-                    <div className="bg-gradient-to-r from-[#00ff88]/20 to-[#00ccff]/20 px-6 py-4 border-b border-white/10">
-                      <h3 className="font-bold text-xl text-white">
-                        {result.category}
-                      </h3>
-                    </div>
-
-                    <div className="p-8">
-                      {/* Champions Section */}
-                      <div className="text-center mb-8 pb-8 border-b border-white/10">
-                        <div className="flex items-center justify-center gap-3 mb-3">
-                          <span className="text-4xl">👑</span>
-                          <span className="text-4xl">🏆</span>
-                        </div>
-                        <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
-                          Campeões
-                        </h4>
-                        <p className="text-2xl font-bold text-[#00ff88] mb-4">
-                          {result.podium[0].team}
-                        </p>
-
-                        <div className="bg-[#0a0e27]/50 rounded-lg px-4 py-3 inline-block">
-                          <p className="text-xs text-gray-400 mb-1">
-                            Placar da Final
-                          </p>
-                          <p className="text-xl font-bold text-white">
-                            6-4, 6-3
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Vice-Champions Section */}
-                      <div className="text-center">
-                        <div className="flex items-center justify-center gap-3 mb-3">
-                          <span className="text-3xl">🥈</span>
-                          <span className="text-3xl">🏅</span>
-                        </div>
-                        <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
-                          Vice-campeões
-                        </h4>
-                        <p className="text-lg font-semibold text-gray-300">
-                          {result.podium[1].team}
-                        </p>
-                      </div>
-
-                      {/* Third Place - Subtle */}
-                      {result.podium[2] && (
-                        <div className="mt-6 pt-6 border-t border-white/10 text-center">
-                          <p className="text-xs text-gray-500 mb-1">3º Lugar</p>
-                          <p className="text-sm text-gray-400">
-                            {result.podium[2].team}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Congratulations Section */}
-              <div className="mt-10 p-8 bg-gradient-to-r from-[#00ff88]/10 to-[#00ccff]/10 border border-[#00ff88]/30 rounded-xl text-center">
-                <div className="flex items-center justify-center gap-3 mb-4">
-                  <svg
-                    className="w-8 h-8 text-[#00ff88]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                    />
-                  </svg>
-                  <h3 className="text-2xl font-bold text-[#00ff88]">
-                    Parabéns aos Vencedores!
-                  </h3>
+              {(tournament.playoffBrackets ?? []).length === 0 ? (
+                <div className="text-center py-20 text-gray-400">
+                  Resultados ainda não disponíveis.
                 </div>
-                <p className="text-gray-300 max-w-2xl mx-auto">
-                  Obrigado a todos os participantes pelo excelente nível de jogo
-                  e pelo espírito esportivo demonstrado ao longo do torneio. Até
-                  o próximo campeonato!
-                </p>
-              </div>
+              ) : (
+                <>
+                  <div className="grid md:grid-cols-2 gap-8">
+                    {(tournament.playoffBrackets ?? []).map((bracket: any) => {
+                      const final = bracket.matches.find(
+                        (m: any) => m.roundSize === 1 && m.played,
+                      );
+                      const semi = bracket.matches.filter(
+                        (m: any) => m.roundSize === 2 && m.played,
+                      );
+                      if (!final)
+                        return (
+                          <div
+                            key={bracket.id}
+                            className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 p-8 text-center text-gray-400"
+                          >
+                            <h3 className="font-bold text-xl text-white mb-2">
+                              {bracket.category}
+                            </h3>
+                            Final ainda não realizada.
+                          </div>
+                        );
+                      const champion =
+                        final.score1 > final.score2
+                          ? final.team1Label
+                          : final.team2Label;
+                      const runnerUp =
+                        final.score1 > final.score2
+                          ? final.team2Label
+                          : final.team1Label;
+                      const thirdPlacers = semi.map((m: any) =>
+                        m.score1 > m.score2 ? m.team2Label : m.team1Label,
+                      );
+                      return (
+                        <div
+                          key={bracket.id}
+                          className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden"
+                        >
+                          <div className="bg-gradient-to-r from-[#00ff88]/20 to-[#00ccff]/20 px-6 py-4 border-b border-white/10">
+                            <h3 className="font-bold text-xl text-white">
+                              {bracket.category}
+                            </h3>
+                          </div>
+                          <div className="p-8">
+                            <div className="text-center mb-8 pb-8 border-b border-white/10">
+                              <div className="flex items-center justify-center gap-3 mb-3">
+                                <span className="text-4xl">👑</span>
+                                <span className="text-4xl">🏆</span>
+                              </div>
+                              <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                                Campeões
+                              </h4>
+                              <p className="text-2xl font-bold text-[#00ff88] mb-4">
+                                {champion ?? "A definir"}
+                              </p>
+                              <div className="bg-[#0a0e27]/50 rounded-lg px-4 py-3 inline-block">
+                                <p className="text-xs text-gray-400 mb-1">
+                                  Placar da Final
+                                </p>
+                                <p className="text-xl font-bold text-white">
+                                  {final.score1} – {final.score2}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-center">
+                              <div className="flex items-center justify-center gap-3 mb-3">
+                                <span className="text-3xl">🥈</span>
+                              </div>
+                              <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                                Vice-campeões
+                              </h4>
+                              <p className="text-lg font-semibold text-gray-300">
+                                {runnerUp ?? "A definir"}
+                              </p>
+                            </div>
+                            {thirdPlacers.length > 0 && (
+                              <div className="mt-6 pt-6 border-t border-white/10 text-center">
+                                <p className="text-xs text-gray-500 mb-1">
+                                  3º Lugar
+                                </p>
+                                {thirdPlacers.map((t: string, i: number) => (
+                                  <p key={i} className="text-sm text-gray-400">
+                                    {t}
+                                  </p>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-10 p-8 bg-gradient-to-r from-[#00ff88]/10 to-[#00ccff]/10 border border-[#00ff88]/30 rounded-xl text-center">
+                    <h3 className="text-2xl font-bold text-[#00ff88] mb-2">
+                      🎉 Parabéns aos Vencedores!
+                    </h3>
+                    <p className="text-gray-300 max-w-2xl mx-auto">
+                      Obrigado a todos os participantes pelo excelente nível de
+                      jogo e pelo espírito esportivo demonstrado ao longo do
+                      torneio.
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -1964,159 +1932,30 @@ const TournamentProfile = () => {
           {activeTab === "live" && (
             <div>
               <div className="mb-8 text-center">
-                <h2 className="text-3xl font-bold mb-2">
-                  Transmissões Ao Vivo
-                </h2>
-                <p className="text-gray-400">
-                  Acompanhe os jogos em tempo real
+                <h2 className="text-3xl font-bold mb-2">Ao Vivo</h2>
+                <p className="text-gray-400">Jogos em andamento agora</p>
+              </div>
+              <div className="text-center py-20 text-gray-400">
+                <svg
+                  className="w-16 h-16 mx-auto mb-4 opacity-30"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+                <h3 className="text-xl font-bold mb-2">
+                  Nenhuma partida ao vivo no momento
+                </h3>
+                <p className="text-gray-500">
+                  Volte durante o torneio para acompanhar em tempo real
                 </p>
               </div>
-
-              {MOCK_LIVE_MATCHES.length > 0 ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {MOCK_LIVE_MATCHES.map((match) => (
-                    <div
-                      key={match.id}
-                      className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden hover:border-[#00ff88]/30 transition-all"
-                    >
-                      {/* Video Preview Area */}
-                      <div className="relative aspect-video bg-[#0a0e27] flex items-center justify-center border-b border-white/10">
-                        {/* Play Icon */}
-                        <div className="relative z-10">
-                          <svg
-                            className="w-20 h-20 text-white/80 hover:text-white transition-colors cursor-pointer"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1.5}
-                              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1.5}
-                              d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                        </div>
-
-                        {/* Live Badge */}
-                        <div className="absolute top-3 right-3 flex items-center gap-2 px-3 py-1.5 bg-red-500 rounded-full">
-                          <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                          </span>
-                          <span className="font-bold text-white uppercase text-xs">
-                            AO VIVO
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Match Info */}
-                      <div className="p-5">
-                        <h3 className="font-bold text-lg mb-3">
-                          {match.court}
-                        </h3>
-
-                        <div className="mb-4">
-                          <p className="text-sm text-gray-400 mb-1">
-                            Jogo atual:
-                          </p>
-                          <p className="font-semibold text-white">
-                            {match.team1} vs {match.team2}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg text-sm font-semibold border border-red-500/30">
-                            Ao Vivo
-                          </span>
-                          <button className="flex items-center gap-2 px-4 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold text-sm transition-colors">
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                              />
-                            </svg>
-                            Assistir
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Empty Court Card */}
-                  <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden opacity-60">
-                    <div className="relative aspect-video bg-[#0a0e27] flex items-center justify-center border-b border-white/10">
-                      <div className="relative z-10">
-                        <svg
-                          className="w-20 h-20 text-white/30"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.5}
-                            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.5}
-                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                    <div className="p-5">
-                      <h3 className="font-bold text-lg mb-3 text-gray-400">
-                        Quadra 3
-                      </h3>
-                      <p className="text-gray-500 text-sm mb-4">
-                        Nenhum jogo agendado
-                      </p>
-                      <span className="inline-block px-3 py-1.5 bg-white/5 text-gray-500 rounded-lg text-sm font-medium border border-white/10">
-                        Livre
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-12 rounded-xl border border-white/10 text-center">
-                  <svg
-                    className="w-16 h-16 mx-auto mb-4 text-gray-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <h3 className="text-xl font-bold mb-2 text-gray-400">
-                    Nenhuma partida ao vivo no momento
-                  </h3>
-                  <p className="text-gray-500">
-                    Volte mais tarde para acompanhar as partidas em tempo real
-                  </p>
-                </div>
-              )}
             </div>
           )}
         </div>

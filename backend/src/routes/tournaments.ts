@@ -244,11 +244,31 @@ publicTournamentRoutes.get("/:id", async (req, res, next) => {
           },
           orderBy: { registrationDate: "asc" },
         },
+        groups: {
+          include: {
+            teams: { include: { team: true } },
+            matches: {
+              orderBy: { createdAt: "asc" },
+            },
+          },
+          orderBy: { name: "asc" },
+        },
       },
     });
     if (!tournament)
       return res.status(404).json({ error: "Torneio não encontrado" });
-    return res.json({ data: tournament });
+
+    // Buscar playoff brackets separadamente (nome da relação pode variar no schema)
+    const playoffBrackets = await (prisma as any).playoffBracket.findMany({
+      where: { tournamentId: req.params.id },
+      include: {
+        matches: {
+          orderBy: [{ roundSize: "desc" }, { matchIndex: "asc" }],
+        },
+      },
+    });
+
+    return res.json({ data: { ...tournament, playoffBrackets } });
   } catch (err) {
     next(err);
   }
@@ -266,11 +286,9 @@ publicTournamentRoutes.post("/:id/register", async (req, res, next) => {
     });
 
     if (!tournament)
-      return res
-        .status(404)
-        .json({
-          error: "Torneio não encontrado ou inscrições não estão abertas",
-        });
+      return res.status(404).json({
+        error: "Torneio não encontrado ou inscrições não estão abertas",
+      });
 
     if (tournament._count.teams >= tournament.maxTeams)
       return res.status(400).json({ error: "Torneio lotado" });
