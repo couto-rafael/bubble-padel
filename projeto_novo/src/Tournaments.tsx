@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AuthModal from "./AuthModal";
 import MobileMenu from "./MobileMenu";
-import { PublicTournamentService, type PublicTournament } from "./services/api";
+import {
+  PublicTournamentService,
+  AuthService,
+  type PublicTournament,
+} from "./services/api";
 
 interface Tournament {
   id: string;
@@ -75,6 +79,10 @@ function mapPublicTournament(t: PublicTournament): Tournament {
 }
 
 const Tournaments = () => {
+  const navigate = useNavigate();
+  const currentUser = AuthService.getCurrentUser();
+  const isAthlete = currentUser?.userType === "ATHLETE";
+  const isClub = currentUser?.userType === "CLUB";
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -722,10 +730,10 @@ const Tournaments = () => {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredTournaments.map((tournament) => (
-                <Link
+                <div
                   key={tournament.id}
-                  to={`/tournaments/${tournament.id}`}
-                  className="block group bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10 hover:border-[#00ff88]/30 transition-all hover:scale-[1.02]"
+                  onClick={() => navigate(`/tournaments/${tournament.id}`)}
+                  className="cursor-pointer group bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10 hover:border-[#00ff88]/30 transition-all hover:scale-[1.02]"
                 >
                   {/* Badges */}
                   <div className="flex items-center gap-2 mb-4">
@@ -826,33 +834,79 @@ const Tournaments = () => {
 
                   {/* Action Buttons Row */}
                   <div className="grid grid-cols-2 gap-3 mb-3">
-                    <button className="py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-lg font-semibold text-sm transition-all border border-white/10 hover:border-white/20">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(
+                          `/tournaments/${tournament.id}?tab=participants`,
+                        );
+                      }}
+                      className="py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-lg font-semibold text-sm transition-all border border-white/10 hover:border-white/20"
+                    >
                       Inscritos
                     </button>
-                    <button className="py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-lg font-semibold text-sm transition-all border border-white/10 hover:border-white/20">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/tournaments/${tournament.id}?tab=info`);
+                      }}
+                      className="py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-lg font-semibold text-sm transition-all border border-white/10 hover:border-white/20"
+                    >
                       Informações
                     </button>
                   </div>
 
                   {/* Main CTA Button */}
-                  {tournament.status === "Aberto" ? (
-                    <button className="w-full py-3 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold transition-all hover:scale-[1.02] shadow-lg hover:shadow-[0_0_20px_rgba(0,255,136,0.3)]">
+                  {tournament.status === "Aberto" && isClub ? (
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold cursor-not-allowed"
+                    >
+                      Inscrição exclusiva para atletas
+                    </button>
+                  ) : tournament.status === "Aberto" && !currentUser ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsAuthModalOpen(true);
+                      }}
+                      className="w-full py-3 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold transition-all hover:scale-[1.02] shadow-lg"
+                    >
+                      Entrar para se inscrever
+                    </button>
+                  ) : tournament.status === "Aberto" && isAthlete ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/tournaments/${tournament.id}`);
+                      }}
+                      className="w-full py-3 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold transition-all hover:scale-[1.02] shadow-lg"
+                    >
                       Inscrever-se
                     </button>
                   ) : tournament.status === "Em Breve" ? (
-                    <button className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold cursor-default">
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold cursor-default"
+                    >
                       Inscrições Em Breve
                     </button>
                   ) : tournament.status === "Em Andamento" ? (
-                    <button className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold cursor-default">
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold cursor-default"
+                    >
                       Torneio em Andamento
                     </button>
                   ) : (
-                    <button className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold cursor-default">
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold cursor-default"
+                    >
                       Torneio Finalizado
                     </button>
                   )}
-                </Link>
+                </div>
               ))}
             </div>
           )}

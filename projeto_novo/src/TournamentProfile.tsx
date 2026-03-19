@@ -265,7 +265,6 @@ const TournamentProfile = () => {
   const [registerError, setRegisterError] = useState("");
 
   const handleOpenRegister = () => {
-    // Pré-preencher jogador 1 com dados do atleta logado
     if (isAthlete && currentUser) {
       setRegisterForm((prev) => ({
         ...prev,
@@ -299,10 +298,7 @@ const TournamentProfile = () => {
     setRegisterLoading(true);
     setRegisterError("");
     try {
-      await PublicTournamentService.register(id, {
-        ...registerForm,
-        athleteId: isAthlete ? currentUser?.athleteId : undefined,
-      });
+      await PublicTournamentService.register(id, registerForm);
       setRegisterSuccess(true);
       setShowRegisterForm(false);
     } catch (err: any) {
@@ -2125,7 +2121,7 @@ const TournamentProfile = () => {
               {/* Jogador 1 — pré-preenchido e bloqueado se atleta logado */}
               <div className="pt-2">
                 <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2">
-                  Você (Jogador 1)
+                  {isAthlete ? "Você (Jogador 1)" : "Jogador 1"}
                 </p>
                 {isAthlete ? (
                   <div className="bg-[#00ff88]/5 border border-[#00ff88]/20 rounded-lg px-3 py-2.5 flex items-center gap-2">
