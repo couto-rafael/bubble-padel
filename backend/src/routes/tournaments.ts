@@ -251,24 +251,50 @@ publicTournamentRoutes.get("/:id", async (req, res, next) => {
               orderBy: { createdAt: "asc" },
             },
           },
-          orderBy: { name: "asc" },
+          orderBy: [{ category: "asc" }, { name: "asc" }],
+        },
+        playoffs: {
+          include: {
+            matches: {
+              orderBy: [{ roundSize: "desc" }, { matchIndex: "asc" }],
+            },
+          },
         },
       },
     });
     if (!tournament)
       return res.status(404).json({ error: "Torneio não encontrado" });
 
-    // Buscar playoff brackets separadamente (nome da relação pode variar no schema)
-    const playoffBrackets = await (prisma as any).playoffBracket.findMany({
-      where: { tournamentId: req.params.id },
-      include: {
-        matches: {
-          orderBy: [{ roundSize: "desc" }, { matchIndex: "asc" }],
-        },
+    // Buscar schedules dos jogos de grupo separadamente (Schedule não tem @relation no schema)
+    const allMatchIds = tournament.groups.flatMap((g: any) =>
+      g.matches.map((m: any) => m.id),
+    );
+    const schedules =
+      allMatchIds.length > 0
+        ? await prisma.schedule.findMany({
+            where: { matchId: { in: allMatchIds } },
+          })
+        : [];
+    const scheduleByMatchId = Object.fromEntries(
+      schedules.map((s: any) => [s.matchId, s]),
+    );
+
+    // Injectar schedules nos matches
+    const groupsWithSchedule = tournament.groups.map((g: any) => ({
+      ...g,
+      matches: g.matches.map((m: any) => ({
+        ...m,
+        schedule: scheduleByMatchId[m.id] ?? null,
+      })),
+    }));
+
+    return res.json({
+      data: {
+        ...tournament,
+        groups: groupsWithSchedule,
+        playoffBrackets: tournament.playoffs,
       },
     });
-
-    return res.json({ data: { ...tournament, playoffBrackets } });
   } catch (err) {
     next(err);
   }

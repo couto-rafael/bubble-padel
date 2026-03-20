@@ -482,6 +482,8 @@ export interface PublicTournament {
   description?: string;
   clubSede?: string;
   clubId: string;
+  courts?: string[];
+  daySchedules?: Array<{ date: string; startTime: string; endTime: string }>;
   club?: {
     id?: string;
     name: string;
@@ -517,6 +519,11 @@ export interface PublicTournament {
       score1: number | null;
       score2: number | null;
       played: boolean;
+      schedule: {
+        court: string;
+        date: string | null;
+        time: string | null;
+      } | null;
     }>;
   }>;
   playoffBrackets?: Array<{

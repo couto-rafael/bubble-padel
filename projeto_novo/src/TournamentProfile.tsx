@@ -291,15 +291,22 @@ const TournamentProfile = () => {
     PICKLEBALL: "Pickleball",
   };
   const sportLabel = sportMap[tournament.sport] ?? tournament.sport;
-  const statusMap: Record<string, string> = {
+  // Label do torneio em si
+  const tournamentStatusMap: Record<string, string> = {
     open: "Inscrições Abertas",
-    published: "Em Breve",
+    published: "Agendado",
     ongoing: "Em Andamento",
-    completed: "Finalizado",
+    completed: "Encerrado",
     draft: "Rascunho",
   };
-  const statusLabel =
-    statusMap[tournament.status?.toLowerCase()] ?? tournament.status;
+  const statusLabel = tournamentStatusMap[statusRaw] ?? tournament.status;
+  // Label das inscrições
+  const inscricaoLabel =
+    statusRaw === "open"
+      ? "Abertas"
+      : statusRaw === "ongoing" || statusRaw === "completed"
+        ? "Encerradas"
+        : "Não abertas";
   const confirmedTeams = tournament.teams ?? [];
 
   return (
@@ -563,15 +570,9 @@ const TournamentProfile = () => {
                         Estado das inscrições
                       </span>
                       <span
-                        className={`font-semibold ${isOpen ? "text-[#00ff88]" : "text-gray-300"}`}
+                        className={`font-semibold ${inscricaoLabel === "Abertas" ? "text-[#00ff88]" : inscricaoLabel === "Encerradas" ? "text-red-400" : "text-gray-300"}`}
                       >
-                        {isOpen
-                          ? "Abertas"
-                          : ["ongoing", "completed"].includes(
-                                tournament.status?.toLowerCase() ?? "",
-                              )
-                            ? "Encerradas"
-                            : "Não abertas"}
+                        {inscricaoLabel}
                       </span>
                     </div>
                   </div>
@@ -674,16 +675,7 @@ const TournamentProfile = () => {
                           <h3 className="font-semibold text-[#00ccff] mb-2">
                             Inscrições
                           </h3>
-                          <p className="text-gray-300">
-                            {isOpen
-                              ? "Abertas"
-                              : tournament.status?.toLowerCase() ===
-                                    "ongoing" ||
-                                  tournament.status?.toLowerCase() ===
-                                    "completed"
-                                ? "Encerradas"
-                                : "Não abertas"}
-                          </p>
+                          <p className="text-gray-300">{inscricaoLabel}</p>
                         </div>
                         <div>
                           <h3 className="font-semibold text-[#00ccff] mb-2">
@@ -691,7 +683,7 @@ const TournamentProfile = () => {
                           </h3>
                           <p className="text-gray-300">
                             {`R$ ${tournament.priceFirstCategory.toFixed(2).replace(".", ",")}`}{" "}
-                            por dupla
+                            por atleta
                           </p>
                         </div>
                       </div>
@@ -1202,26 +1194,61 @@ const TournamentProfile = () => {
                     Total de {confirmedTeams.length} duplas confirmadas
                   </p>
                 </div>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88]"
-                >
-                  <option value="Todas">Todas as Categorias</option>
-                  {tournament.categories.map((cat: string) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex gap-3">
+                  <div className="relative">
+                    <svg
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                    <input
+                      type="text"
+                      placeholder="Buscar atleta..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88] text-sm"
+                    />
+                  </div>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88] text-sm"
+                  >
+                    <option value="Todas">Todas as Categorias</option>
+                    {tournament.categories.map((cat: string) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="grid gap-4">
                 {confirmedTeams
                   .filter(
-                    (p: { category: string }) =>
-                      selectedCategory === "Todas" ||
-                      p.category === selectedCategory,
+                    (p: {
+                      player1Name: string;
+                      player2Name: string;
+                      category: string;
+                    }) =>
+                      (selectedCategory === "Todas" ||
+                        p.category === selectedCategory) &&
+                      (searchTerm === "" ||
+                        p.player1Name
+                          .toLowerCase()
+                          .includes(searchTerm.toLowerCase()) ||
+                        p.player2Name
+                          .toLowerCase()
+                          .includes(searchTerm.toLowerCase())),
                   )
                   .map(
                     (participant: {
@@ -1233,17 +1260,27 @@ const TournamentProfile = () => {
                     }) => (
                       <div
                         key={participant.id}
-                        className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10 hover:border-[#00ff88]/30 transition-colors"
+                        className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-5 rounded-xl border border-white/10 hover:border-[#00ff88]/30 transition-colors"
                       >
                         <div className="flex flex-wrap items-center justify-between gap-4">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-full flex items-center justify-center">
-                              <span className="text-[#0a0e27] font-bold">
-                                #{participant.id}
-                              </span>
+                            <div className="w-10 h-10 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-full flex items-center justify-center flex-shrink-0">
+                              <svg
+                                className="w-5 h-5 text-[#0a0e27]"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                />
+                              </svg>
                             </div>
                             <div>
-                              <h3 className="font-semibold text-lg">
+                              <h3 className="font-semibold">
                                 {participant.player1Name} /{" "}
                                 {participant.player2Name}
                               </h3>
@@ -1253,14 +1290,21 @@ const TournamentProfile = () => {
                             </div>
                           </div>
                           <span
-                            className={`px-3 py-1 rounded-full text-sm font-semibold border ${getStatusColor(participant.status)}`}
+                            className={`px-3 py-1 rounded-full text-xs font-semibold border ${participant.status === "CONFIRMED" ? "bg-green-500/10 text-green-400 border-green-500/30" : "bg-amber-500/10 text-amber-400 border-amber-500/30"}`}
                           >
-                            {participant.status}
+                            {participant.status === "CONFIRMED"
+                              ? "Confirmado"
+                              : "A Confirmar"}
                           </span>
                         </div>
                       </div>
                     ),
                   )}
+                {confirmedTeams.length === 0 && (
+                  <div className="text-center py-12 text-gray-400">
+                    Nenhuma dupla confirmada ainda.
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1316,156 +1360,182 @@ const TournamentProfile = () => {
                 </select>
               </div>
 
-              {/* Groups Grid */}
-              <div className="grid lg:grid-cols-2 gap-6">
-                {(tournament.groups ?? [])
-                  .filter(
-                    (g: any) =>
-                      selectedCategory === "Todas" ||
-                      g.category === selectedCategory,
-                  )
-                  .map((group: any, groupIndex: number) => {
-                    // Calcular standings a partir dos jogos reais
-                    const standings = (group.teams ?? [])
-                      .map((gt: any) => {
-                        const t = gt.team;
-                        let wins = 0,
-                          losses = 0,
-                          gamesFor = 0,
-                          gamesAgainst = 0;
-                        (group.matches ?? []).forEach((m: any) => {
-                          if (!m.played) return;
-                          const isT1 = m.team1Id === t.id;
-                          const isT2 = m.team2Id === t.id;
-                          if (!isT1 && !isT2) return;
-                          const myScore = isT1 ? m.score1 : m.score2;
-                          const oppScore = isT1 ? m.score2 : m.score1;
-                          if (myScore > oppScore) wins++;
-                          else losses++;
-                          gamesFor += myScore ?? 0;
-                          gamesAgainst += oppScore ?? 0;
-                        });
-                        return {
-                          ...t,
-                          wins,
-                          losses,
-                          gamesFor,
-                          gamesAgainst,
-                          points: wins * 2,
-                        };
-                      })
-                      .sort(
-                        (a: any, b: any) =>
-                          b.points - a.points ||
-                          b.gamesFor -
-                            b.gamesAgainst -
-                            (a.gamesFor - a.gamesAgainst),
-                      );
+              {/* Groups grouped by category */}
+              {(() => {
+                const allGroups = (tournament.groups ?? []).filter(
+                  (g: any) =>
+                    selectedCategory === "Todas" ||
+                    g.category === selectedCategory,
+                );
+                if (allGroups.length === 0)
+                  return (
+                    <div className="text-center py-20 text-gray-400">
+                      Grupos ainda não foram gerados para este torneio.
+                    </div>
+                  );
+                // Agrupar por categoria
+                const byCategory: Record<string, any[]> = {};
+                allGroups.forEach((g: any) => {
+                  if (!byCategory[g.category]) byCategory[g.category] = [];
+                  byCategory[g.category].push(g);
+                });
+                return Object.entries(byCategory).map(([cat, groups]) => (
+                  <div key={cat} className="mb-10">
+                    <h2 className="text-xl font-bold text-[#00ccff] mb-4 pb-2 border-b border-white/10">
+                      {cat}
+                    </h2>
+                    <div className="grid lg:grid-cols-2 gap-6">
+                      {groups.map((group: any, groupIndex: number) => {
+                        const standings = (group.teams ?? [])
+                          .map((gt: any) => {
+                            const t = gt.team;
+                            let wins = 0,
+                              losses = 0,
+                              gamesFor = 0,
+                              gamesAgainst = 0;
+                            (group.matches ?? []).forEach((m: any) => {
+                              if (!m.played) return;
+                              const isT1 = m.team1Id === t.id;
+                              const isT2 = m.team2Id === t.id;
+                              if (!isT1 && !isT2) return;
+                              const myScore = isT1 ? m.score1 : m.score2;
+                              const oppScore = isT1 ? m.score2 : m.score1;
+                              if (myScore > oppScore) wins++;
+                              else losses++;
+                              gamesFor += myScore ?? 0;
+                              gamesAgainst += oppScore ?? 0;
+                            });
+                            return {
+                              ...t,
+                              wins,
+                              losses,
+                              gamesFor,
+                              gamesAgainst,
+                              points: wins * 2,
+                            };
+                          })
+                          .sort(
+                            (a: any, b: any) =>
+                              b.points - a.points ||
+                              b.gamesFor -
+                                b.gamesAgainst -
+                                (a.gamesFor - a.gamesAgainst),
+                          );
 
-                    return (
-                      <div
-                        key={group.id ?? groupIndex}
-                        className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden"
-                      >
-                        <div className="bg-gradient-to-r from-purple-600/30 to-purple-700/30 px-6 py-4 border-b border-white/10 flex items-center justify-between">
-                          <h3 className="font-bold text-lg">{group.name}</h3>
-                          <span className="px-3 py-1 bg-white/10 rounded-full text-sm font-semibold">
-                            {group.category}
-                          </span>
-                        </div>
-                        <div className="p-6">
-                          {/* Standings */}
-                          <div className="mb-4">
-                            <div className="grid grid-cols-[auto,1fr,auto,auto,auto] gap-3 text-xs font-semibold text-gray-400 uppercase pb-3 border-b border-white/10">
-                              <div className="w-8"></div>
-                              <div>Dupla</div>
-                              <div className="text-center w-12">V</div>
-                              <div className="text-center w-16">Saldo</div>
-                              <div className="text-center w-16">Pts</div>
+                        return (
+                          <div
+                            key={group.id ?? groupIndex}
+                            className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden"
+                          >
+                            <div className="bg-gradient-to-r from-purple-600/30 to-purple-700/30 px-6 py-4 border-b border-white/10">
+                              <h3 className="font-bold text-lg">
+                                {group.name}
+                              </h3>
                             </div>
-                          </div>
-                          <div className="space-y-2">
-                            {standings.map((team: any, ti: number) => (
-                              <div
-                                key={team.id}
-                                className="grid grid-cols-[auto,1fr,auto,auto,auto] gap-3 items-center py-2 hover:bg-white/5 rounded-lg transition-colors"
-                              >
-                                <div
-                                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${ti === 0 ? "bg-gradient-to-br from-[#00ff88] to-[#00cc6a] text-[#0a0e27]" : ti === 1 ? "bg-gradient-to-br from-purple-500 to-purple-600 text-white" : "bg-white/10 text-gray-400"}`}
-                                >
-                                  {ti + 1}
-                                </div>
-                                <div className="font-medium text-white truncate">
-                                  {team.player1Name} / {team.player2Name}
-                                </div>
-                                <div className="text-center w-12 font-bold text-green-400">
-                                  {team.wins}
-                                </div>
-                                <div
-                                  className={`text-center w-16 font-bold ${team.gamesFor - team.gamesAgainst >= 0 ? "text-green-400" : "text-red-400"}`}
-                                >
-                                  {team.gamesFor - team.gamesAgainst > 0
-                                    ? "+"
-                                    : ""}
-                                  {team.gamesFor - team.gamesAgainst}
-                                </div>
-                                <div className="text-center w-16 font-bold text-white">
-                                  {team.points}
+                            <div className="p-6">
+                              {/* Standings */}
+                              <div className="mb-4">
+                                <div className="grid grid-cols-[auto,1fr,auto,auto,auto] gap-3 text-xs font-semibold text-gray-400 uppercase pb-3 border-b border-white/10">
+                                  <div className="w-8"></div>
+                                  <div>Dupla</div>
+                                  <div className="text-center w-12">V</div>
+                                  <div className="text-center w-16">Saldo</div>
+                                  <div className="text-center w-16">Pts</div>
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                          {/* Matches */}
-                          <div className="mt-6 pt-6 border-t border-white/10">
-                            <h4 className="font-semibold text-sm text-gray-400 mb-3">
-                              Jogos
-                            </h4>
-                            <div className="space-y-2">
-                              {(group.matches ?? []).map((m: any) => {
-                                const getTeamName = (teamId: string | null) => {
-                                  if (!teamId) return "A definir";
-                                  const gt = group.teams.find(
-                                    (gt: any) => gt.team.id === teamId,
-                                  );
-                                  return gt
-                                    ? `${gt.team.player1Name} / ${gt.team.player2Name}`
-                                    : "A definir";
-                                };
-                                const t1Name = getTeamName(m.team1Id);
-                                const t2Name = getTeamName(m.team2Id);
-                                return (
+                              <div className="space-y-2">
+                                {standings.map((team: any, ti: number) => (
                                   <div
-                                    key={m.id}
-                                    className="bg-white/5 rounded-lg p-3"
+                                    key={team.id}
+                                    className="grid grid-cols-[auto,1fr,auto,auto,auto] gap-3 items-center py-2 hover:bg-white/5 rounded-lg transition-colors"
                                   >
-                                    <div className="flex items-center justify-between text-sm mb-1">
-                                      <span className="text-white truncate">
-                                        {t1Name}
-                                      </span>
-                                      <span className="text-purple-400 font-bold ml-2 flex-shrink-0">
-                                        {m.played
-                                          ? `${m.score1}-${m.score2}`
-                                          : "vs"}
-                                      </span>
+                                    <div
+                                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${ti === 0 ? "bg-gradient-to-br from-[#00ff88] to-[#00cc6a] text-[#0a0e27]" : ti === 1 ? "bg-gradient-to-br from-purple-500 to-purple-600 text-white" : "bg-white/10 text-gray-400"}`}
+                                    >
+                                      {ti + 1}
                                     </div>
-                                    <div className="text-gray-400 text-sm truncate">
-                                      {t2Name}
+                                    <div className="text-white truncate">
+                                      {team.player1Name} / {team.player2Name}
+                                    </div>
+                                    <div className="text-center w-12 font-bold text-green-400">
+                                      {team.wins}
+                                    </div>
+                                    <div
+                                      className={`text-center w-16 font-bold ${team.gamesFor - team.gamesAgainst >= 0 ? "text-green-400" : "text-red-400"}`}
+                                    >
+                                      {team.gamesFor - team.gamesAgainst > 0
+                                        ? "+"
+                                        : ""}
+                                      {team.gamesFor - team.gamesAgainst}
+                                    </div>
+                                    <div className="text-center w-16 font-bold text-white">
+                                      {team.points}
                                     </div>
                                   </div>
-                                );
-                              })}
+                                ))}
+                              </div>
+                              {/* Matches com schedule */}
+                              <div className="mt-6 pt-6 border-t border-white/10">
+                                <h4 className="font-semibold text-sm text-gray-400 mb-3">
+                                  Jogos
+                                </h4>
+                                <div className="space-y-2">
+                                  {(group.matches ?? []).map((m: any) => {
+                                    const getTeamName = (
+                                      teamId: string | null,
+                                    ) => {
+                                      if (!teamId) return "A definir";
+                                      const gt = group.teams.find(
+                                        (gt: any) => gt.team.id === teamId,
+                                      );
+                                      return gt
+                                        ? `${gt.team.player1Name} / ${gt.team.player2Name}`
+                                        : "A definir";
+                                    };
+                                    const t1Name = getTeamName(m.team1Id);
+                                    const t2Name = getTeamName(m.team2Id);
+                                    const sch = m.schedule;
+                                    const scheduleStr = sch
+                                      ? `${sch.court} · ${sch.time ?? ""} · ${sch.date ? new Date(sch.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : ""}`
+                                          .trim()
+                                          .replace(/·\s*$/, "")
+                                      : null;
+                                    return (
+                                      <div
+                                        key={m.id}
+                                        className="bg-white/5 rounded-lg p-3"
+                                      >
+                                        {scheduleStr && (
+                                          <p className="text-xs text-gray-500 mb-1">
+                                            {scheduleStr}
+                                          </p>
+                                        )}
+                                        <div className="flex items-center justify-between text-sm">
+                                          <span className="text-white truncate">
+                                            {t1Name}
+                                          </span>
+                                          <span className="text-purple-400 font-bold mx-2 flex-shrink-0">
+                                            {m.played
+                                              ? `${m.score1}–${m.score2}`
+                                              : "vs"}
+                                          </span>
+                                          <span className="text-white truncate text-right">
+                                            {t2Name}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                {(tournament.groups ?? []).length === 0 && (
-                  <div className="col-span-2 text-center py-20 text-gray-400">
-                    Grupos ainda não foram gerados para este torneio.
+                        );
+                      })}
+                    </div>
                   </div>
-                )}
-              </div>
+                ));
+              })()}
             </div>
           )}
 
@@ -1565,20 +1635,38 @@ const TournamentProfile = () => {
                     ))}
                   </select>
 
-                  {/* Date Filter */}
-                  <input
-                    type="date"
+                  {/* Date Filter - dropdown with tournament dates only */}
+                  <select
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
                     className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88]"
-                  />
+                  >
+                    <option value="">Todas as datas</option>
+                    {((tournament.daySchedules as any[]) ?? []).map(
+                      (ds: any) => {
+                        const d = ds.date ? new Date(ds.date) : null;
+                        const label = d
+                          ? d.toLocaleDateString("pt-BR", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })
+                          : ds.date;
+                        return (
+                          <option key={ds.date} value={ds.date?.slice(0, 10)}>
+                            {label}
+                          </option>
+                        );
+                      },
+                    )}
+                  </select>
                 </div>
               </div>
 
               {/* Matches List */}
               {(() => {
-                const allMatches = (tournament.groups ?? []).flatMap(
-                  (g: any) => {
+                const allMatches = (tournament.groups ?? [])
+                  .flatMap((g: any) => {
                     const getTeamName = (teamId: string | null) => {
                       if (!teamId) return "A definir";
                       const gt = (g.teams ?? []).find(
@@ -1588,21 +1676,42 @@ const TournamentProfile = () => {
                         ? `${gt.team.player1Name} / ${gt.team.player2Name}`
                         : "A definir";
                     };
-                    return (g.matches ?? []).map((m: any) => ({
-                      id: m.id,
-                      team1: getTeamName(m.team1Id),
-                      team2: getTeamName(m.team2Id),
-                      score1: m.score1,
-                      score2: m.score2,
-                      played: m.played,
-                      category: g.category,
-                      court: null,
-                      date: null,
-                      time: null,
-                      status: m.played ? "Finalizado" : "A Realizar",
-                    }));
-                  },
-                );
+                    return (g.matches ?? []).map((m: any) => {
+                      const sch = m.schedule;
+                      const dateStr = sch?.date ? sch.date.slice(0, 10) : null;
+                      return {
+                        id: m.id,
+                        team1: getTeamName(m.team1Id),
+                        team2: getTeamName(m.team2Id),
+                        score1: m.score1,
+                        score2: m.score2,
+                        played: m.played,
+                        category: g.category,
+                        court: sch?.court ?? null,
+                        dateRaw: dateStr,
+                        date: dateStr
+                          ? new Date(dateStr + "T12:00:00").toLocaleDateString(
+                              "pt-BR",
+                              { day: "2-digit", month: "short" },
+                            )
+                          : null,
+                        time: sch?.time ?? null,
+                        status: m.played
+                          ? "Finalizado"
+                          : sch
+                            ? "Agendado"
+                            : "A Realizar",
+                      };
+                    });
+                  })
+                  .sort((a: any, b: any) => {
+                    // Sort by date then time
+                    if (a.dateRaw && b.dateRaw && a.dateRaw !== b.dateRaw)
+                      return a.dateRaw.localeCompare(b.dateRaw);
+                    if (a.time && b.time) return a.time.localeCompare(b.time);
+                    return 0;
+                  });
+
                 const filtered = allMatches.filter((m: any) => {
                   const cat =
                     selectedCategory === "Todas" ||
@@ -1610,11 +1719,12 @@ const TournamentProfile = () => {
                   const court =
                     selectedCourt === "Todas as Quadras" ||
                     m.court === selectedCourt;
+                  const date = !selectedDate || m.dateRaw === selectedDate;
                   const search =
                     searchTerm === "" ||
                     m.team1.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     m.team2.toLowerCase().includes(searchTerm.toLowerCase());
-                  return cat && court && search;
+                  return cat && court && date && search;
                 });
                 if (filtered.length === 0)
                   return (
@@ -1707,103 +1817,177 @@ const TournamentProfile = () => {
           {/* PLAYOFFS TAB */}
           {activeTab === "playoffs" && (
             <div>
-              <div className="mb-8 text-center">
+              <div className="mb-6 text-center">
                 <h2 className="text-3xl font-bold mb-2">Playoffs</h2>
                 <p className="text-gray-400">
                   Bracket eliminatório por categoria
                 </p>
               </div>
+
+              {/* Category filter - ponto 5 */}
+              {(tournament.playoffBrackets ?? []).length > 0 && (
+                <div className="flex gap-2 flex-wrap mb-8 justify-center">
+                  <button
+                    onClick={() => setSelectedCategory("Todas")}
+                    className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-all ${selectedCategory === "Todas" ? "bg-[#00ccff]/20 border-[#00ccff] text-[#00ccff]" : "bg-white/5 border-white/10 text-gray-400 hover:border-white/30"}`}
+                  >
+                    Todas
+                  </button>
+                  {tournament.categories.map((cat: string) => (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-all ${selectedCategory === cat ? "bg-[#00ccff]/20 border-[#00ccff] text-[#00ccff]" : "bg-white/5 border-white/10 text-gray-400 hover:border-white/30"}`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {(tournament.playoffBrackets ?? []).length === 0 ? (
                 <div className="text-center py-20 text-gray-400">
                   Playoffs ainda não foram gerados para este torneio.
                 </div>
               ) : (
                 <div className="space-y-10">
-                  {(tournament.playoffBrackets ?? []).map((bracket: any) => {
-                    const rounds = [
-                      ...new Set(bracket.matches.map((m: any) => m.roundSize)),
-                    ].sort((a: any, b: any) => b - a);
-                    const getRoundName = (size: number) => {
-                      if (size === 1) return "Final";
-                      if (size === 2) return "Semifinal";
-                      if (size === 4) return "Quartas";
-                      if (size === 8) return "Oitavas";
-                      return `Rodada de ${size * 2}`;
-                    };
-                    return (
-                      <div
-                        key={bracket.id}
-                        className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10"
-                      >
-                        <h3 className="text-xl font-bold text-[#00ccff] mb-6">
-                          {bracket.category}
-                        </h3>
-                        <div className="overflow-x-auto">
-                          <div className="flex gap-8 min-w-max">
-                            {(rounds as number[]).map((roundSize: number) => {
-                              const roundMatches = bracket.matches.filter(
-                                (m: any) => m.roundSize === roundSize,
-                              );
-                              return (
-                                <div
-                                  key={roundSize}
-                                  className="flex flex-col gap-4"
-                                >
-                                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wide text-center mb-2">
-                                    {getRoundName(roundSize)}
-                                  </p>
-                                  {roundMatches.map((m: any) => {
-                                    const t1 = m.team1Label || "A definir";
-                                    const t2 = m.team2Label || "A definir";
-                                    const winner = m.winnerId;
-                                    return (
-                                      <div
-                                        key={m.id}
-                                        className="w-56 bg-[#0a0e27]/60 border border-white/10 rounded-lg overflow-hidden"
-                                      >
+                  {(tournament.playoffBrackets ?? [])
+                    .filter(
+                      (b: any) =>
+                        selectedCategory === "Todas" ||
+                        b.category === selectedCategory,
+                    )
+                    .map((bracket: any) => {
+                      const rounds = [
+                        ...new Set(
+                          bracket.matches.map((m: any) => m.roundSize),
+                        ),
+                      ].sort((a: any, b: any) => b - a);
+                      const getRoundName = (size: number) => {
+                        if (size === 1) return "Final";
+                        if (size === 2) return "Semifinal";
+                        if (size === 4) return "Quartas";
+                        if (size === 8) return "Oitavas";
+                        return `Rodada de ${size * 2}`;
+                      };
+                      return (
+                        <div
+                          key={bracket.id}
+                          className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10"
+                        >
+                          <h3 className="text-xl font-bold text-[#00ccff] mb-6">
+                            {bracket.category}
+                          </h3>
+                          <div className="overflow-x-auto">
+                            <div className="flex gap-8 min-w-max">
+                              {(rounds as number[]).map((roundSize: number) => {
+                                const roundMatches = bracket.matches.filter(
+                                  (m: any) => m.roundSize === roundSize,
+                                );
+                                return (
+                                  <div
+                                    key={roundSize}
+                                    className="flex flex-col gap-4"
+                                  >
+                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide text-center mb-2">
+                                      {getRoundName(roundSize)}
+                                    </p>
+                                    {roundMatches.map((m: any) => {
+                                      const t1 = m.team1Label || "A definir";
+                                      const t2 = m.team2Label || "A definir";
+                                      const winner = m.winnerId;
+                                      return (
                                         <div
-                                          className={`px-3 py-2 flex items-center justify-between border-b border-white/10 ${winner && winner === m.team1Id ? "bg-[#00ff88]/10" : ""}`}
+                                          key={m.id}
+                                          className="w-56 bg-[#0a0e27]/60 border border-white/10 rounded-lg overflow-hidden"
                                         >
-                                          <span
-                                            className={`text-sm font-medium truncate ${winner && winner === m.team1Id ? "text-[#00ff88]" : "text-white"}`}
+                                          <div
+                                            className={`px-3 py-2 flex items-center justify-between border-b border-white/10 ${winner && winner === m.team1Id ? "bg-[#00ff88]/10" : ""}`}
                                           >
-                                            {t1}
-                                          </span>
-                                          {m.played && (
                                             <span
-                                              className={`ml-2 text-lg font-bold flex-shrink-0 ${winner === m.team1Id ? "text-[#00ff88]" : "text-gray-400"}`}
+                                              className={`text-sm font-medium truncate ${winner && winner === m.team1Id ? "text-[#00ff88]" : "text-white"}`}
                                             >
-                                              {m.score1}
+                                              {t1}
                                             </span>
-                                          )}
-                                        </div>
-                                        <div
-                                          className={`px-3 py-2 flex items-center justify-between ${winner && winner === m.team2Id ? "bg-[#00ff88]/10" : ""}`}
-                                        >
-                                          <span
-                                            className={`text-sm font-medium truncate ${winner && winner === m.team2Id ? "text-[#00ff88]" : "text-white"}`}
+                                            {m.played && (
+                                              <span
+                                                className={`ml-2 text-lg font-bold flex-shrink-0 ${winner === m.team1Id ? "text-[#00ff88]" : "text-gray-400"}`}
+                                              >
+                                                {m.score1}
+                                              </span>
+                                            )}
+                                          </div>
+                                          <div
+                                            className={`px-3 py-2 flex items-center justify-between ${winner && winner === m.team2Id ? "bg-[#00ff88]/10" : ""}`}
                                           >
-                                            {t2}
-                                          </span>
-                                          {m.played && (
                                             <span
-                                              className={`ml-2 text-lg font-bold flex-shrink-0 ${winner === m.team2Id ? "text-[#00ff88]" : "text-gray-400"}`}
+                                              className={`text-sm font-medium truncate ${winner && winner === m.team2Id ? "text-[#00ff88]" : "text-white"}`}
                                             >
-                                              {m.score2}
+                                              {t2}
                                             </span>
-                                          )}
+                                            {m.played && (
+                                              <span
+                                                className={`ml-2 text-lg font-bold flex-shrink-0 ${winner === m.team2Id ? "text-[#00ff88]" : "text-gray-400"}`}
+                                              >
+                                                {m.score2}
+                                              </span>
+                                            )}
+                                          </div>
                                         </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              );
-                            })}
+                                      );
+                                    })}
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
+
+                          {/* Transmissão por quadra - ponto 6 */}
+                          {(tournament.courts ?? []).length > 0 && (
+                            <div className="mt-8 pt-6 border-t border-white/10">
+                              <h4 className="font-semibold text-sm text-gray-400 uppercase tracking-wide mb-4">
+                                Transmissões
+                              </h4>
+                              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                {(tournament.courts ?? []).map(
+                                  (court: string) => (
+                                    <div
+                                      key={court}
+                                      className="bg-[#0a0e27]/60 border border-white/10 rounded-lg overflow-hidden"
+                                    >
+                                      <div className="relative aspect-video bg-black/40 flex items-center justify-center">
+                                        <svg
+                                          className="w-10 h-10 text-white/20"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={1.5}
+                                            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                                          />
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={1.5}
+                                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                          />
+                                        </svg>
+                                      </div>
+                                      <p className="px-3 py-2 text-sm text-gray-400 text-center">
+                                        {court}
+                                      </p>
+                                    </div>
+                                  ),
+                                )}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                 </div>
               )}
             </div>
@@ -1913,16 +2097,21 @@ const TournamentProfile = () => {
                       );
                     })}
                   </div>
-                  <div className="mt-10 p-8 bg-gradient-to-r from-[#00ff88]/10 to-[#00ccff]/10 border border-[#00ff88]/30 rounded-xl text-center">
-                    <h3 className="text-2xl font-bold text-[#00ff88] mb-2">
-                      🎉 Parabéns aos Vencedores!
-                    </h3>
-                    <p className="text-gray-300 max-w-2xl mx-auto">
-                      Obrigado a todos os participantes pelo excelente nível de
-                      jogo e pelo espírito esportivo demonstrado ao longo do
-                      torneio.
-                    </p>
-                  </div>
+                  {/* Só mostrar parabéns se pelo menos 1 final foi jogada */}
+                  {(tournament.playoffBrackets ?? []).some((b: any) =>
+                    b.matches.some((m: any) => m.roundSize === 1 && m.played),
+                  ) && (
+                    <div className="mt-10 p-8 bg-gradient-to-r from-[#00ff88]/10 to-[#00ccff]/10 border border-[#00ff88]/30 rounded-xl text-center">
+                      <h3 className="text-2xl font-bold text-[#00ff88] mb-2">
+                        🎉 Parabéns aos Vencedores!
+                      </h3>
+                      <p className="text-gray-300 max-w-2xl mx-auto">
+                        Obrigado a todos os participantes pelo excelente nível
+                        de jogo e pelo espírito esportivo demonstrado ao longo
+                        do torneio.
+                      </p>
+                    </div>
+                  )}
                 </>
               )}
             </div>
