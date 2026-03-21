@@ -24,7 +24,7 @@ type Tab =
 const StatusBadge = ({
   status,
 }: {
-  status: "draft" | "published" | "open" | "ongoing" | "completed";
+  status: "draft" | "published" | "open" | "closed" | "ongoing" | "completed";
 }) => {
   const config = {
     draft: {
@@ -47,6 +47,13 @@ const StatusBadge = ({
       dot: "bg-green-600",
       label: "🟢 Inscrições Abertas",
       shadow: "shadow-lg shadow-green-200",
+    },
+    closed: {
+      bg: "bg-red-50 border-2 border-red-400",
+      text: "text-red-800",
+      dot: "bg-red-500",
+      label: "🔴 Inscrições Encerradas",
+      shadow: "",
     },
     ongoing: {
       bg: "bg-blue-50 border-2 border-blue-400",
@@ -290,7 +297,13 @@ const EditTournament = () => {
   };
 
   const handleStatusChange = (
-    newStatus: "draft" | "published" | "open" | "ongoing" | "completed",
+    newStatus:
+      | "draft"
+      | "published"
+      | "open"
+      | "closed"
+      | "ongoing"
+      | "completed",
   ) => {
     if (tournament) {
       updateTournament(tournament.id, {
@@ -480,10 +493,18 @@ const EditTournament = () => {
                 )}
                 {tournament.status === "open" && (
                   <button
-                    onClick={() => handleStatusChange("published")}
+                    onClick={() => handleStatusChange("closed")}
                     className="px-6 py-3 bg-red-500 text-white rounded-lg font-bold text-sm hover:bg-red-600 shadow-lg transition-all whitespace-nowrap"
                   >
                     Encerrar Inscrições
+                  </button>
+                )}
+                {tournament.status === "closed" && (
+                  <button
+                    onClick={() => handleStatusChange("open")}
+                    className="px-6 py-3 bg-green-600 text-white rounded-lg font-bold text-sm hover:bg-green-700 shadow-lg transition-all whitespace-nowrap"
+                  >
+                    Reabrir Inscrições
                   </button>
                 )}
                 {tournament.status === "ongoing" && (

@@ -164,7 +164,9 @@ export default function TabGrupos({
   } | null>(null);
 
   const handleGenerate = async () => {
-    const confirmedTeams = teams.filter((t) => t.status === "confirmed");
+    const confirmedTeams = teams.filter(
+      (t) => t.status?.toLowerCase() === "confirmed",
+    );
     if (confirmedTeams.length === 0) {
       alert("Não há duplas confirmadas para gerar grupos.");
       return;
@@ -406,9 +408,12 @@ export default function TabGrupos({
     setScoreModal({ open: true, groupId, match });
   };
 
-  const getTeamName = (group: Group, teamId: string) => {
-    const gt = group.teams.find((t) => t.team.id === teamId);
-    return gt ? `${gt.team.player1Name} / ${gt.team.player2Name}` : "Dupla";
+  const getTeamName = (teamId: string) => {
+    for (const g of groups) {
+      const gt = g.teams.find((t) => t.team.id === teamId);
+      if (gt) return `${gt.team.player1Name} / ${gt.team.player2Name}`;
+    }
+    return "Dupla";
   };
 
   // ── Dados derivados ───────────────────────────────────────────────────────
@@ -417,7 +422,7 @@ export default function TabGrupos({
     Record<string, number>
   >((acc, cat) => {
     acc[cat] = teams.filter(
-      (t) => t.category === cat && t.status === "confirmed",
+      (t) => t.category === cat && t.status?.toLowerCase() === "confirmed",
     ).length;
     return acc;
   }, {});
@@ -766,7 +771,7 @@ export default function TabGrupos({
                       onDragStart={handleDragStart}
                       onDrop={handleDropOnGroup}
                       onOpenScore={openScoreModal}
-                      getTeamName={(id) => getTeamName(group, id)}
+                      getTeamName={(id) => getTeamName(id)}
                     />
                   ))}
                 </div>
@@ -933,8 +938,8 @@ export default function TabGrupos({
         (() => {
           const group = groups.find((g) => g.id === scoreModal.groupId);
           if (!group) return null;
-          const t1 = getTeamName(group, scoreModal.match!.team1Id);
-          const t2 = getTeamName(group, scoreModal.match!.team2Id);
+          const t1 = getTeamName(scoreModal.match!.team1Id);
+          const t2 = getTeamName(scoreModal.match!.team2Id);
           const existingSets = (scoreModal.match as any).sets as
             | Array<{ s1: number; s2: number }>
             | undefined;

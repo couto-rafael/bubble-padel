@@ -33,7 +33,7 @@ const tournamentSchema = z.object({
     )
     .default([]),
   status: z
-    .enum(["DRAFT", "PUBLISHED", "OPEN", "ONGOING", "COMPLETED"])
+    .enum(["DRAFT", "PUBLISHED", "OPEN", "CLOSED", "ONGOING", "COMPLETED"])
     .optional(),
 });
 
@@ -192,7 +192,9 @@ const registerSchema = z.object({
 publicTournamentRoutes.get("/", async (req, res, next) => {
   try {
     const tournaments = await prisma.tournament.findMany({
-      where: { status: { in: ["PUBLISHED", "OPEN", "ONGOING", "COMPLETED"] } },
+      where: {
+        status: { in: ["PUBLISHED", "OPEN", "CLOSED", "ONGOING", "COMPLETED"] },
+      },
       include: {
         club: {
           select: {
@@ -219,7 +221,7 @@ publicTournamentRoutes.get("/:id", async (req, res, next) => {
     const tournament = await prisma.tournament.findFirst({
       where: {
         id: req.params.id,
-        status: { in: ["PUBLISHED", "OPEN", "ONGOING", "COMPLETED"] },
+        status: { in: ["PUBLISHED", "OPEN", "CLOSED", "ONGOING", "COMPLETED"] },
       },
       include: {
         club: {

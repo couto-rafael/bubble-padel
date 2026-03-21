@@ -15,7 +15,12 @@ interface Tournament {
   city: string;
   state: string;
   dateRange: string;
-  status: "Aberto" | "Em Breve" | "Finalizado" | "Em Andamento";
+  status:
+    | "Inscrições Abertas"
+    | "Em Breve"
+    | "Inscrições Encerradas"
+    | "Em Andamento"
+    | "Finalizado";
   sport: string;
   teams: number;
 }
@@ -32,11 +37,12 @@ function normalizeSport(sport: string): string {
 
 function normalizeStatus(status: string): Tournament["status"] {
   const map: Record<string, Tournament["status"]> = {
-    open: "Aberto",
-    published: "Em Breve",
+    draft: "Em Breve",
+    published: "Em Breve", // publicado, inscrições não abertas ainda
+    open: "Inscrições Abertas",
+    closed: "Inscrições Encerradas", // ← novo
     ongoing: "Em Andamento",
     completed: "Finalizado",
-    draft: "Em Breve",
   };
   return map[status.toLowerCase()] ?? "Em Breve";
 }
@@ -112,8 +118,9 @@ const Tournaments = () => {
     new Set(allTournaments.map((t) => t.sport)),
   ).sort();
   const uniqueStatuses: Tournament["status"][] = [
-    "Aberto",
+    "Inscrições Abertas",
     "Em Breve",
+    "Inscrições Encerradas",
     "Em Andamento",
     "Finalizado",
   ];
@@ -164,10 +171,14 @@ const Tournaments = () => {
 
   const getStatusColor = (status: Tournament["status"]) => {
     switch (status) {
-      case "Aberto":
+      case "Inscrições Abertas":
         return "bg-[#00ff88]/20 text-[#00ff88] border-[#00ff88]/30";
       case "Em Breve":
         return "bg-[#00ccff]/20 text-[#00ccff] border-[#00ccff]/30";
+      case "Inscrições Encerradas":
+        return "bg-red-500/20 text-red-400 border-red-500/30";
+      case "Em Andamento":
+        return "bg-blue-500/20 text-blue-300 border-blue-500/30";
       case "Finalizado":
         return "bg-gray-500/20 text-gray-400 border-gray-500/30";
     }
@@ -877,14 +888,15 @@ const Tournaments = () => {
                   </div>
 
                   {/* Main CTA Button */}
-                  {tournament.status === "Aberto" && isClub ? (
+                  {tournament.status === "Inscrições Abertas" && isClub ? (
                     <button
                       onClick={(e) => e.stopPropagation()}
                       className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold cursor-not-allowed"
                     >
                       Inscrição exclusiva para atletas
                     </button>
-                  ) : tournament.status === "Aberto" && !currentUser ? (
+                  ) : tournament.status === "Inscrições Abertas" &&
+                    !currentUser ? (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -894,7 +906,8 @@ const Tournaments = () => {
                     >
                       Inscrever-se
                     </button>
-                  ) : tournament.status === "Aberto" && isAthlete ? (
+                  ) : tournament.status === "Inscrições Abertas" &&
+                    isAthlete ? (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -903,6 +916,13 @@ const Tournaments = () => {
                       className="w-full py-3 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold transition-all hover:scale-[1.02] shadow-lg"
                     >
                       Inscrever-se
+                    </button>
+                  ) : tournament.status === "Inscrições Encerradas" ? (
+                    <button
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full py-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg font-bold cursor-default"
+                    >
+                      Inscrições Encerradas
                     </button>
                   ) : tournament.status === "Em Breve" ? (
                     <button

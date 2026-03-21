@@ -55,6 +55,7 @@ export type TournamentStatus =
   | "draft"
   | "published"
   | "open"
+  | "closed"
   | "ongoing"
   | "completed";
 export type Sport = "Padel" | "Beach Tennis" | "Tenis" | "Pickleball";
