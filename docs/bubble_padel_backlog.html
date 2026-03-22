@@ -1,0 +1,1966 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BubblePadel — Backlog Técnico Detalhado</title>
+<style>
+:root {
+  --bg: #050f1a;
+  --bg2: #0a1a2e;
+  --card: #0d2037;
+  --border: #1a3550;
+  --text: #dff0ff;
+  --muted: #7a9ab5;
+  --blue: #00ccff;
+  --green: #00ff88;
+  --red: #ef4444;
+  --amber: #f59e0b;
+  --purple: #8b5cf6;
+  --cyan: #06b6d4;
+  --pink: #ec4899;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.hero {
+  background: linear-gradient(135deg, var(--bg2) 0%, #002244 50%, var(--bg2) 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 4rem 2rem 3rem;
+  text-align: center;
+}
+.hero h1 {
+  font-size: 2.5rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--blue), var(--green));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; margin-bottom: 0.75rem;
+}
+.hero .subtitle { color: var(--muted); font-size: 1.1rem; margin-bottom: 1.5rem; }
+.hero-badges { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
+.hero-badge {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 999px; padding: 0.5rem 1.25rem;
+  font-size: 0.9rem; font-weight: 600; color: var(--text);
+}
+.hero-badge span { color: var(--blue); }
+
+.sticky-nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(5,15,26,0.95); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border); padding: 0;
+}
+.sticky-nav ul {
+  list-style: none; display: flex; gap: 0;
+  max-width: 1200px; margin: 0 auto; overflow-x: auto;
+}
+.sticky-nav li a {
+  display: block; padding: 0.85rem 1.25rem;
+  font-size: 0.9rem; font-weight: 600; color: var(--muted);
+  white-space: nowrap; transition: color 0.2s, border-bottom 0.2s;
+  border-bottom: 2px solid transparent;
+}
+.sticky-nav li a:hover { color: var(--blue); text-decoration: none; border-bottom-color: var(--blue); }
+
+.container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+.sprint-header {
+  margin: 3rem 0 1.5rem; padding: 2rem;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; border-left: 4px solid var(--blue);
+}
+.sprint-header h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.25rem; }
+.sprint-header .sprint-theme { color: var(--muted); font-size: 1rem; margin-bottom: 1rem; }
+.sprint-meta { display: flex; flex-wrap: wrap; gap: 1rem; }
+.sprint-meta-item {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.4rem 0.9rem; font-size: 0.85rem;
+}
+.sprint-meta-item strong { color: var(--blue); }
+
+.task-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.75rem; margin-bottom: 1.25rem;
+  transition: border-color 0.2s;
+}
+.task-card:hover { border-color: var(--blue); }
+.task-header {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 0.6rem; margin-bottom: 0.75rem;
+}
+.task-id {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.85rem; font-weight: 700; color: var(--blue);
+  background: rgba(0,204,255,0.1); border: 1px solid rgba(0,204,255,0.25);
+  border-radius: 6px; padding: 0.2rem 0.55rem;
+}
+.task-title { font-size: 1.1rem; font-weight: 700; flex: 1; min-width: 200px; }
+.badge {
+  font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem;
+  border-radius: 999px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.badge-p0 { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+.badge-p1 { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+.badge-p2 { background: rgba(0,204,255,0.12); color: var(--blue); border: 1px solid rgba(0,204,255,0.25); }
+.badge-p3 { background: rgba(122,154,181,0.15); color: var(--muted); border: 1px solid rgba(122,154,181,0.3); }
+.badge-dev { background: rgba(0,255,136,0.12); color: var(--green); border: 1px solid rgba(0,255,136,0.25); }
+.badge-negocio { background: rgba(139,92,246,0.15); color: var(--purple); border: 1px solid rgba(139,92,246,0.3); }
+.badge-legal { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.25); }
+.badge-design { background: rgba(236,72,153,0.12); color: var(--pink); border: 1px solid rgba(236,72,153,0.25); }
+.badge-hours {
+  background: rgba(6,182,212,0.1); color: var(--cyan);
+  border: 1px solid rgba(6,182,212,0.2);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.task-deps { font-size: 0.82rem; color: var(--muted); margin-bottom: 0.75rem; }
+.task-deps strong { color: var(--amber); }
+.task-objective {
+  margin-bottom: 1rem; padding: 0.75rem 1rem;
+  background: rgba(0,204,255,0.05); border-left: 3px solid var(--blue);
+  border-radius: 0 8px 8px 0; font-size: 0.92rem;
+}
+.task-files { margin-bottom: 1rem; }
+.task-files h5 {
+  font-size: 0.82rem; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--muted); margin-bottom: 0.4rem;
+}
+.task-files ul { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.task-files li {
+  font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.78rem;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0.2rem 0.55rem;
+}
+.file-create { border-color: rgba(0,255,136,0.4); color: var(--green); }
+.file-modify { border-color: rgba(245,158,11,0.3); color: var(--amber); }
+
+details { margin-bottom: 1rem; }
+details summary {
+  cursor: pointer; font-size: 0.88rem; font-weight: 600;
+  color: var(--blue); padding: 0.5rem 0; user-select: none;
+}
+details summary:hover { color: var(--green); }
+details[open] summary { margin-bottom: 0.5rem; }
+details ol, details ul { padding-left: 1.5rem; font-size: 0.88rem; color: var(--text); }
+details li { margin-bottom: 0.35rem; }
+
+.acceptance { margin-top: 0.5rem; }
+.acceptance h5 {
+  font-size: 0.82rem; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--green); margin-bottom: 0.4rem;
+}
+.acceptance ul { list-style: none; padding: 0; }
+.acceptance li {
+  font-size: 0.85rem; padding: 0.25rem 0;
+  padding-left: 1.4rem; position: relative;
+}
+.acceptance li::before { content: '☐'; position: absolute; left: 0; color: var(--green); }
+
+.risks {
+  margin-top: 0.75rem; padding: 0.6rem 1rem;
+  background: rgba(245,158,11,0.06); border-left: 3px solid var(--amber);
+  border-radius: 0 8px 8px 0; font-size: 0.85rem; color: var(--amber);
+}
+
+.sprint-summary {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.5rem; margin-top: 2rem;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 1rem; text-align: center;
+}
+.sprint-summary .stat-value { font-size: 1.6rem; font-weight: 800; color: var(--blue); }
+.sprint-summary .stat-label {
+  font-size: 0.78rem; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.dep-graph {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 2rem; margin: 2rem 0; overflow-x: auto;
+}
+.dep-graph h3 { font-size: 1.1rem; margin-bottom: 1rem; color: var(--blue); }
+.dep-graph pre {
+  font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.78rem;
+  line-height: 1.6; color: var(--text); white-space: pre; overflow-x: auto;
+}
+.dep-graph pre .p0 { color: var(--red); }
+.dep-graph pre .p1 { color: var(--amber); }
+.dep-graph pre .p2 { color: var(--blue); }
+.dep-graph pre .p3 { color: var(--muted); }
+
+.summary-table-wrap { overflow-x: auto; margin: 2rem 0; }
+.summary-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.summary-table th, .summary-table td {
+  padding: 0.7rem 1rem; text-align: center; border: 1px solid var(--border);
+}
+.summary-table th {
+  background: var(--bg2); color: var(--blue); font-weight: 700;
+  text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.5px;
+}
+.summary-table td { background: var(--card); }
+.summary-table tr:last-child td { background: var(--bg2); font-weight: 700; color: var(--blue); }
+.summary-table td:first-child { text-align: left; font-weight: 600; }
+
+.key-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem; margin: 2rem 0;
+}
+.key-stat {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.25rem; text-align: center;
+}
+.key-stat .val { font-size: 1.8rem; font-weight: 800; color: var(--blue); }
+.key-stat .lbl { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.critical-path {
+  background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 12px; padding: 1.25rem 1.5rem; margin: 1.5rem 0; font-size: 0.92rem;
+}
+.critical-path strong { color: var(--red); }
+.critical-path code {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  background: var(--bg2); padding: 0.15rem 0.4rem;
+  border-radius: 4px; font-size: 0.85rem;
+}
+
+.section-title {
+  font-size: 1.6rem; font-weight: 800; margin: 3rem 0 1.5rem;
+  padding-bottom: 0.75rem; border-bottom: 2px solid var(--border);
+}
+.task-separator { border: none; border-top: 1px solid var(--border); margin: 0.25rem 0; }
+
+.status-done {
+  background: rgba(0,255,136,0.06); border: 1px solid rgba(0,255,136,0.25);
+  border-radius: 8px; padding: 10px 14px; margin-top: 8px; font-size: 13px; color: #00cc6a;
+}
+.status-partial {
+  background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.25);
+  border-radius: 8px; padding: 10px 14px; margin-top: 8px; font-size: 13px; color: #d97706;
+}
+
+@media (max-width: 768px) {
+  .hero h1 { font-size: 1.8rem; }
+  .container { padding: 1rem; }
+  .task-card { padding: 1.25rem; }
+  .sprint-summary { grid-template-columns: repeat(2, 1fr); }
+  .key-stats { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1>BubblePadel — Backlog Técnico Detalhado</h1>
+  <p class="subtitle">38 tasks · 4 sprints · ~242h estimadas · Definido por 10 especialistas</p>
+  <div class="hero-badges">
+    <div class="hero-badge"><span>Sprint 1:</span> 9 tasks · Legal + Emails</div>
+    <div class="hero-badge"><span>Sprint 2:</span> 8 tasks · Alpha + Onboarding</div>
+    <div class="hero-badge"><span>Sprint 3:</span> 10 tasks · Beta + Pagamento</div>
+    <div class="hero-badge"><span>Sprint 4:</span> 11 tasks · Lançamento Público</div>
+    <div class="hero-badge"><span>Stack:</span> React · TypeScript · Node.js · Prisma · PostgreSQL</div>
+  </div>
+</header>
+
+<nav class="sticky-nav">
+  <ul>
+    <li><a href="#deps">Dependências</a></li>
+    <li><a href="#sprint1">Sprint 1</a></li>
+    <li><a href="#sprint2">Sprint 2</a></li>
+    <li><a href="#sprint3">Sprint 3</a></li>
+    <li><a href="#sprint4">Sprint 4</a></li>
+    <li><a href="#resumo">Resumo</a></li>
+  </ul>
+</nav>
+
+<main class="container">
+
+<!-- GRAFO DE DEPENDÊNCIAS -->
+<section id="deps">
+  <h2 class="section-title">Grafo de Dependências</h2>
+  <div class="dep-graph">
+    <h3>Sprint 1 — Legal + Emails (2 semanas)</h3>
+    <pre>
+├── <span class="p0">1.1 Termos de Uso — Página + Aceite (P0, 8h)</span>  ← depende de 1.T1
+├── <span class="p0">1.2 Email Confirmação Inscrição (P0, 6h)</span>   ← task raiz
+├── <span class="p0">1.3 Email Nova Inscrição → Clube (P0, 4h)</span>  ← 1.2 (infraestrutura Resend)
+├── <span class="p1">1.4 Rate Limiting Rotas Públicas (P1, 4h)</span>
+├── <span class="p1">1.5 ONGOING Automático por Data (P1, 6h)</span>
+├── <span class="p1">1.6 Share Button + OG Tags (P1, 5h)</span>
+├── <span class="p0">1.T1 Termos de Uso — Conteúdo Legal (P0, 10h)</span>
+├── <span class="p0">1.T2 Política de Privacidade LGPD (P0, 6h)</span>
+└── <span class="p1">1.T3 Baseline Metrics + KPIs Beta (P1, 4h)</span></pre>
+
+    <h3>Sprint 2 — Alpha + Onboarding (2 semanas)</h3>
+    <pre>
+├── <span class="p0">2.1 Onboarding Checklist do Clube (P0, 8h)</span>  ← Sprint 1 completa
+├── <span class="p1">2.2 Mobile Responsiveness Audit + Fixes (P1, 6h)</span>
+├── <span class="p1">2.3 Error Handling Global Frontend (P1, 5h)</span>
+├── <span class="p2">2.4 Health Check + Sentry Monitoring (P2, 4h)</span>
+├── <span class="p0">2.T1 Modelo de Monetização Final (P0, 4h)</span>  ← task raiz
+├── <span class="p1">2.T2 Landing Page de Captação de Clubes (P1, 8h)</span>
+├── <span class="p1">2.T3 Templates de Email de Boas-vindas (P1, 5h)</span>
+└── <span class="p1">2.T4 Beta Feedback Collection Process (P1, 4h)</span></pre>
+
+    <h3>Sprint 3 — Beta + Pagamento (3 semanas)</h3>
+    <pre>
+├── <span class="p0">3.1 Gateway PIX — Integração Backend (P0, 14h)</span>  ← 2.T1 (modelo definido)
+├── <span class="p0">3.2 Frontend Payment Flow — Inscrição Paga (P0, 8h)</span>  ← 3.1
+├── <span class="p1">3.3 Dashboard Financeiro do Clube (P1, 8h)</span>  ← 3.1
+├── <span class="p1">3.4 Email Lembrete D-1 Antes do Torneio (P1, 4h)</span>  ← 1.2 (Resend)
+├── <span class="p1">3.5 Notificações D-3 e Resultado Final (P1, 5h)</span>  ← 3.4
+├── <span class="p0">3.T1 Compliance Pagamento + Política Reembolso (P0, 6h)</span>
+├── <span class="p1">3.T2 Copy dos Emails de Pagamento (P1, 5h)</span>  ← 3.T1
+├── <span class="p1">3.T3 Go/No-Go Criteria Beta → Público (P1, 4h)</span>
+├── <span class="p2">3.T4 Estratégia de Preço da Comissão (P2, 3h)</span>  ← 2.T1
+└── <span class="p2">3.6 Reconciliação e Relatório de Repasse (P2, 6h)</span>  ← 3.1</pre>
+
+    <h3>Sprint 4 — Lançamento Público (Q2 2026)</h3>
+    <pre>
+├── <span class="p1">4.1 Área do Atleta — Meus Torneios + Histórico (P1, 10h)</span>
+├── <span class="p1">4.2 Ranking de Atletas por Categoria/Cidade (P1, 12h)</span>
+├── <span class="p2">4.3 PDF de Resultados / Certificado Digital (P2, 8h)</span>
+├── <span class="p2">4.4 Live Scoring Público (Polling 30s) (P2, 8h)</span>
+├── <span class="p1">4.5 SEO — Meta Tags Dinâmicas por Torneio (P1, 5h)</span>
+├── <span class="p3">4.6 Cron Job COMPLETED Automático (P3, 4h)</span>
+├── <span class="p1">4.T1 Landing Page Final + SEO Copy (P1, 10h)</span>
+├── <span class="p1">4.T2 Estratégia de Conteúdo + Instagram (P1, 6h)</span>
+├── <span class="p2">4.T3 Referral Program Design (P2, 6h)</span>
+├── <span class="p2">4.T4 Growth Metrics Q2 + Unit Economics (P2, 5h)</span>
+└── <span class="p3">4.T5 App Mobile — Spec + Priorização (P3, 5h)</span></pre>
+  </div>
+</section>
+
+<!-- ========================================================== -->
+<!-- SPRINT 1 -->
+<!-- ========================================================== -->
+<section id="sprint1">
+  <div class="sprint-header">
+    <h2>🚀 Sprint 1 — Legal + Emails + Estabilidade</h2>
+    <p class="sprint-theme">Semana 1-2 · Resolver os 2 maiores bloqueadores de launch: termos legais e comunicação com atletas</p>
+    <div class="sprint-meta">
+      <div class="sprint-meta-item"><strong>9</strong> tasks</div>
+      <div class="sprint-meta-item"><strong>~53h</strong> estimadas</div>
+      <div class="sprint-meta-item"><strong>3</strong> bloqueadores P0</div>
+      <div class="sprint-meta-item"><strong>2</strong> devs paralelos</div>
+    </div>
+    <div style="background:rgba(0,204,255,0.06);border:1px solid rgba(0,204,255,0.2);border-radius:8px;padding:12px 16px;margin-top:12px;font-size:13px;color:var(--muted);">
+      ⚡ <strong style="color:var(--blue);">Objetivo da Sprint:</strong> Primeiro torneio alpha possível — clube organiza, atleta se inscreve, recebe confirmação. Sem isso não dá para validar com usuários reais.
+    </div>
+  </div>
+
+  <!-- 1.1 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">1.1</span>
+      <span class="task-title">Termos de Uso + LGPD — Página e Aceite Obrigatório</span>
+      <span class="badge badge-p0">P0</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">8h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> 1.T1 (conteúdo legal deve ser redigido primeiro)</div>
+    <div class="task-objective">Criar página pública com Termos de Uso e Política de Privacidade, com aceite obrigatório no cadastro do clube e no formulário de inscrição do atleta. Registrar timestamp de aceite no banco.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-create">frontend: TermsPage.tsx (CREATE)</li>
+        <li class="file-modify">frontend: RegisterModal / inscrição pública (MODIFY)</li>
+        <li class="file-modify">frontend: cadastro de clube (MODIFY)</li>
+        <li class="file-modify">backend: schema.prisma — campo lgpdAcceptedAt (MODIFY)</li>
+        <li class="file-modify">backend: routes/tournaments.ts — validar aceite na inscrição (MODIFY)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Criar <code>TermsPage.tsx</code>: página com Termos de Uso (clube) + Política de Privacidade + Termos do Atleta</li>
+        <li>Rota pública <code>/termos</code> — sem autenticação</li>
+        <li>Checkbox "Li e aceito os Termos de Uso e Política de Privacidade" obrigatório no formulário de inscrição do atleta</li>
+        <li>Checkbox no cadastro do clube antes de criar conta</li>
+        <li>Campo <code>lgpdAcceptedAt</code> (DateTime nullable) em Team e em Club no schema Prisma</li>
+        <li>Link para /termos no footer da página pública e no formulário de inscrição</li>
+        <li>Versão do documento registrada (ex: "v1.0 — Março 2026")</li>
+        <li>Inscrição com email inválido ou sem aceite retorna erro amigável (já corrigido para Zod — manter)</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Página /termos acessível sem login com conteúdo completo</li>
+        <li>Inscrição de atleta bloqueada sem aceitar termos</li>
+        <li>lgpdAcceptedAt registrado no banco para cada inscrição</li>
+        <li>Footer com link "Termos de Uso" em todas as páginas públicas</li>
+        <li>Conteúdo legível e responsivo no mobile</li>
+      </ul>
+    </div>
+    <div class="risks"><strong>Riscos:</strong> npx prisma db push necessário para adicionar lgpdAcceptedAt. Testar que campo nullable não quebra inscrições existentes.</div>
+  </div>
+
+  <!-- 1.2 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">1.2</span>
+      <span class="task-title">Email Transacional — Confirmação de Inscrição do Atleta</span>
+      <span class="badge badge-p0">P0</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">6h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma (task raiz — integração Resend/SendGrid)</div>
+    <div class="task-objective">Enviar email automático ao atleta quando sua inscrição é recebida. Email inclui: nome do torneio, categoria, data, status e instruções de próximos passos.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-create">backend: services/EmailService.ts (CREATE)</li>
+        <li class="file-modify">backend: routes/tournaments.ts — POST /register (MODIFY)</li>
+        <li class="file-create">backend: templates/inscricao-confirmada.html (CREATE)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Criar <code>EmailService.ts</code> com função <code>sendEmail(to, subject, html)</code> usando Resend SDK (ou SendGrid como fallback)</li>
+        <li>Variável de ambiente: <code>RESEND_API_KEY</code> no Railway + .env.example atualizado</li>
+        <li>Template HTML: "Inscrição recebida para {nome_torneio}" com nome dos atletas, categoria, data do torneio, status "Pendente de Confirmação" e instruções</li>
+        <li>Disparar email após inscrição bem-sucedida no endpoint POST /api/public/tournaments/:id/register</li>
+        <li>Email para player1Email E player2Email (ambos os atletas da dupla)</li>
+        <li>Falha no envio de email NÃO deve bloquear a inscrição — try/catch silencioso com log</li>
+        <li>Em dev mode sem API key: logar email no console em vez de enviar</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Atleta recebe email após inscrição com dados corretos do torneio</li>
+        <li>Email enviado para ambos os jogadores da dupla</li>
+        <li>Falha no envio não bloqueia a inscrição (try/catch)</li>
+        <li>Template HTML formatado e mobile-friendly</li>
+        <li>RESEND_API_KEY configurada no Railway antes do alpha</li>
+      </ul>
+    </div>
+    <div class="risks"><strong>Riscos:</strong> Resend free tier: 3000 emails/mês — suficiente para alpha/beta. Avaliar plano pago antes do lançamento público.</div>
+  </div>
+
+  <!-- 1.3 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">1.3</span>
+      <span class="task-title">Email ao Clube — Notificação de Nova Inscrição</span>
+      <span class="badge badge-p0">P0</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">4h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> 1.2 (infraestrutura EmailService já criada)</div>
+    <div class="task-objective">Notificar o clube por email quando uma nova dupla se inscreve no torneio. Email inclui nome dos atletas, categoria e link direto para a aba de inscrições.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-modify">backend: routes/tournaments.ts — POST /register (MODIFY)</li>
+        <li class="file-create">backend: templates/nova-inscricao-clube.html (CREATE)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Reutilizar <code>EmailService.ts</code> criado em 1.2</li>
+        <li>Buscar email do clube via club.user.email na rota de inscrição pública</li>
+        <li>Template: "Nova inscrição: {player1} / {player2} em {categoria}" com link <code>https://bubblepadel.com/dashboard/tournaments/{id}?tab=inscricoes</code></li>
+        <li>Envio assíncrono (não bloqueia a resposta ao atleta)</li>
+        <li>Opcional: agrupamento de notificações para evitar spam se muitas inscrições simultâneas (batch em 5 min) — pode ser Sprint 2 se complexo</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Clube recebe email para cada nova inscrição</li>
+        <li>Email contém nomes dos atletas, categoria e link direto</li>
+        <li>Envio não bloqueia resposta ao atleta</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 1.4 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">1.4</span>
+      <span class="task-title">Rate Limiting nas Rotas Públicas</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">4h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Proteger rotas públicas (inscrição, listagem de torneios) contra spam e abuso com rate limiting por IP. Usar express-rate-limit.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-create">backend: middlewares/rateLimiter.ts (CREATE)</li>
+        <li class="file-modify">backend: index.ts ou app.ts (MODIFY)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Instalar <code>express-rate-limit</code></li>
+        <li>Rate limiter geral: 100 req/min por IP em todas as rotas</li>
+        <li>Rate limiter específico para <code>POST /api/public/tournaments/:id/register</code>: 5 inscrições/hora por IP</li>
+        <li>Resposta 429 com mensagem: "Muitas requisições. Tente novamente em alguns minutos."</li>
+        <li>Whitelist para IPs do Railway (health checks)</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Inscrição retorna 429 após 5 tentativas em 1h do mesmo IP</li>
+        <li>Mensagem de erro em português amigável</li>
+        <li>Rotas autenticadas (clube) não afetadas pelo rate limiter público</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 1.5 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">1.5</span>
+      <span class="task-title">ONGOING Automático por Data/Hora</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">6h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Torneio muda automaticamente para ONGOING quando a data/hora do primeiro jogo agendado chega — sem o clube precisar clicar manualmente. Implementar via cron job no backend.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-create">backend: jobs/statusSync.ts (CREATE)</li>
+        <li class="file-modify">backend: index.ts (MODIFY — registrar cron)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Instalar <code>node-cron</code></li>
+        <li>Cron job a cada 15 minutos: verificar torneios com status CLOSED ou PUBLISHED</li>
+        <li>Para cada torneio, buscar o schedule mais antigo: SELECT MIN(date + time) FROM schedules JOIN matches</li>
+        <li>Se hora atual ≥ hora do primeiro jogo E status ∈ [CLOSED, PUBLISHED] → atualizar para ONGOING</li>
+        <li>Log das transições automáticas para debug</li>
+        <li>Endpoint manual <code>POST /api/tournaments/:id/sync-status</code> já existente — reutilizar lógica</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Torneio muda para ONGOING automaticamente na hora do primeiro jogo</li>
+        <li>Cron roda a cada 15 minutos sem impactar performance</li>
+        <li>Somente torneios com schedules gerados são elegíveis</li>
+        <li>Log registra cada transição automática</li>
+      </ul>
+    </div>
+    <div class="risks"><strong>Riscos:</strong> Railway pode reiniciar o processo e perder o cron. Verificar se node-cron sobrevive a restarts no Railway ou usar alternativa (agenda, bull).</div>
+  </div>
+
+  <!-- 1.6 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">1.6</span>
+      <span class="task-title">Share Button + OG Tags na Página Pública do Torneio</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">5h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Adicionar botão "Compartilhar" na página pública do torneio que abre WhatsApp/Instagram com preview rico. Implementar OG tags dinâmicas para preview no link.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-modify">frontend: TournamentProfile.tsx (MODIFY)</li>
+        <li class="file-modify">frontend: index.html ou _document (MODIFY — OG base tags)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Botão "Compartilhar" no header da página pública do torneio</li>
+        <li>Web Share API: <code>navigator.share()</code> se disponível (mobile), fallback para copiar link</li>
+        <li>Texto pré-formatado para WhatsApp: "🎾 {nome_torneio} — {data} em {cidade}. Inscrições {status}! Saiba mais: {url}"</li>
+        <li>OG tags na <code>index.html</code> base (estáticas no Vite) — dynamic não é possível sem SSR, então usar tags base</li>
+        <li>og:title, og:description, og:image (logo Bubble como fallback), og:url</li>
+        <li>Botão de copiar link como alternativa quando Web Share API não disponível</li>
+        <li>Toast de confirmação: "Link copiado!"</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Botão compartilhar visível na página do torneio</li>
+        <li>Web Share API abre WhatsApp no mobile com texto pré-formatado</li>
+        <li>Desktop: link copiado para clipboard com toast</li>
+        <li>OG tags presentes (mesmo que estáticas) para preview no WhatsApp</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="task-separator">
+
+  <!-- 1.T1 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">1.T1</span>
+      <span class="task-title">Termos de Uso — Conteúdo Legal Completo</span>
+      <span class="badge badge-p0">P0</span>
+      <span class="badge badge-legal">LEGAL</span>
+      <span class="badge badge-hours">10h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma (task raiz — paralela ao dev)</div>
+    <div class="task-objective">Redigir os Termos de Uso para clubes e atletas, com as cláusulas obrigatórias segundo CDC e LGPD. Deve estar pronto antes do task 1.1 de desenvolvimento.</div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li><strong>Termos de Uso — Clube:</strong> objeto do serviço (gestão de torneios), responsabilidade pela organização, dados dos atletas, cancelamento de conta, limitação de responsabilidade por lesões durante torneios</li>
+        <li><strong>Termos de Uso — Atleta:</strong> inscrição e participação voluntária, dados coletados (nome, email), uso dos dados para comunicação do torneio, isenção de responsabilidade por lesões</li>
+        <li><strong>LGPD — dados coletados:</strong> nome, email, categoria, status de pagamento. Finalidade: organização de torneio. Retenção: 2 anos após torneio</li>
+        <li>Cláusula de cancelamento: atleta pode cancelar inscrição até 48h antes do torneio (política a definir)</li>
+        <li>Cláusula de menores: inscrição de menor exige autorização do responsável</li>
+        <li>Versão e data do documento (obrigatório para notificação de alterações)</li>
+        <li>Foro: Joinville/SC (ou cidade dos fundadores)</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Termos de clube e atleta redigidos (não precisa ser advogado, mas linguagem clara)</li>
+        <li>LGPD: dados coletados, finalidade e retenção documentados</li>
+        <li>Isenção de responsabilidade por lesões presente</li>
+        <li>Pronto para integração na tarefa 1.1</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 1.T2 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">1.T2</span>
+      <span class="task-title">Política de Privacidade — LGPD Completa</span>
+      <span class="badge badge-p0">P0</span>
+      <span class="badge badge-legal">LEGAL</span>
+      <span class="badge badge-hours">6h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Política de privacidade completa conforme LGPD. Deve cobrir coleta de dados de clube e atleta, subprocessadores, direitos do titular e canal de contato.</div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Quais dados são coletados: nome, email, categoria (atleta); nome da empresa, email (clube)</li>
+        <li>Para qual finalidade: organização e comunicação de torneios</li>
+        <li>Período de retenção: 2 anos após último torneio</li>
+        <li>Subprocessadores: Railway (hosting), Resend (emails), futuramente gateway de pagamento</li>
+        <li>Direitos do titular: acesso, correção, exclusão, portabilidade — canal: privacidade@bubblepadel.com (ou email dos fundadores)</li>
+        <li>Não compartilhamento com terceiros para fins publicitários</li>
+        <li>Base legal LGPD: Art. 7, inciso V (execução de contrato) para dados de inscrição</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Política cobre dados de clube e atleta</li>
+        <li>Subprocessadores listados</li>
+        <li>Canal de contato para exercício de direitos definido</li>
+        <li>Base legal LGPD citada</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 1.T3 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">1.T3</span>
+      <span class="task-title">Baseline Metrics + KPIs do Beta</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-negocio">NEGÓCIO</span>
+      <span class="badge badge-hours">4h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Definir as métricas que vão determinar o sucesso do alpha/beta e o critério de go/no-go para o lançamento público com pagamento.</div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>KPIs do alpha: torneios criados, atletas inscritos, NPS do organizador (meta: ≥ 7)</li>
+        <li>KPIs do beta: torneios pagos, receita de comissão, % de torneios completados sem bug crítico</li>
+        <li>Go/No-Go para lançamento público: 3+ torneios completos, NPS ≥ 7, zero bugs críticos em 2 semanas, pelo menos 1 pagamento PIX processado</li>
+        <li>Template de relatório semanal: torneios ativos, inscrições, erros reportados</li>
+        <li>Definir quem é responsável por compilar o relatório</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>KPIs de alpha e beta definidos com thresholds</li>
+        <li>4 critérios de Go/No-Go documentados</li>
+        <li>Template de relatório semanal criado</li>
+        <li>Responsável definido</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sprint-summary">
+    <div><div class="stat-value">9</div><div class="stat-label">Tasks</div></div>
+    <div><div class="stat-value">3</div><div class="stat-label">P0 Blockers</div></div>
+    <div><div class="stat-value">~33h</div><div class="stat-label">Horas DEV</div></div>
+    <div><div class="stat-value">~20h</div><div class="stat-label">Horas Negócio/Legal</div></div>
+    <div><div class="stat-value">~53h</div><div class="stat-label">Total</div></div>
+  </div>
+</section>
+
+<!-- ========================================================== -->
+<!-- SPRINT 2 -->
+<!-- ========================================================== -->
+<section id="sprint2">
+  <div class="sprint-header">
+    <h2>🧪 Sprint 2 — Alpha com Clubes Reais + Onboarding</h2>
+    <p class="sprint-theme">Semana 3-4 · Rodar o primeiro torneio alpha, validar fluxo com usuário real, implementar onboarding e definir modelo de monetização</p>
+    <div class="sprint-meta">
+      <div class="sprint-meta-item"><strong>8</strong> tasks</div>
+      <div class="sprint-meta-item"><strong>~44h</strong> estimadas</div>
+      <div class="sprint-meta-item"><strong>1</strong> bloqueador P0</div>
+      <div class="sprint-meta-item"><strong>2</strong> devs + stakeholders</div>
+    </div>
+    <div style="background:rgba(0,204,255,0.06);border:1px solid rgba(0,204,255,0.2);border-radius:8px;padding:12px 16px;margin-top:12px;font-size:13px;color:var(--muted);">
+      ⚡ <strong style="color:var(--blue);">Objetivo da Sprint:</strong> Pelo menos 1 clube real organiza um torneio do início ao fim. Coletar feedback direto. Definir COMO a Bubble vai cobrar antes da sprint 3 (gateway).
+    </div>
+  </div>
+
+  <!-- 2.1 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">2.1</span>
+      <span class="task-title">Onboarding Checklist Visual do Clube</span>
+      <span class="badge badge-p0">P0</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">8h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Sprint 1 concluída</div>
+    <div class="task-objective">Implementar checklist visual no dashboard do clube guiando o organizador pelos primeiros passos: completar perfil → criar torneio → abrir inscrições → gerar grupos → finalizar. Reduz abandono de novos clubes.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-create">frontend: OnboardingChecklist.tsx (CREATE)</li>
+        <li class="file-modify">frontend: Dashboard.tsx ou DashboardHeader.tsx (MODIFY)</li>
+        <li class="file-modify">backend: routes/clubs.ts — endpoint de progresso (MODIFY)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>5 passos do checklist: ✓ Completar perfil do clube, ✓ Criar primeiro torneio, ✓ Publicar e abrir inscrições, ✓ Confirmar primeiras duplas, ✓ Gerar grupos e schedule</li>
+        <li>Progress bar visual: "3 de 5 completos"</li>
+        <li>Cada passo clicável leva direto à ação (ex: clicar em "Criar torneio" leva para /dashboard/tournaments/new)</li>
+        <li>Checklist some automaticamente quando todos os passos são concluídos — com mensagem de parabéns</li>
+        <li>Estado dos passos calculado dinamicamente: clube tem torneio? tem duplas confirmadas? tem grupos?</li>
+        <li>Visível apenas para clubes com menos de 3 torneios (não irritar organizadores experientes)</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Checklist aparece para novo clube com 0 torneios</li>
+        <li>Passos marcados automaticamente conforme clube avança</li>
+        <li>Cada passo leva para a ação correta ao clicar</li>
+        <li>Checklist não aparece para clubes com 3+ torneios</li>
+        <li>Mensagem de parabéns ao completar todos os passos</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 2.2 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">2.2</span>
+      <span class="task-title">Mobile Responsiveness — Auditoria e Correções</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">6h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Auditar e corrigir problemas de responsividade nas páginas mais usadas por atletas: página pública do torneio, formulário de inscrição, grupos e jogos. Dashboard do clube é secundário.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-modify">frontend: TournamentProfile.tsx (MODIFY)</li>
+        <li class="file-modify">frontend: Tournaments.tsx — listagem pública (MODIFY)</li>
+        <li class="file-modify">frontend: TabGrupos.tsx (MODIFY — se necessário)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Testar em iPhone 12 (390px), Galaxy S21 (360px) e iPad (768px)</li>
+        <li>Página pública do torneio: header, tabs, grupos e resultados devem ser usáveis no mobile</li>
+        <li>Formulário de inscrição: campos touch-friendly (min height 44px), teclado não cobre campos</li>
+        <li>Listagem de torneios: cards legíveis sem scroll horizontal</li>
+        <li>Botão "Compartilhar" acessível no mobile (não escondido)</li>
+        <li>Dashboard do clube: não precisa ser perfeito, mas não deve quebrar em mobile</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Atleta consegue se inscrever em torneio no smartphone sem dificuldade</li>
+        <li>Página pública do torneio legível em 390px sem scroll horizontal</li>
+        <li>Zero overflow horizontal nas páginas públicas</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 2.3 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">2.3</span>
+      <span class="task-title">Error Handling Global no Frontend</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">5h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Implementar feedback visual consistente para erros de API em todo o frontend. Hoje erros silenciosos deixam o usuário sem resposta. Adicionar toast global + error boundary para React crashes.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-create">frontend: components/Toast.tsx (CREATE)</li>
+        <li class="file-create">frontend: components/ErrorBoundary.tsx (CREATE)</li>
+        <li class="file-modify">frontend: App.tsx (MODIFY — envolver com ErrorBoundary)</li>
+        <li class="file-modify">frontend: hooks/index.ts (MODIFY — expor erro nos hooks)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Criar <code>Toast.tsx</code> global: sucesso (verde), erro (vermelho), aviso (amarelo) — auto-dismiss em 4s</li>
+        <li>Hook <code>useToast()</code> para disparar toasts de qualquer componente</li>
+        <li>Error boundary React: captura crashes JS e mostra "Algo deu errado. Recarregue a página." em vez de tela branca</li>
+        <li>Hooks useGroups, useTeams, useSchedule: expor campo <code>error</code> e disparar toast quando erro ocorre</li>
+        <li>Erros de API (4xx, 5xx) devem mostrar mensagem amigável em português</li>
+        <li>Erro de rede (offline): toast "Sem conexão com o servidor"</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Erro de salvar grupos mostra toast vermelho com mensagem legível</li>
+        <li>Crash de componente React mostra tela de erro em vez de tela branca</li>
+        <li>Sucesso de ações importantes (grupos gerados, placar salvo) mostra toast verde</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 2.4 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">2.4</span>
+      <span class="task-title">Health Check + Sentry Error Monitoring</span>
+      <span class="badge badge-p2">P2</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">4h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Adicionar endpoint de health check para monitoring e integrar Sentry para captura de erros em produção. Saber quando o Railway está com problema antes do cliente reportar.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-modify">backend: index.ts (MODIFY — GET /health)</li>
+        <li class="file-modify">backend: package.json + .env.example (MODIFY — SENTRY_DSN)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Endpoint <code>GET /health</code>: retorna 200 com <code>{"status":"ok","db":"connected","ts":"..."}</code></li>
+        <li>Verificar conexão com PostgreSQL no health check</li>
+        <li>Sentry free tier: integrar <code>@sentry/node</code> no backend com DSN via env var</li>
+        <li>Configurar UptimeRobot (grátis) para pingar /health a cada 5 min e alertar por email se cair</li>
+        <li>Frontend: Sentry browser SDK (opcional mas recomendado) para capturar JS errors</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>GET /health retorna 200 com status do banco</li>
+        <li>Sentry captura erros não tratados em produção</li>
+        <li>UptimeRobot configurado com alerta por email</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="task-separator">
+
+  <!-- 2.T1 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">2.T1</span>
+      <span class="task-title">Modelo de Monetização Final — Decisão e Spec</span>
+      <span class="badge badge-p0">P0</span>
+      <span class="badge badge-negocio">NEGÓCIO</span>
+      <span class="badge badge-hours">4h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Decidir e documentar definitivamente o modelo de monetização antes de implementar o gateway na Sprint 3. Sem esta decisão, a Sprint 3 não pode começar.</div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Decidir entre Modelo A (SaaS mensal), B (comissão por atleta) ou C (freemium) — especialistas recomendam B</li>
+        <li>Se Modelo B: definir valor da comissão (R$3, R$4 ou R$5 por atleta inscrito?)</li>
+        <li>Definir se o atleta paga no ato da inscrição ou o clube paga ao final do torneio</li>
+        <li>Definir política de reembolso: atleta cancela a inscrição — quem assume o custo?</li>
+        <li>Documentar a decisão final: modelo, valor, fluxo de pagamento, política de reembolso</li>
+        <li>Este doc é pré-requisito para 3.T1 (compliance de pagamento) e 3.1 (gateway)</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Modelo escolhido e documentado com justificativa</li>
+        <li>Valor exato definido (ex: R$4 por atleta inscrito)</li>
+        <li>Fluxo de pagamento mapeado (quem paga, quando, para quem)</li>
+        <li>Política de reembolso definida</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 2.T2 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">2.T2</span>
+      <span class="task-title">Landing Page de Captação de Clubes — Copy e Estrutura</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-negocio">NEGÓCIO</span>
+      <span class="badge badge-design">DESIGN</span>
+      <span class="badge badge-hours">8h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Criar o copy completo e estrutura visual da landing page de captação de clubes. Foco: "Gerencie seu torneio de padel em 5 minutos". Será implementada como tarefa DEV na Sprint 4.</div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Hero: headline, subheadline, CTA primário ("Criar torneio grátis")</li>
+        <li>Seção "Como funciona": 3 passos visuais (criar, inscrições, gerar grupos)</li>
+        <li>Seção "Funcionalidades": schedule automático, gestão de grupos, brackets automáticos</li>
+        <li>Seção de social proof: depoimento do primeiro clube alpha (coletar durante Sprint 2)</li>
+        <li>Seção de preços: modelo escolhido em 2.T1</li>
+        <li>CTA final e footer com links legais (/termos)</li>
+        <li>Copy em português BR, sem jargão técnico</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Copy completo para cada seção redigido</li>
+        <li>Wireframe ou mockup de cada seção aprovado</li>
+        <li>CTA primário definido com copy emocional</li>
+        <li>Pronto para implementação DEV na Sprint 4</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 2.T3 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">2.T3</span>
+      <span class="task-title">Templates de Email de Boas-vindas do Clube</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-negocio">NEGÓCIO</span>
+      <span class="badge badge-hours">5h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Redigir os templates de email para a jornada do clube: boas-vindas + primeiros passos, primeiro torneio criado, primeiras inscrições recebidas.</div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Email 1 — Boas-vindas: "Bem-vindo ao Bubble! Veja como criar seu primeiro torneio em 3 min"</li>
+        <li>Email 2 — Primeiro torneio criado: "Seu torneio está no ar! Agora abra as inscrições"</li>
+        <li>Email 3 — Primeiras inscrições: "Você já tem {N} duplas inscritas! Veja como confirmar"</li>
+        <li>Tom: empático, direto, orientado a ação. Sem jargão técnico</li>
+        <li>Cada email com 1 CTA principal e link para /termos no rodapé</li>
+        <li>Variáveis: {nome_clube}, {nome_torneio}, {N_inscricoes}</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>3 templates redigidos e revisados</li>
+        <li>Tom consistente e orientado a ação</li>
+        <li>Variáveis de personalização mapeadas</li>
+        <li>Prontos para implementação futura no EmailService</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 2.T4 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">2.T4</span>
+      <span class="task-title">Beta Feedback Collection — Processo e Templates</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-negocio">NEGÓCIO</span>
+      <span class="badge badge-hours">4h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Definir como coletar feedback dos clubes e atletas do alpha/beta de forma estruturada para iterar rapidamente e obter depoimentos para a landing page.</div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Cadência do clube: D3 WhatsApp check-in informal, D7 formulário (3 perguntas), D14 pedido de depoimento</li>
+        <li>Cadência do atleta: após o torneio — WhatsApp "Como foi a experiência?" + NPS</li>
+        <li>Formulário D7 clube: "O que funcionou bem?", "O que deu problema?", "Recomendaria? (1-10)"</li>
+        <li>Meta: 3 depoimentos utilizáveis de clubes para landing page</li>
+        <li>Templates de WhatsApp prontos para cada touchpoint</li>
+        <li>Processo de follow-up para não-respondentes (1 tentativa adicional)</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Templates de WhatsApp prontos para cada touchpoint</li>
+        <li>Formulário D7 criado (Google Forms ou Typeform)</li>
+        <li>Meta de 3 depoimentos com responsável definido</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sprint-summary">
+    <div><div class="stat-value">8</div><div class="stat-label">Tasks</div></div>
+    <div><div class="stat-value">1</div><div class="stat-label">P0 Blockers</div></div>
+    <div><div class="stat-value">~23h</div><div class="stat-label">Horas DEV</div></div>
+    <div><div class="stat-value">~21h</div><div class="stat-label">Horas Negócio</div></div>
+    <div><div class="stat-value">~44h</div><div class="stat-label">Total</div></div>
+  </div>
+</section>
+
+<!-- ========================================================== -->
+<!-- SPRINT 3 -->
+<!-- ========================================================== -->
+<section id="sprint3">
+  <div class="sprint-header">
+    <h2>💰 Sprint 3 — Beta Fechado + Primeiro Pagamento Real</h2>
+    <p class="sprint-theme">Semana 5-8 · Integrar gateway de pagamento, 5-10 clubes no beta, receita começa a existir</p>
+    <div class="sprint-meta">
+      <div class="sprint-meta-item"><strong>10</strong> tasks</div>
+      <div class="sprint-meta-item"><strong>~72h</strong> estimadas</div>
+      <div class="sprint-meta-item"><strong>3</strong> bloqueadores P0</div>
+      <div class="sprint-meta-item"><strong>Sprint mais crítica</strong></div>
+    </div>
+    <div style="background:rgba(0,204,255,0.06);border:1px solid rgba(0,204,255,0.2);border-radius:8px;padding:12px 16px;margin-top:12px;font-size:13px;color:var(--muted);">
+      ⚡ <strong style="color:var(--blue);">Objetivo da Sprint:</strong> Primeiro pagamento PIX real de um atleta inscrito num torneio. Modelo de comissão ativo. Bubble recebe sua primeira receita.
+    </div>
+  </div>
+
+  <!-- 3.1 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">3.1</span>
+      <span class="task-title">Gateway PIX — Integração Backend (AbacatePay ou Asaas)</span>
+      <span class="badge badge-p0">P0</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">14h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> 2.T1 (modelo de monetização definido)</div>
+    <div class="task-objective">Integrar gateway de pagamento PIX para cobrar inscrições de atletas. Criar cobrança PIX, processar webhook de confirmação, distribuir receita (clube e comissão Bubble), registrar pagamento no banco.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-create">backend: services/PaymentService.ts (CREATE)</li>
+        <li class="file-create">backend: routes/payments.ts (CREATE)</li>
+        <li class="file-create">backend: routes/webhooks.ts (CREATE)</li>
+        <li class="file-modify">backend: prisma/schema.prisma (MODIFY — tabela Payment)</li>
+        <li class="file-modify">backend: routes/tournaments.ts — endpoint register (MODIFY)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Escolher gateway: AbacatePay (PIX simples, sem mensalidade) ou Asaas (mais robusto)</li>
+        <li>Criar tabela <code>Payment</code>: id, teamId, tournamentId, amount, commissionAmount, status, pixCode, externalId, paidAt, createdAt</li>
+        <li><code>PaymentService.ts</code>: createPix(teamId, amount), checkStatus(externalId), processWebhook(payload)</li>
+        <li>POST <code>/api/payments/pix/create</code> — cria cobrança PIX para inscrição</li>
+        <li>POST <code>/api/webhooks/pix</code> — recebe confirmação do gateway (idempotente via externalId)</li>
+        <li>Ao confirmar: atualizar Team.paymentStatus = PAID, registrar Payment, notificar clube por email</li>
+        <li>API key do gateway via variável de ambiente: PAYMENT_API_KEY</li>
+        <li>Em dev mode sem key: simular pagamento automático após 3s</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>QR Code PIX gerado para inscrição com valor correto</li>
+        <li>Webhook confirma pagamento e atualiza status do atleta</li>
+        <li>Webhooks duplicados ignorados (idempotência)</li>
+        <li>Comissão da Bubble calculada e registrada separadamente</li>
+        <li>Email de confirmação de pagamento enviado ao atleta</li>
+      </ul>
+    </div>
+    <div class="risks"><strong>Riscos:</strong> Cadastro no gateway pode levar dias para aprovação. Iniciar processo na Sprint 2. Ambiente sandbox pode ter comportamento diferente de produção.</div>
+  </div>
+
+  <!-- 3.2 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">3.2</span>
+      <span class="task-title">Frontend Payment Flow — Inscrição com Pagamento PIX</span>
+      <span class="badge badge-p0">P0</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">8h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> 3.1</div>
+    <div class="task-objective">Implementar fluxo completo de pagamento no formulário de inscrição: preenchimento → resumo com valor → geração do QR Code PIX → tela de aguardando pagamento → confirmação com celebração.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-modify">frontend: TournamentProfile.tsx — formulário de inscrição (MODIFY)</li>
+        <li class="file-create">frontend: PaymentModal.tsx (CREATE)</li>
+        <li class="file-modify">frontend: services/api.ts — PaymentService (MODIFY)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Passo 1: formulário de inscrição (já existe) — adicionar step de pagamento no final</li>
+        <li>Passo 2: resumo — "Inscrição: {player1} / {player2} em {categoria} — R${valor}"</li>
+        <li>Passo 3: QR Code PIX + código copia-e-cola + botão "Já paguei"</li>
+        <li>Passo 4: polling de status a cada 5s por 10 minutos — animação de carregamento</li>
+        <li>Passo 5: confirmação com celebração visual — "🎉 Inscrição confirmada!"</li>
+        <li>Timeout de 10 min: mostrar "Pagamento não recebido. O QR Code expirou." com opção de gerar novo</li>
+        <li>Se torneio gratuito (sem modelo de pagamento): pular steps 2-4 diretamente para confirmação</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Atleta consegue completar inscrição com pagamento PIX em menos de 2 minutos</li>
+        <li>Confirmação visual clara após pagamento</li>
+        <li>Timeout de 10 min com mensagem amigável</li>
+        <li>Torneios sem pagamento funcionam normalmente (sem step de PIX)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 3.3 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">3.3</span>
+      <span class="task-title">Dashboard Financeiro do Clube</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">8h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> 3.1</div>
+    <div class="task-objective">Criar aba "Financeiro" no EditTournament mostrando: inscrições pagas vs pendentes, receita total do torneio, valor líquido após comissão Bubble, histórico de pagamentos.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-create">frontend: TabFinanceiro.tsx (CREATE)</li>
+        <li class="file-modify">frontend: EditTournament.tsx (MODIFY — adicionar aba)</li>
+        <li class="file-modify">backend: routes/tournaments.ts — GET /:id/financial (MODIFY)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Cards de resumo: Total de inscrições, Inscrições pagas, Receita bruta, Comissão Bubble, Receita líquida</li>
+        <li>Lista de pagamentos: atleta, categoria, valor, status (PAGO/PENDENTE), data</li>
+        <li>Indicador de quais duplas ainda não pagaram</li>
+        <li>Exportar lista em CSV (simples, com window.open ou link de download)</li>
+        <li>Endpoint GET /api/tournaments/:id/financial retorna sumário + lista de pagamentos</li>
+        <li>Visível apenas para o clube dono do torneio (já tem auth)</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Clube vê receita esperada vs recebida em tempo real</li>
+        <li>Lista de quem pagou e quem está pendente</li>
+        <li>Export CSV funcional</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 3.4 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">3.4</span>
+      <span class="task-title">Email Lembrete D-1 Antes do Torneio</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">4h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> 1.2 (EmailService), 1.5 (cron job)</div>
+    <div class="task-objective">Enviar email automático para todos os atletas confirmados D-1 antes do torneio com: horários dos jogos, quadras, local e link para a página do torneio.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-modify">backend: jobs/statusSync.ts (MODIFY — adicionar verificação D-1)</li>
+        <li class="file-create">backend: templates/lembrete-torneio.html (CREATE)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Cron job diário às 9h: buscar torneios com startDate = amanhã e status ONGOING ou CLOSED</li>
+        <li>Para cada torneio: buscar todos os atletas confirmados (status CONFIRMED)</li>
+        <li>Template: "Seu torneio é amanhã! 🎾 {nome_torneio} — {data} às {hora_primeiro_jogo} em {local}"</li>
+        <li>Incluir horário do primeiro jogo do atleta (buscar no schedule)</li>
+        <li>Link para a página pública do torneio</li>
+        <li>Envio assíncrono em batch (não bloquear o processo)</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Email enviado automaticamente na véspera do torneio</li>
+        <li>Template com horário do primeiro jogo do atleta</li>
+        <li>Email não duplicado se cron rodar duas vezes (flag emailSent no banco)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 3.5 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">3.5</span>
+      <span class="task-title">Email Resultado Final + Próximos Torneios</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">5h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> 1.2, 3.4</div>
+    <div class="task-objective">Enviar email com resultado final do torneio para todos os atletas quando o torneio muda para COMPLETED. Inclui classificação final e lista de próximos torneios abertos.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-modify">backend: routes/tournaments.ts — syncStatus endpoint (MODIFY)</li>
+        <li class="file-create">backend: templates/resultado-final.html (CREATE)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Trigger: quando syncStatus muda status para COMPLETED, disparar email para todos os atletas</li>
+        <li>Template: "Torneio concluído! 🏆 Confira os resultados de {nome_torneio}"</li>
+        <li>Incluir: campeão e vice de cada categoria, link para a página de resultados</li>
+        <li>Seção: "Próximos torneios" — listar 3 torneios com status OPEN mais próximos na mesma cidade</li>
+        <li>Envio assíncrono (não bloquear o syncStatus)</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Email disparado automaticamente quando torneio é COMPLETED</li>
+        <li>Resultados corretos por categoria</li>
+        <li>Próximos torneios na mesma cidade listados</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 3.6 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">3.6</span>
+      <span class="task-title">Reconciliação e Relatório de Repasse</span>
+      <span class="badge badge-p2">P2</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">6h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> 3.1</div>
+    <div class="task-objective">Job automático após o torneio que reconcilia pagamentos recebidos, calcula repasse para o clube (valor total - comissão Bubble) e gera relatório de repasse em PDF ou email.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-create">backend: jobs/reconciliation.ts (CREATE)</li>
+        <li class="file-create">backend: templates/repasse-clube.html (CREATE)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Trigger: torneio muda para COMPLETED</li>
+        <li>Somar todos os Payment.status = PAID do torneio</li>
+        <li>Calcular: receita bruta, comissão Bubble (ex: R$4 × atletas), valor a repassar ao clube</li>
+        <li>Email ao clube: "Relatório financeiro de {nome_torneio} — Transferência de R${valor_liquido} prevista em X dias"</li>
+        <li>MVP: repasse manual (Bubble transfere via PIX manualmente). Automático é Sprint 5+</li>
+        <li>Registrar Reconciliation no banco: tournamentId, totalBruto, comissao, valorRepasse, status</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Email de relatório enviado ao clube após torneio finalizado</li>
+        <li>Cálculo de comissão correto</li>
+        <li>Reconciliation registrada no banco</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="task-separator">
+
+  <!-- 3.T1 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">3.T1</span>
+      <span class="task-title">Compliance de Pagamento + Política de Reembolso</span>
+      <span class="badge badge-p0">P0</span>
+      <span class="badge badge-legal">LEGAL</span>
+      <span class="badge badge-hours">6h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> 2.T1 (modelo de monetização definido)</div>
+    <div class="task-objective">Documentar política de reembolso, cancelamento de inscrição e direitos do consumidor conforme CDC para inscrições pagas em torneios esportivos.</div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Política de cancelamento: até 48h antes = reembolso integral. Depois = sem reembolso (a definir)</li>
+        <li>CDC Art. 49 — direito de arrependimento em 7 dias para compras online: aplicável?</li>
+        <li>Responsabilidade em caso de cancelamento do torneio pelo clube: reembolso total</li>
+        <li>Quem processa o reembolso: Bubble ou o clube? (Bubble = mais confiança, mais complexidade)</li>
+        <li>Política documentada e publicada na página /termos (atualizar 1.T1)</li>
+        <li>FAQ básico: "Posso cancelar minha inscrição?", "O torneio foi cancelado — e agora?"</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Política de reembolso publicada em /termos</li>
+        <li>Prazo de cancelamento com reembolso definido</li>
+        <li>Responsabilidade em cancelamento do clube definida</li>
+        <li>FAQ com as 2 perguntas mais comuns</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 3.T2 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">3.T2</span>
+      <span class="task-title">Copy dos Emails de Pagamento</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-negocio">NEGÓCIO</span>
+      <span class="badge badge-hours">5h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> 3.T1 (compliance definido)</div>
+    <div class="task-objective">Redigir todos os templates de email relacionados ao pagamento: QR Code gerado, pagamento confirmado, pagamento expirado, reembolso processado.</div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Email PIX gerado: "Finalize sua inscrição — PIX de R${valor} disponível por 30 minutos"</li>
+        <li>Email pagamento confirmado: "🎉 Inscrição confirmada! Bem-vindo ao {torneio}"</li>
+        <li>Email PIX expirado: "Seu QR Code expirou. Clique aqui para gerar um novo"</li>
+        <li>Email reembolso: "Reembolso de R${valor} processado em até X dias úteis"</li>
+        <li>Todos os emails: tom positivo, sem jargão bancário, link para suporte</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>4 templates redigidos</li>
+        <li>Tom positivo e claro</li>
+        <li>Prontos para integração no EmailService</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 3.T3 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">3.T3</span>
+      <span class="task-title">Critérios Go/No-Go Beta → Lançamento Público</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-negocio">NEGÓCIO</span>
+      <span class="badge badge-hours">4h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> 1.T3</div>
+    <div class="task-objective">Definir formalmente os critérios que autorizam o lançamento público com marketing ativo. Deve ser medível e binário (passou / não passou).</div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Critério 1: NPS dos organizadores ≥ 7 (baseado em pelo menos 3 respostas)</li>
+        <li>Critério 2: Pelo menos 3 torneios completos do início ao fim sem bug crítico</li>
+        <li>Critério 3: Pelo menos 1 pagamento PIX real processado com sucesso</li>
+        <li>Critério 4: Zero bugs críticos (perda de dados, erro de pagamento) nas últimas 2 semanas</li>
+        <li>Definir quem decide o go/no-go e em qual data a decisão será tomada</li>
+        <li>Template de checklist para a reunião de go/no-go</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>4 critérios de Go/No-Go com thresholds medíveis</li>
+        <li>Data da reunião de go/no-go definida</li>
+        <li>Responsável pela decisão definido</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sprint-summary">
+    <div><div class="stat-value">10</div><div class="stat-label">Tasks</div></div>
+    <div><div class="stat-value">3</div><div class="stat-label">P0 Blockers</div></div>
+    <div><div class="stat-value">~45h</div><div class="stat-label">Horas DEV</div></div>
+    <div><div class="stat-value">~15h</div><div class="stat-label">Horas Negócio/Legal</div></div>
+    <div><div class="stat-value">~72h</div><div class="stat-label">Total</div></div>
+  </div>
+</section>
+
+<!-- ========================================================== -->
+<!-- SPRINT 4 -->
+<!-- ========================================================== -->
+<section id="sprint4">
+  <div class="sprint-header">
+    <h2>🌐 Sprint 4 — Lançamento Público + Área do Atleta + Ranking</h2>
+    <p class="sprint-theme">Q2 2026 · Cadastro self-service de clubes, área do atleta, ranking e marketing ativo</p>
+    <div class="sprint-meta">
+      <div class="sprint-meta-item"><strong>11</strong> tasks</div>
+      <div class="sprint-meta-item"><strong>~73h</strong> estimadas</div>
+      <div class="sprint-meta-item"><strong>0</strong> bloqueadores P0</div>
+      <div class="sprint-meta-item"><strong>Meta: 20 clubes ativos</strong></div>
+    </div>
+    <div style="background:rgba(0,204,255,0.06);border:1px solid rgba(0,204,255,0.2);border-radius:8px;padding:12px 16px;margin-top:12px;font-size:13px;color:var(--muted);">
+      ⚡ <strong style="color:var(--blue);">Objetivo da Sprint:</strong> Produto público. Qualquer clube do Brasil pode criar conta, organizar torneio e receber. Meta de 20 clubes ativos no primeiro mês pós-lançamento.
+    </div>
+  </div>
+
+  <!-- 4.1 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">4.1</span>
+      <span class="task-title">Área do Atleta — Meus Torneios + Histórico</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">10h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Sprint 3 concluída</div>
+    <div class="task-objective">Login opcional para atletas. Após login, atleta vê todos os torneios onde está inscrito, histórico de resultados, próximos jogos com horário.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-create">frontend: AthleteProfile.tsx (CREATE)</li>
+        <li class="file-modify">frontend: AuthModal.tsx (MODIFY — fluxo atleta)</li>
+        <li class="file-create">backend: routes/athletes.ts (CREATE)</li>
+        <li class="file-modify">backend: prisma/schema.prisma (MODIFY — Athlete model)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Login via email + código OTP (sem senha, mais simples) — ou login social (Google)</li>
+        <li>Endpoint GET /api/athletes/me/tournaments: retorna torneios ativos e histórico por email</li>
+        <li>Dashboard do atleta: torneios futuros (com próximo jogo e horário), torneios passados (com resultado)</li>
+        <li>Link "Minha área" no header das páginas públicas para atleta logado</li>
+        <li>Atleta que se inscreve sem conta: email de convite para criar conta após inscrição</li>
+        <li>Compatibilidade: inscrições feitas sem login vinculadas ao atleta pelo email</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Atleta faz login com email e acessa seus torneios</li>
+        <li>Histórico de resultados visível</li>
+        <li>Próximos jogos com horário e quadra</li>
+        <li>Inscrições sem login vinculadas pelo email</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 4.2 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">4.2</span>
+      <span class="task-title">Ranking de Atletas por Categoria e Cidade</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">12h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> 4.1 (área do atleta)</div>
+    <div class="task-objective">Ranking público de atletas calculado a partir dos resultados de torneios. Motor de engajamento e retenção: atletas voltam para melhorar posição no ranking.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-create">frontend: RankingPage.tsx (CREATE)</li>
+        <li class="file-create">backend: routes/ranking.ts (CREATE)</li>
+        <li class="file-create">backend: services/RankingService.ts (CREATE)</li>
+        <li class="file-modify">backend: prisma/schema.prisma (MODIFY — RankingPoint model)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Pontuação: campeão = 100pts, vice = 75pts, semifinal = 50pts, fase de grupos = 20pts</li>
+        <li>Ranking por: categoria (3ª Masc, 4ª Fem, etc.) e cidade</li>
+        <li>Atualizado automaticamente quando torneio muda para COMPLETED</li>
+        <li>Página pública /ranking: filtro por categoria, cidade, período (3m, 6m, 12m)</li>
+        <li>Atleta vê sua posição no ranking na área pessoal</li>
+        <li>Badge "Top 10" no perfil do atleta (futuramente)</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Ranking calculado automaticamente após cada torneio</li>
+        <li>Filtro por categoria e cidade funcional</li>
+        <li>Atleta vê sua posição no ranking</li>
+        <li>Página pública acessível sem login</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 4.3 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">4.3</span>
+      <span class="task-title">PDF de Resultados / Certificado Digital</span>
+      <span class="badge badge-p2">P2</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">8h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Gerar PDF com classificação final do torneio que o clube pode imprimir e entregar como troféu/certificado. Atleta recebe link para download do seu certificado de participação.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-create">backend: services/PDFService.ts (CREATE)</li>
+        <li class="file-modify">backend: routes/tournaments.ts — GET /:id/pdf (MODIFY)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Usar <code>puppeteer</code> ou <code>@react-pdf/renderer</code> para gerar PDF no backend</li>
+        <li>PDF de resultados: classificação geral por categoria, campeão e vice, data e local</li>
+        <li>PDF de certificado individual: "Certificamos que {player1} / {player2} participou de {torneio} na categoria {categoria} — {resultado}"</li>
+        <li>Endpoint GET /api/tournaments/:id/pdf/results → download PDF</li>
+        <li>Endpoint GET /api/tournaments/:id/pdf/certificate/:teamId → certificado individual</li>
+        <li>Botão "Baixar PDF de Resultados" na página do torneio (visível após COMPLETED)</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>PDF de resultados gerado corretamente com dados reais</li>
+        <li>Certificado individual com nome do atleta e resultado</li>
+        <li>Download funcional via botão na página do torneio</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 4.4 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">4.4</span>
+      <span class="task-title">Live Scoring Público — Polling de Resultados</span>
+      <span class="badge badge-p2">P2</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">8h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Página pública de "Ao Vivo" onde espectadores acompanham placares em tempo real (polling a cada 30s). Não requer WebSocket — mais simples e suficiente para MVP.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-modify">frontend: TournamentProfile.tsx — aba "Ao Vivo" (MODIFY)</li>
+        <li class="file-modify">backend: routes/tournaments.ts — GET /:id/live (MODIFY)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Aba "Ao Vivo" na página pública — visível apenas durante ONGOING</li>
+        <li>Polling: re-fetch dos dados do torneio a cada 30 segundos automaticamente</li>
+        <li>Mostrar: jogos em andamento (do dia atual), placar atual, jogos concluídos do dia</li>
+        <li>Indicador visual "Atualizando..." durante o fetch</li>
+        <li>Aba fica desabilitada quando torneio não está ONGOING</li>
+        <li>Cache no backend (30s max-age) para evitar sobrecarga em eventos grandes</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Placares atualizam automaticamente a cada 30s sem refresh manual</li>
+        <li>Visível apenas durante ONGOING</li>
+        <li>Indicador visual de "ao vivo" presente</li>
+        <li>Cache no backend ativo</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 4.5 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">4.5</span>
+      <span class="task-title">SEO — Meta Tags Dinâmicas por Torneio</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">5h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Implementar SSR simples ou pre-rendering para meta tags dinâmicas por torneio. Quando link for compartilhado no WhatsApp, mostrar preview com nome, data e cidade do torneio.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-create">backend: routes/og.ts — GET /og/tournaments/:id (CREATE)</li>
+        <li class="file-modify">frontend: vite.config.ts (MODIFY — se SSG)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Opção A (simples): endpoint backend que serve HTML com OG tags para /og/tournaments/:id</li>
+        <li>Redirect: quando bot de WhatsApp/Facebook acessa /tournaments/:id, redirecionar para /og/tournaments/:id</li>
+        <li>OG tags dinâmicas: og:title = "{nome_torneio} — BubblePadel", og:description = "{cidade} · {data} · {N} duplas inscritas", og:image = imagem padrão Bubble</li>
+        <li>Detectar bot por User-Agent (Twitterbot, facebookexternalhit, WhatsApp, etc.)</li>
+        <li>Título da aba no browser: "{nome_torneio} — BubblePadel" (implementado via document.title no React)</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Link de torneio no WhatsApp mostra preview com nome, data e cidade</li>
+        <li>Título da aba correto para cada torneio</li>
+        <li>Usuários normais não afetados pelo redirect de bots</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 4.6 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">4.6</span>
+      <span class="task-title">COMPLETED Automático — Todos os Placares Salvos</span>
+      <span class="badge badge-p3">P3</span>
+      <span class="badge badge-dev">DEV</span>
+      <span class="badge badge-hours">4h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> 1.5 (cron job)</div>
+    <div class="task-objective">syncStatus já detecta COMPLETED quando playoffs são jogados. Adicionar verificação diária: se todos os grupos E playoffs estão 100% jogados por N dias sem atividade, mover para COMPLETED automaticamente.</div>
+    <div class="task-files">
+      <h5>Arquivos afetados</h5>
+      <ul>
+        <li class="file-modify">backend: jobs/statusSync.ts (MODIFY)</li>
+        <li class="file-modify">backend: routes/tournaments.ts — syncStatus (MODIFY)</li>
+      </ul>
+    </div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Condição: todos os matches de grupos played=true + todos os matches de playoff (não-bye) played=true</li>
+        <li>Cron diário: verificar torneios ONGOING com endDate passada</li>
+        <li>Se condição atendida: mover para COMPLETED + disparar task 3.5 (email resultado)</li>
+        <li>Não forçar COMPLETED se ainda há jogos não jogados (pode haver WO pendente)</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Torneio com todos placares salvos muda para COMPLETED no dia seguinte</li>
+        <li>Torneio com jogos pendentes não é forçado para COMPLETED</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="task-separator">
+
+  <!-- 4.T1 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">4.T1</span>
+      <span class="task-title">Landing Page Final — Implementação + Copy SEO</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-negocio">NEGÓCIO</span>
+      <span class="badge badge-design">DESIGN</span>
+      <span class="badge badge-hours">10h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> 2.T2 (copy e estrutura já definidos)</div>
+    <div class="task-objective">Implementar a landing page de captação de clubes (copy definido em 2.T2) com social proof real dos clubes do beta. Esta é a principal ferramenta de aquisição pós-lançamento.</div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Implementar HTML/React da landing page com todas as seções de 2.T2</li>
+        <li>Integrar depoimentos reais dos clubes coletados em 2.T4</li>
+        <li>CTA principal: "Criar torneio grátis" → redirect para cadastro</li>
+        <li>Keywords para SEO: "gestão de torneio de padel", "software torneio beach tennis", "organizar torneio padel"</li>
+        <li>Schema markup (Organization, SoftwareApplication) para SEO</li>
+        <li>A/B test futuro: preparar para testar 2 versões de headline</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Landing page no ar em bubblepadel.com (ou domínio definitivo)</li>
+        <li>Pelo menos 1 depoimento real de clube beta</li>
+        <li>CTA funcional levando ao cadastro</li>
+        <li>Página carrega em menos de 3s no mobile</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 4.T2 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">4.T2</span>
+      <span class="task-title">Estratégia de Conteúdo + Instagram para Comunidade</span>
+      <span class="badge badge-p1">P1</span>
+      <span class="badge badge-negocio">NEGÓCIO</span>
+      <span class="badge badge-hours">6h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Criar calendário de conteúdo para os primeiros 30 dias pós-lançamento. Foco em comunidade de padel e beach tennis no Instagram e grupos de WhatsApp.</div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Calendário editorial: 3 posts/semana no Instagram (4 semanas = 12 posts)</li>
+        <li>Tipos de conteúdo: bastidores de torneio usando Bubble, dica de organização, resultado de torneio real</li>
+        <li>Template de post de resultado: "🏆 {torneio} finalizado! Campeões na {categoria}: {dupla}" — viral natural</li>
+        <li>Estratégia de WhatsApp: lista dos 20 maiores grupos de padel/beach tennis no Brasil, scripts de divulgação</li>
+        <li>Meta: 5 novos clubes cadastrados via Instagram/WhatsApp no primeiro mês</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>12 posts planejados com copy e formato</li>
+        <li>Template de resultado de torneio criado</li>
+        <li>Lista de grupos WhatsApp com scripts de divulgação</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 4.T3 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">4.T3</span>
+      <span class="task-title">Referral Program Design — "Indique um Clube e Ganhe"</span>
+      <span class="badge badge-p2">P2</span>
+      <span class="badge badge-negocio">NEGÓCIO</span>
+      <span class="badge badge-hours">6h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Projetar o programa de indicação para clubes: clube indica outro clube, ambos ganham desconto na próxima comissão. Motor de crescimento orgânico.</div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Mecânica: clube A indica clube B → quando B organizar 1º torneio pago, A ganha crédito de R$50 em comissões</li>
+        <li>B também ganha: primeiro torneio sem comissão Bubble</li>
+        <li>Máximo: 20 indicações recompensadas por clube (anti-abuso)</li>
+        <li>Código de referral único por clube no dashboard</li>
+        <li>Email de notificação quando indicação converte</li>
+        <li>Regulamento: termos e condições do programa</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Mecânica definida com valores</li>
+        <li>Regulamento do programa redigido</li>
+        <li>Copy de compartilhamento pronto</li>
+        <li>Pronto para implementação DEV em Sprint 5</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 4.T4 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">4.T4</span>
+      <span class="task-title">Growth Metrics Q2 + Unit Economics</span>
+      <span class="badge badge-p2">P2</span>
+      <span class="badge badge-negocio">NEGÓCIO</span>
+      <span class="badge badge-hours">5h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Dados reais da Sprint 3</div>
+    <div class="task-objective">Calcular unit economics reais com dados do beta (CAC, ARPU, LTV) e projetar MRR para os próximos 6 meses. Base para decisões de investimento.</div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>CAC real: quanto custou adquirir cada clube do beta (tempo + ferramentas)</li>
+        <li>ARPU real: receita de comissão por clube por mês (dados do beta)</li>
+        <li>LTV estimado: ARPU × vida média estimada do clube</li>
+        <li>3 cenários para Q2: conservador (10 clubes), base (20), otimista (50)</li>
+        <li>Break-even: custos fixos (Railway, ferramentas) vs receita mínima necessária</li>
+        <li>Template de relatório mensal para acompanhamento</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Unit economics com dados reais do beta</li>
+        <li>3 cenários com projeções mensais</li>
+        <li>Break-even calculado</li>
+        <li>Template de relatório mensal criado</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 4.T5 -->
+  <div class="task-card">
+    <div class="task-header">
+      <span class="task-id">4.T5</span>
+      <span class="task-title">App Mobile — Spec e Priorização</span>
+      <span class="badge badge-p3">P3</span>
+      <span class="badge badge-negocio">NEGÓCIO</span>
+      <span class="badge badge-hours">5h</span>
+    </div>
+    <div class="task-deps"><strong>Dependências:</strong> Nenhuma</div>
+    <div class="task-objective">Definir se e quando construir o app mobile. Analisar uso mobile atual (analytics), avaliar React Native vs PWA, definir MVP do app para Sprint 5+.</div>
+    <details>
+      <summary>▸ Requisitos detalhados</summary>
+      <ol>
+        <li>Analisar % de acesso mobile vs desktop no beta</li>
+        <li>Avaliar: PWA (mais fácil, sem loja) vs React Native (melhor UX, push notifications)</li>
+        <li>Se app: MVP do app = quais telas? (sugestão: página pública, inscrição, meus torneios, live scoring)</li>
+        <li>Avaliar custo: Apple Developer ($99/ano), Google Play ($25 único)</li>
+        <li>Decisão documentada com justificativa</li>
+      </ol>
+    </details>
+    <div class="acceptance">
+      <h5>Critérios de aceite</h5>
+      <ul>
+        <li>Decisão PWA vs React Native documentada</li>
+        <li>Se app: MVP definido com lista de telas</li>
+        <li>Timeline estimada para Sprint 5</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sprint-summary">
+    <div><div class="stat-value">11</div><div class="stat-label">Tasks</div></div>
+    <div><div class="stat-value">0</div><div class="stat-label">P0 Blockers</div></div>
+    <div><div class="stat-value">~47h</div><div class="stat-label">Horas DEV</div></div>
+    <div><div class="stat-value">~32h</div><div class="stat-label">Horas Negócio</div></div>
+    <div><div class="stat-value">~73h</div><div class="stat-label">Total</div></div>
+  </div>
+</section>
+
+<!-- ========================================================== -->
+<!-- RESUMO CONSOLIDADO -->
+<!-- ========================================================== -->
+<section id="resumo">
+  <h2 class="section-title">Resumo Consolidado</h2>
+
+  <div class="summary-table-wrap">
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th>Sprint</th>
+          <th>Tasks</th>
+          <th>P0</th>
+          <th>P1</th>
+          <th>P2</th>
+          <th>P3</th>
+          <th>Horas DEV</th>
+          <th>Horas Negócio</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Sprint 1 — Legal + Emails</td>
+          <td>9</td>
+          <td>3</td>
+          <td>3</td>
+          <td>0</td>
+          <td>0</td>
+          <td>~33h</td>
+          <td>~20h</td>
+          <td>~53h</td>
+        </tr>
+        <tr>
+          <td>Sprint 2 — Alpha + Onboarding</td>
+          <td>8</td>
+          <td>1</td>
+          <td>6</td>
+          <td>1</td>
+          <td>0</td>
+          <td>~23h</td>
+          <td>~21h</td>
+          <td>~44h</td>
+        </tr>
+        <tr>
+          <td>Sprint 3 — Beta + Pagamento</td>
+          <td>10</td>
+          <td>3</td>
+          <td>4</td>
+          <td>2</td>
+          <td>0</td>
+          <td>~45h</td>
+          <td>~15h</td>
+          <td>~72h</td>
+        </tr>
+        <tr>
+          <td>Sprint 4 — Lançamento Público</td>
+          <td>11</td>
+          <td>0</td>
+          <td>5</td>
+          <td>4</td>
+          <td>2</td>
+          <td>~47h</td>
+          <td>~32h</td>
+          <td>~73h</td>
+        </tr>
+        <tr>
+          <td><strong>TOTAL</strong></td>
+          <td><strong>38</strong></td>
+          <td><strong>7</strong></td>
+          <td><strong>18</strong></td>
+          <td><strong>7</strong></td>
+          <td><strong>2</strong></td>
+          <td><strong>~148h</strong></td>
+          <td><strong>~88h</strong></td>
+          <td><strong>~242h</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="key-stats">
+    <div class="key-stat"><div class="val">38</div><div class="lbl">Total Tasks</div></div>
+    <div class="key-stat"><div class="val" style="color:var(--red);">7</div><div class="lbl">P0 Blockers</div></div>
+    <div class="key-stat"><div class="val">~148h</div><div class="lbl">Horas DEV</div></div>
+    <div class="key-stat"><div class="val">~88h</div><div class="lbl">Horas Negócio</div></div>
+    <div class="key-stat"><div class="val" style="color:var(--green);">~242h</div><div class="lbl">Total Estimado</div></div>
+    <div class="key-stat"><div class="val">4</div><div class="lbl">Sprints</div></div>
+  </div>
+
+  <div class="critical-path">
+    <strong>Caminho Crítico até Primeira Receita:</strong><br><br>
+    <code>1.T1</code> → <code>1.1</code> (termos) → <code>1.2</code> (email confirmação) → <code>2.T1</code> (modelo monetização) → <code>3.T1</code> (compliance pagamento) → <code>3.1</code> (gateway PIX) → <code>3.2</code> (flow frontend) = <strong>Primeiro pagamento real</strong><br><br>
+    Qualquer atraso nesta cadeia impacta diretamente a data do primeiro faturamento. A decisão do modelo de monetização (2.T1) é o gargalo mais crítico — sem ela, a Sprint 3 não pode começar.
+  </div>
+
+  <div class="dep-graph" style="margin-top:2rem;">
+    <h3>Distribuição por Tipo</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-top:1rem;">
+      <div style="text-align:center;padding:1rem;background:rgba(0,255,136,0.06);border-radius:8px;border:1px solid rgba(0,255,136,0.2);">
+        <div style="font-size:2rem;font-weight:800;color:var(--green);">22</div>
+        <div style="font-size:0.85rem;color:var(--green);">DEV Tasks</div>
+      </div>
+      <div style="text-align:center;padding:1rem;background:rgba(139,92,246,0.06);border-radius:8px;border:1px solid rgba(139,92,246,0.2);">
+        <div style="font-size:2rem;font-weight:800;color:var(--purple);">11</div>
+        <div style="font-size:0.85rem;color:var(--purple);">NEGÓCIO Tasks</div>
+      </div>
+      <div style="text-align:center;padding:1rem;background:rgba(239,68,68,0.06);border-radius:8px;border:1px solid rgba(239,68,68,0.2);">
+        <div style="font-size:2rem;font-weight:800;color:var(--red);">3</div>
+        <div style="font-size:0.85rem;color:var(--red);">LEGAL Tasks</div>
+      </div>
+      <div style="text-align:center;padding:1rem;background:rgba(236,72,153,0.06);border-radius:8px;border:1px solid rgba(236,72,153,0.2);">
+        <div style="font-size:2rem;font-weight:800;color:var(--pink);">2</div>
+        <div style="font-size:0.85rem;color:var(--pink);">DESIGN Tasks</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer style="text-align:center;padding:2rem;border-top:1px solid var(--border);color:var(--muted);font-size:0.82rem;">
+  BubblePadel — Backlog Técnico Detalhado · Março 2026 · 38 tasks · 4 sprints · ~242h · Stack: React + TypeScript + Node.js + Prisma + PostgreSQL
+</footer>
+
+</body>
+</html>
