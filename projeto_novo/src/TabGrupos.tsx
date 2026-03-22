@@ -957,6 +957,12 @@ export default function TabGrupos({
                   sets: payload.sets,
                   ...(payload.wo ? { wo: payload.wo } : {}),
                 });
+                // Sincroniza status do torneio (ONGOING/COMPLETED)
+                try {
+                  await TournamentService.syncStatus(tournament.id);
+                } catch (e) {
+                  console.warn("sync-status falhou:", e);
+                }
               }}
               onClose={() =>
                 setScoreModal({ open: false, groupId: "", match: null })
@@ -986,6 +992,12 @@ export default function TabGrupos({
                   payload.score2,
                   winnerId,
                 );
+                // Sincroniza status do torneio (ONGOING/COMPLETED)
+                try {
+                  await TournamentService.syncStatus(tournament.id);
+                } catch (e) {
+                  console.warn("sync-status falhou:", e);
+                }
                 setPlayoffScoreModal(null);
               }}
               onClose={() => setPlayoffScoreModal(null)}

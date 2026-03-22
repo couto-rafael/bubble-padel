@@ -179,6 +179,14 @@ export const TournamentService = {
       headers: authHeaders(),
     });
   },
+
+  syncStatus: async (id: string): Promise<{ status: string }> => {
+    const res = await fetch(`${API_URL}/tournaments/${id}/sync-status`, {
+      method: "POST",
+      headers: authHeaders(),
+    });
+    return handleResponse<{ status: string }>(res);
+  },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

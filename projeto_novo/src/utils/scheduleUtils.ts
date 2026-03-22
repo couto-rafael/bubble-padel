@@ -283,7 +283,10 @@ export function generateAutoSchedule(
 
   const result: ScheduleEntry[] = [];
 
-  for (const match of orderedMatches) {
+  // ── Fase 1: atribuir jogos de grupo ──────────────────────────────────────
+  let lastGroupSlotIdx = -1;
+
+  for (const match of shuffledGroup) {
     let assigned = false;
 
     for (let si = 0; si < slots.length; si++) {
@@ -293,7 +296,6 @@ export function generateAutoSchedule(
 
       if (usedSlots.has(slotKey)) continue;
 
-      // Verificar conflito de atletas
       if (match.team1Id || match.team2Id) {
         const existing = playerSlots[timeKey] ?? new Set<string>();
         if (
@@ -304,7 +306,6 @@ export function generateAutoSchedule(
         }
       }
 
-      // Atribuir slot
       usedSlots.add(slotKey);
       if (!playerSlots[timeKey]) playerSlots[timeKey] = new Set();
       if (match.team1Id) playerSlots[timeKey].add(match.team1Id);
@@ -316,12 +317,63 @@ export function generateAutoSchedule(
         date: slot.date,
         time: slot.time,
       });
+      if (si > lastGroupSlotIdx) lastGroupSlotIdx = si;
       assigned = true;
       break;
     }
 
     if (!assigned) {
-      console.warn(`[schedule] Sem slot disponível para jogo ${match.id}`);
+      console.warn(
+        `[schedule] Sem slot disponível para jogo de grupo ${match.id}`,
+      );
+    }
+  }
+
+  // ── Fase 2: atribuir jogos de playoff APÓS o último jogo de grupo ─────────
+  // Playoffs por categoria, ordenados por rodada (R1 → SF → F)
+  const playoffByRound: Record<number, typeof playoffOrder> = {};
+  for (const m of playoffOrder) {
+    const roundSize =
+      playoffBrackets.flatMap((b) => b.matches).find((bm) => bm.id === m.id)
+        ?.roundSize ?? 0;
+    if (!playoffByRound[roundSize]) playoffByRound[roundSize] = [];
+    playoffByRound[roundSize].push(m);
+  }
+  const sortedRounds = Object.keys(playoffByRound)
+    .map(Number)
+    .sort((a, b) => b - a);
+
+  let playoffStartIdx = lastGroupSlotIdx + 1;
+
+  for (const roundSize of sortedRounds) {
+    const roundStartIdx = playoffStartIdx;
+    for (const match of playoffByRound[roundSize]) {
+      let assigned = false;
+
+      for (let si = roundStartIdx; si < slots.length; si++) {
+        const slot = slots[si];
+        const slotKey = `${slot.date}|${slot.time}|${slot.court}`;
+        const timeKey = `${slot.date}|${slot.time}`;
+
+        if (usedSlots.has(slotKey)) continue;
+
+        usedSlots.add(slotKey);
+        if (!playerSlots[timeKey]) playerSlots[timeKey] = new Set();
+
+        result.push({
+          matchId: match.id,
+          court: slot.court,
+          date: slot.date,
+          time: slot.time,
+        });
+        if (si >= playoffStartIdx) playoffStartIdx = si + 1;
+        assigned = true;
+        break;
+      }
+
+      if (!assigned) {
+        console.warn(`[schedule] Sem slot disponível para playoff ${match.id}`);
+      }
     }
   }
 

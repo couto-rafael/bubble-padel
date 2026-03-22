@@ -174,6 +174,69 @@ tournamentRoutes.post(
   },
 );
 
+// POST /api/tournaments/:id/sync-status — atualiza status automaticamente
+// ONGOING: quando primeiro placar de grupo for salvo
+// COMPLETED: quando todos os jogos de playoff (não-bye) estiverem jogados
+tournamentRoutes.post(
+  "/:id/sync-status",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const tournament = await prisma.tournament.findFirst({
+        where: { id: req.params.id, clubId: req.clubId! },
+        include: {
+          groups: { include: { matches: true } },
+          playoffs: { include: { matches: true } },
+        },
+      });
+      if (!tournament)
+        return res.status(404).json({ error: "Torneio não encontrado" });
+
+      const currentStatus = tournament.status as string;
+
+      // Já finalizado — não mexe
+      if (currentStatus === "COMPLETED")
+        return res.json({ data: { status: currentStatus } });
+
+      // Verifica se algum jogo de grupo foi jogado → ONGOING
+      const anyGroupPlayed = (tournament as any).groups.some((g: any) =>
+        g.matches.some((m: any) => m.played),
+      );
+
+      // Verifica se todos os jogos de playoff (não-bye) foram jogados → COMPLETED
+      const allPlayoffMatches = (tournament as any).playoffs.flatMap((b: any) =>
+        b.matches.filter((m: any) => !m.isBye),
+      );
+      const allPlayoffPlayed =
+        allPlayoffMatches.length > 0 &&
+        allPlayoffMatches.every((m: any) => m.played);
+
+      let newStatus: any = currentStatus;
+
+      if (allPlayoffPlayed) {
+        newStatus = "COMPLETED";
+      } else if (
+        anyGroupPlayed &&
+        currentStatus !== "ONGOING" &&
+        currentStatus !== "COMPLETED"
+      ) {
+        newStatus = "ONGOING";
+      }
+
+      if (newStatus !== currentStatus) {
+        await prisma.tournament.update({
+          where: { id: req.params.id },
+          data: { status: newStatus as any },
+        });
+      }
+
+      return res.json({ data: { status: newStatus } });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // ROTAS PÚBLICAS (sem autenticação)
 // ─────────────────────────────────────────────────────────────────────────────

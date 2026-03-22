@@ -214,7 +214,29 @@ const TournamentProfile = () => {
       setRegisterSuccess(true);
       setShowRegisterForm(false);
     } catch (err: any) {
-      setRegisterError(err.message ?? "Erro ao realizar inscrição.");
+      try {
+        const parsed = JSON.parse(err.message);
+        if (Array.isArray(parsed) && parsed[0]?.message) {
+          const fieldMap: Record<string, string> = {
+            player1Name: "Nome do Jogador 1",
+            player1Email: "Email do Jogador 1",
+            player2Name: "Nome do Jogador 2",
+            player2Email: "Email do Jogador 2",
+            category: "Categoria",
+          };
+          const field = parsed[0]?.path?.[0];
+          const fieldLabel = field ? (fieldMap[field] ?? field) : "";
+          const msg =
+            parsed[0].message === "Invalid email"
+              ? "Email inválido"
+              : parsed[0].message;
+          setRegisterError(fieldLabel ? fieldLabel + ": " + msg : msg);
+        } else {
+          setRegisterError("Erro ao realizar inscrição.");
+        }
+      } catch {
+        setRegisterError(err.message ?? "Erro ao realizar inscrição.");
+      }
     } finally {
       setRegisterLoading(false);
     }
@@ -294,7 +316,8 @@ const TournamentProfile = () => {
   // Label do torneio em si
   const tournamentStatusMap: Record<string, string> = {
     open: "Inscrições Abertas",
-    published: "Agendado",
+    published: "Em Breve",
+    closed: "Inscrições Encerradas",
     ongoing: "Em Andamento",
     completed: "Encerrado",
     draft: "Rascunho",
@@ -304,7 +327,9 @@ const TournamentProfile = () => {
   const inscricaoLabel =
     statusRaw === "open"
       ? "Abertas"
-      : statusRaw === "ongoing" || statusRaw === "completed"
+      : statusRaw === "closed" ||
+          statusRaw === "ongoing" ||
+          statusRaw === "completed"
         ? "Encerradas"
         : "Não abertas";
   const confirmedTeams = tournament.teams ?? [];
@@ -536,12 +561,21 @@ const TournamentProfile = () => {
                     Inscrever-se
                   </button>
                 ) : (
-                  <div className="w-full py-3.5 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold text-base text-center mb-4 cursor-not-allowed">
-                    {tournament.status?.toLowerCase() === "ongoing"
-                      ? "Torneio em Andamento"
-                      : tournament.status?.toLowerCase() === "completed"
-                        ? "Torneio Finalizado"
-                        : "Inscrições Em Breve"}
+                  <div
+                    className={
+                      "w-full py-3.5 border rounded-lg font-bold text-base text-center mb-4 cursor-not-allowed " +
+                      (tournament.status?.toLowerCase() === "closed"
+                        ? "bg-red-500/10 border-red-500/20 text-red-400"
+                        : "bg-white/5 border-white/10 text-gray-400")
+                    }
+                  >
+                    {tournament.status?.toLowerCase() === "closed"
+                      ? "Inscrições Encerradas"
+                      : tournament.status?.toLowerCase() === "ongoing"
+                        ? "Torneio em Andamento"
+                        : tournament.status?.toLowerCase() === "completed"
+                          ? "Torneio Finalizado"
+                          : "Inscrições Em Breve"}
                   </div>
                 )}
 
@@ -2035,9 +2069,6 @@ const TournamentProfile = () => {
                         final.score1 > final.score2
                           ? final.team2Label
                           : final.team1Label;
-                      const thirdPlacers = semi.map((m: any) =>
-                        m.score1 > m.score2 ? m.team2Label : m.team1Label,
-                      );
                       return (
                         <div
                           key={bracket.id}
@@ -2080,18 +2111,6 @@ const TournamentProfile = () => {
                                 {runnerUp ?? "A definir"}
                               </p>
                             </div>
-                            {thirdPlacers.length > 0 && (
-                              <div className="mt-6 pt-6 border-t border-white/10 text-center">
-                                <p className="text-xs text-gray-500 mb-1">
-                                  3º Lugar
-                                </p>
-                                {thirdPlacers.map((t: string, i: number) => (
-                                  <p key={i} className="text-sm text-gray-400">
-                                    {t}
-                                  </p>
-                                ))}
-                              </div>
-                            )}
                           </div>
                         </div>
                       );
