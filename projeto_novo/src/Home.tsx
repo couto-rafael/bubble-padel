@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import AuthModal from './AuthModal';
-import MobileMenu from './MobileMenu';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import AuthModal from "./AuthModal";
+import MobileMenu from "./MobileMenu";
 
 const Home = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -9,7 +9,10 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-[#0a0e27] text-white font-sans antialiased">
       {/* Auth Modal */}
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
 
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e27]/95 backdrop-blur-sm border-b border-white/5">
@@ -17,20 +20,50 @@ const Home = () => {
           <div className="flex items-center justify-between h-20">
             <Link to="/" className="flex items-center gap-2">
               <div className="w-10 h-10 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-[#0a0e27]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <svg
+                  className="w-6 h-6 text-[#0a0e27]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
                 </svg>
               </div>
               <span className="text-2xl font-bold tracking-tight">Bubble</span>
             </Link>
-            
+
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Recursos</a>
-              <Link to="/tournaments" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Torneios</Link>
-              <a href="#pricing" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Preços</a>
-              <Link to="/contact" className="text-gray-300 hover:text-white transition-colors text-sm font-medium">Contato</Link>
-              <button 
+              <a
+                href="#features"
+                className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+              >
+                Recursos
+              </a>
+              <Link
+                to="/tournaments"
+                className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+              >
+                Torneios
+              </Link>
+              <a
+                href="#pricing"
+                className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+              >
+                Preços
+              </a>
+              <Link
+                to="/contact"
+                className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+              >
+                Contato
+              </Link>
+              <button
                 onClick={() => setIsAuthModalOpen(true)}
                 className="px-6 py-2.5 bg-[#00ff88] text-[#0a0e27] rounded-lg font-semibold text-sm hover:bg-[#00dd77] transition-all hover:scale-105"
               >
@@ -51,30 +84,44 @@ const Home = () => {
           <div className="absolute top-20 right-20 w-96 h-96 bg-[#00ff88] rounded-full blur-[120px]"></div>
           <div className="absolute bottom-20 left-20 w-96 h-96 bg-[#00ccff] rounded-full blur-[120px]"></div>
         </div>
-        
+
         <div className="relative max-w-7xl mx-auto">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full mb-8 animate-fade-in">
               <span className="w-2 h-2 bg-[#00ff88] rounded-full animate-pulse"></span>
-              <span className="text-sm text-gray-300">Mais de 500 clubes de padel confiam na gente</span>
+              <span className="text-sm text-gray-300">
+                Mais de 500 clubes de padel confiam na gente
+              </span>
             </div>
-            
+
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6 leading-[1.1]">
               Organize Torneios de Padel
               <span className="block bg-gradient-to-r from-[#00ff88] to-[#00ccff] bg-clip-text text-transparent mt-2">
                 Sem Complicação
               </span>
             </h1>
-            
+
             <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
-              Chega de planilhas e grupos de WhatsApp. Bubble é a plataforma completa para criar, gerenciar e realizar torneios profissionais de padel sem estresse.
+              Chega de planilhas e grupos de WhatsApp. Bubble é a plataforma
+              completa para criar, gerenciar e realizar torneios profissionais
+              de padel sem estresse.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <button className="group px-8 py-4 bg-[#00ff88] text-[#0a0e27] rounded-xl font-bold text-lg hover:bg-[#00dd77] transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(0,255,136,0.4)] flex items-center gap-2">
                 Criar Seu Primeiro Torneio
-                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                <svg
+                  className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2.5}
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                  />
                 </svg>
               </button>
               <button className="px-8 py-4 border-2 border-white/20 text-white rounded-xl font-bold text-lg hover:bg-white/5 transition-all hover:border-white/40">
@@ -89,52 +136,93 @@ const Home = () => {
       <section className="py-20 px-6 lg:px-8 bg-gradient-to-b from-[#0a0e27] to-[#0f1540]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-4">Como Funciona</h2>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">Três passos simples para realizar torneios profissionais</p>
+            <h2 className="text-4xl md:text-5xl font-black mb-4">
+              Como Funciona
+            </h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Três passos simples para realizar torneios profissionais
+            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                step: '01',
-                title: 'Crie o Torneio',
-                description: 'Configure seu torneio em minutos. Defina formato, grupos, datas e regras de inscrição com nosso criador intuitivo.',
+                step: "01",
+                title: "Crie o Torneio",
+                description:
+                  "Configure seu torneio em minutos. Defina formato, grupos, datas e regras de inscrição com nosso criador intuitivo.",
                 icon: (
-                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  <svg
+                    className="w-8 h-8"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
                   </svg>
-                )
+                ),
               },
               {
-                step: '02',
-                title: 'Jogadores se Inscrevem',
-                description: 'Compartilhe o link do torneio. Jogadores se inscrevem e pagam online. Acompanhe as inscrições em tempo real com confirmações automáticas.',
+                step: "02",
+                title: "Jogadores se Inscrevem",
+                description:
+                  "Compartilhe o link do torneio. Jogadores se inscrevem e pagam online. Acompanhe as inscrições em tempo real com confirmações automáticas.",
                 icon: (
-                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <svg
+                    className="w-8 h-8"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
                   </svg>
-                )
+                ),
               },
               {
-                step: '03',
-                title: 'Realize e Acompanhe',
-                description: 'Gere partidas automaticamente. Atualize placares em tempo real. Jogadores e espectadores acompanham classificações e chaves ao vivo.',
+                step: "03",
+                title: "Realize e Acompanhe",
+                description:
+                  "Gere partidas automaticamente. Atualize placares em tempo real. Jogadores e espectadores acompanham classificações e chaves ao vivo.",
                 icon: (
-                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  <svg
+                    className="w-8 h-8"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                    />
                   </svg>
-                )
-              }
+                ),
+              },
             ].map((item, index) => (
               <div key={index} className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#00ff88]/10 to-[#00ccff]/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all"></div>
                 <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-8 rounded-2xl border border-white/10 hover:border-[#00ff88]/30 transition-all">
-                  <div className="text-[#00ff88]/30 text-6xl font-black mb-4">{item.step}</div>
+                  <div className="text-[#00ff88]/30 text-6xl font-black mb-4">
+                    {item.step}
+                  </div>
                   <div className="w-16 h-16 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-xl flex items-center justify-center mb-6 text-[#0a0e27]">
                     {item.icon}
                   </div>
                   <h3 className="text-2xl font-bold mb-3">{item.title}</h3>
-                  <p className="text-gray-400 leading-relaxed">{item.description}</p>
+                  <p className="text-gray-400 leading-relaxed">
+                    {item.description}
+                  </p>
                 </div>
               </div>
             ))}
@@ -146,73 +234,148 @@ const Home = () => {
       <section id="features" className="py-20 px-6 lg:px-8 bg-[#0a0e27]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-4">Feito Para o Padel Moderno</h2>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">Tudo que você precisa para realizar torneios de classe mundial</p>
+            <h2 className="text-4xl md:text-5xl font-black mb-4">
+              Feito Para o Padel Moderno
+            </h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Tudo que você precisa para realizar torneios de classe mundial
+            </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               {
-                title: 'Criação de Torneios',
-                description: 'Formatos disponíveis: Super 8, Mata-mata, Grupo + Mata-mata. Configure tudo em um só lugar.',
+                title: "Criação de Torneios",
+                description:
+                  "Formatos disponíveis: Super 8, Mata-mata, Grupo + Mata-mata. Configure tudo em um só lugar.",
                 icon: (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
                   </svg>
-                )
+                ),
               },
               {
-                title: 'Organização Inteligente',
-                description: 'Agendamento automático de partidas, alocação de quadras e geração de chaves. Zero trabalho manual.',
+                title: "Organização Inteligente",
+                description:
+                  "Agendamento automático de partidas, alocação de quadras e geração de chaves. Zero trabalho manual.",
                 icon: (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                    />
                   </svg>
-                )
+                ),
               },
               {
-                title: 'Resultados em Tempo Real',
-                description: 'Atualizações de placar ao vivo, classificações instantâneas e notificações automáticas para todos os participantes.',
+                title: "Resultados em Tempo Real",
+                description:
+                  "Atualizações de placar ao vivo, classificações instantâneas e notificações automáticas para todos os participantes.",
                 icon: (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
                   </svg>
-                )
+                ),
               },
               {
-                title: 'Experiência Mobile-First',
-                description: 'Perfeito em qualquer dispositivo. Jogadores gerenciam tudo pelo celular durante os torneios.',
+                title: "Experiência Mobile-First",
+                description:
+                  "Perfeito em qualquer dispositivo. Jogadores gerenciam tudo pelo celular durante os torneios.",
                 icon: (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
+                    />
                   </svg>
-                )
+                ),
               },
               {
-                title: 'Feito Para Clubes',
-                description: 'Gerenciamento de múltiplos torneios, banco de dados de membros e templates de eventos recorrentes para clubes.',
+                title: "Feito Para Clubes",
+                description:
+                  "Gerenciamento de múltiplos torneios, banco de dados de membros e templates de eventos recorrentes para clubes.",
                 icon: (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    />
                   </svg>
-                )
+                ),
               },
               {
-                title: 'Feito Para Atletas',
-                description: 'Perfis de jogadores, estatísticas de desempenho, sistemas de ranking e histórico de torneios.',
+                title: "Feito Para Atletas",
+                description:
+                  "Perfis de jogadores, estatísticas de desempenho, sistemas de ranking e histórico de torneios.",
                 icon: (
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                    />
                   </svg>
-                )
-              }
+                ),
+              },
             ].map((feature, index) => (
-              <div key={index} className="group bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/5 hover:border-[#00ff88]/30 transition-all hover:scale-[1.02]">
+              <div
+                key={index}
+                className="group bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/5 hover:border-[#00ff88]/30 transition-all hover:scale-[1.02]"
+              >
                 <div className="w-12 h-12 bg-gradient-to-br from-[#00ff88]/20 to-[#00ccff]/20 rounded-lg flex items-center justify-center mb-4 text-[#00ff88] group-hover:scale-110 transition-transform">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{feature.description}</p>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  {feature.description}
+                </p>
               </div>
             ))}
           </div>
@@ -223,8 +386,12 @@ const Home = () => {
       <section className="py-20 px-6 lg:px-8 bg-gradient-to-b from-[#0a0e27] to-[#0f1540]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-4">Para Quem é o Bubble?</h2>
-            <p className="text-xl text-gray-400">Feito para todos no ecossistema do padel</p>
+            <h2 className="text-4xl md:text-5xl font-black mb-4">
+              Para Quem é o Bubble?
+            </h2>
+            <p className="text-xl text-gray-400">
+              Feito para todos no ecossistema do padel
+            </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -232,25 +399,53 @@ const Home = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-[#00ff88]/10 to-transparent rounded-2xl blur-2xl"></div>
               <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-10 rounded-2xl border border-white/10 hover:border-[#00ff88]/30 transition-all">
                 <div className="w-16 h-16 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-2xl flex items-center justify-center mb-6">
-                  <svg className="w-8 h-8 text-[#0a0e27]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  <svg
+                    className="w-8 h-8 text-[#0a0e27]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                    />
                   </svg>
                 </div>
-                <h3 className="text-3xl font-bold mb-4">Clubes & Organizadores</h3>
+                <h3 className="text-3xl font-bold mb-4">
+                  Clubes & Organizadores
+                </h3>
                 <p className="text-gray-400 mb-6 leading-relaxed">
-                  Realize torneios profissionais sem pesadelo administrativo. Economize horas de organização, elimine o caos das inscrições e ofereça uma experiência premium que faz os jogadores voltarem.
+                  Realize torneios profissionais sem pesadelo administrativo.
+                  Economize horas de organização, elimine o caos das inscrições
+                  e ofereça uma experiência premium que faz os jogadores
+                  voltarem.
                 </p>
                 <ul className="space-y-3">
                   {[
-                    'Automatize inscrições e pagamentos',
-                    'Gere chaves instantaneamente',
-                    'Gerencie múltiplos torneios',
-                    'Acompanhe participação de membros'
+                    "Automatize inscrições e pagamentos",
+                    "Gere chaves instantaneamente",
+                    "Gerencie múltiplos torneios",
+                    "Acompanhe participação de membros",
                   ].map((item, index) => (
-                    <li key={index} className="flex items-center gap-3 text-gray-300">
+                    <li
+                      key={index}
+                      className="flex items-center gap-3 text-gray-300"
+                    >
                       <div className="w-5 h-5 bg-[#00ff88]/20 rounded flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3 h-3 text-[#00ff88]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        <svg
+                          className="w-3 h-3 text-[#00ff88]"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={3}
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                       </div>
                       {item}
@@ -264,25 +459,50 @@ const Home = () => {
               <div className="absolute inset-0 bg-gradient-to-br from-[#00ccff]/10 to-transparent rounded-2xl blur-2xl"></div>
               <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-10 rounded-2xl border border-white/10 hover:border-[#00ccff]/30 transition-all">
                 <div className="w-16 h-16 bg-gradient-to-br from-[#00ccff] to-[#0099cc] rounded-2xl flex items-center justify-center mb-6">
-                  <svg className="w-8 h-8 text-[#0a0e27]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  <svg
+                    className="w-8 h-8 text-[#0a0e27]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                    />
                   </svg>
                 </div>
                 <h3 className="text-3xl font-bold mb-4">Jogadores & Atletas</h3>
                 <p className="text-gray-400 mb-6 leading-relaxed">
-                  Foque no seu jogo, não na logística. Inscreva-se em torneios em segundos, acompanhe suas partidas ao vivo e construa seu perfil competitivo. Tudo que você precisa no bolso.
+                  Foque no seu jogo, não na logística. Inscreva-se em torneios
+                  em segundos, acompanhe suas partidas ao vivo e construa seu
+                  perfil competitivo. Tudo que você precisa no bolso.
                 </p>
                 <ul className="space-y-3">
                   {[
-                    'Inscrição em torneios com um clique',
-                    'Placares e classificações ao vivo',
-                    'Acompanhamento de desempenho',
-                    'Histórico e rankings de torneios'
+                    "Inscrição em torneios com um clique",
+                    "Placares e classificações ao vivo",
+                    "Acompanhamento de desempenho",
+                    "Histórico e rankings de torneios",
                   ].map((item, index) => (
-                    <li key={index} className="flex items-center gap-3 text-gray-300">
+                    <li
+                      key={index}
+                      className="flex items-center gap-3 text-gray-300"
+                    >
                       <div className="w-5 h-5 bg-[#00ccff]/20 rounded flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3 h-3 text-[#00ccff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        <svg
+                          className="w-3 h-3 text-[#00ccff]"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={3}
+                            d="M5 13l4 4L19 7"
+                          />
                         </svg>
                       </div>
                       {item}
@@ -299,48 +519,71 @@ const Home = () => {
       <section className="py-20 px-6 lg:px-8 bg-[#0a0e27]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-4">Feito Para Clubes de Padel Modernos</h2>
-            <p className="text-xl text-gray-400">Confiável pelos principais clubes do Brasil</p>
+            <h2 className="text-4xl md:text-5xl font-black mb-4">
+              Feito Para Clubes de Padel Modernos
+            </h2>
+            <p className="text-xl text-gray-400">
+              Confiável pelos principais clubes do Brasil
+            </p>
           </div>
 
           {/* Logo Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
-            {['Padel Pro', 'Court Masters', 'Racket Club', 'Ace Courts'].map((name, index) => (
-              <div key={index} className="bg-gradient-to-br from-[#1a1f4a]/30 to-[#0f1540]/30 p-8 rounded-xl border border-white/5 flex items-center justify-center">
-                <div className="text-gray-500 font-bold text-lg">{name}</div>
-              </div>
-            ))}
+            {["Padel Pro", "Court Masters", "Racket Club", "Ace Courts"].map(
+              (name, index) => (
+                <div
+                  key={index}
+                  className="bg-gradient-to-br from-[#1a1f4a]/30 to-[#0f1540]/30 p-8 rounded-xl border border-white/5 flex items-center justify-center"
+                >
+                  <div className="text-gray-500 font-bold text-lg">{name}</div>
+                </div>
+              ),
+            )}
           </div>
 
           {/* Testimonials */}
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
-                quote: "O Bubble transformou como organizamos torneios. O que levava dias agora leva minutos. Nossos membros adoram a experiência profissional.",
+                quote:
+                  "O Bubble transformou como organizamos torneios. O que levava dias agora leva minutos. Nossos membros adoram a experiência profissional.",
                 author: "Carlos Rodrigues",
-                role: "Diretor de Torneios, Madrid Padel Club"
+                role: "Diretor de Torneios, Madrid Padel Club",
               },
               {
-                quote: "As atualizações em tempo real e o agendamento automatizado economizaram incontáveis horas. Os jogadores finalmente podem focar em jogar ao invés de perguntar sobre horários das partidas.",
+                quote:
+                  "As atualizações em tempo real e o agendamento automatizado economizaram incontáveis horas. Os jogadores finalmente podem focar em jogar ao invés de perguntar sobre horários das partidas.",
                 author: "Sofia Martinez",
-                role: "Gerente de Clube, Barcelona Courts"
+                role: "Gerente de Clube, Barcelona Courts",
               },
               {
-                quote: "Dobramos nossa frequência de torneios desde que mudamos para o Bubble. A plataforma cuida de tudo perfeitamente, da inscrição aos resultados finais.",
+                quote:
+                  "Dobramos nossa frequência de torneios desde que mudamos para o Bubble. A plataforma cuida de tudo perfeitamente, da inscrição aos resultados finais.",
                 author: "Miguel Santos",
-                role: "Organizador, Lisbon Padel League"
-              }
+                role: "Organizador, Lisbon Padel League",
+              },
             ].map((testimonial, index) => (
-              <div key={index} className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-8 rounded-xl border border-white/10">
+              <div
+                key={index}
+                className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-8 rounded-xl border border-white/10"
+              >
                 <div className="text-[#00ff88] mb-4">
-                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-8 h-8"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
                   </svg>
                 </div>
-                <p className="text-gray-300 mb-6 leading-relaxed">{testimonial.quote}</p>
+                <p className="text-gray-300 mb-6 leading-relaxed">
+                  {testimonial.quote}
+                </p>
                 <div>
                   <div className="font-bold">{testimonial.author}</div>
-                  <div className="text-sm text-gray-500">{testimonial.role}</div>
+                  <div className="text-sm text-gray-500">
+                    {testimonial.role}
+                  </div>
                 </div>
               </div>
             ))}
@@ -349,11 +592,18 @@ const Home = () => {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-20 px-6 lg:px-8 bg-gradient-to-b from-[#0a0e27] to-[#0f1540]">
+      <section
+        id="pricing"
+        className="py-20 px-6 lg:px-8 bg-gradient-to-b from-[#0a0e27] to-[#0f1540]"
+      >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-4">100% Gratuito Para Você</h2>
-            <p className="text-xl text-gray-400">Organize quantos torneios quiser. Sem mensalidade, sem custo fixo.</p>
+            <h2 className="text-4xl md:text-5xl font-black mb-4">
+              100% Gratuito Para Você
+            </h2>
+            <p className="text-xl text-gray-400">
+              Organize quantos torneios quiser. Sem mensalidade, sem custo fixo.
+            </p>
           </div>
 
           {/* Main Free Card */}
@@ -374,10 +624,21 @@ const Home = () => {
 
                   <div className="max-w-2xl mx-auto mb-8">
                     <p className="text-xl md:text-2xl text-gray-300 mb-6 leading-relaxed">
-                      Crie <span className="text-[#00ff88] font-bold">torneios ilimitados</span>, adicione <span className="text-[#00ff88] font-bold">jogadores ilimitados</span> e gerencie tudo sem pagar nada.
+                      Crie{" "}
+                      <span className="text-[#00ff88] font-bold">
+                        torneios ilimitados
+                      </span>
+                      , adicione{" "}
+                      <span className="text-[#00ff88] font-bold">
+                        jogadores ilimitados
+                      </span>{" "}
+                      e gerencie tudo sem pagar nada.
                     </p>
                     <p className="text-sm text-gray-500 leading-relaxed">
-                      * Você paga apenas a taxa do gateway de pagamento (ex: Mercado Pago, PagSeguro) quando seus jogadores fazem inscrições pagas. Essa taxa é do parceiro de pagamento, não do Bubble.
+                      * Você paga apenas a taxa do gateway de pagamento (ex:
+                      Mercado Pago, PagSeguro) quando seus jogadores fazem
+                      inscrições pagas. Essa taxa é do parceiro de pagamento,
+                      não do Bubble.
                     </p>
                   </div>
 
@@ -391,65 +652,132 @@ const Home = () => {
 
           {/* Features Grid */}
           <div className="max-w-5xl mx-auto">
-            <h3 className="text-2xl md:text-3xl font-bold text-center mb-10">O Que Você Ganha de Graça</h3>
+            <h3 className="text-2xl md:text-3xl font-bold text-center mb-10">
+              O Que Você Ganha de Graça
+            </h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
                 {
                   icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                   ),
-                  title: 'Torneios Ilimitados',
-                  description: 'Crie quantos torneios quiser, quando quiser'
+                  title: "Torneios Ilimitados",
+                  description: "Crie quantos torneios quiser, quando quiser",
                 },
                 {
                   icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
                     </svg>
                   ),
-                  title: 'Jogadores Ilimitados',
-                  description: 'Sem limite de participantes nos seus torneios'
+                  title: "Jogadores Ilimitados",
+                  description: "Sem limite de participantes nos seus torneios",
                 },
                 {
                   icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
                     </svg>
                   ),
-                  title: 'Resultados em Tempo Real',
-                  description: 'Atualizações instantâneas de placares e classificações'
+                  title: "Resultados em Tempo Real",
+                  description:
+                    "Atualizações instantâneas de placares e classificações",
                 },
                 {
                   icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
+                      />
                     </svg>
                   ),
-                  title: 'App Mobile Completo',
-                  description: 'Experiência perfeita em qualquer dispositivo'
+                  title: "App Mobile Completo",
+                  description: "Experiência perfeita em qualquer dispositivo",
                 },
                 {
                   icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+                      />
                     </svg>
                   ),
-                  title: 'Gestão Automática',
-                  description: 'Chaves, agendamento e organização automatizados'
+                  title: "Gestão Automática",
+                  description:
+                    "Chaves, agendamento e organização automatizados",
                 },
                 {
                   icon: (
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"
+                      />
                     </svg>
                   ),
-                  title: 'Suporte Dedicado',
-                  description: 'Ajuda quando você precisar, sem custo extra'
-                }
+                  title: "Suporte Dedicado",
+                  description: "Ajuda quando você precisar, sem custo extra",
+                },
               ].map((feature, index) => (
-                <div key={index} className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10">
+                <div
+                  key={index}
+                  className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10"
+                >
                   <div className="w-12 h-12 bg-gradient-to-br from-[#00ff88]/20 to-[#00ccff]/20 rounded-lg flex items-center justify-center mb-4 text-[#00ff88]">
                     {feature.icon}
                   </div>
@@ -463,30 +791,48 @@ const Home = () => {
           {/* FAQ About Pricing */}
           <div className="max-w-3xl mx-auto mt-16">
             <div className="bg-gradient-to-br from-[#1a1f4a]/30 to-[#0f1540]/30 p-8 rounded-xl border border-white/10">
-              <h3 className="text-xl font-bold mb-6 text-center">Perguntas Sobre Preços</h3>
+              <h3 className="text-xl font-bold mb-6 text-center">
+                Perguntas Sobre Preços
+              </h3>
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold text-[#00ff88] mb-2">💰 É realmente grátis mesmo?</h4>
+                  <h4 className="font-semibold text-[#00ff88] mb-2">
+                    💰 É realmente grátis mesmo?
+                  </h4>
                   <p className="text-gray-400 text-sm">
-                    Sim! Você não paga nada para usar o Bubble. Crie quantos torneios quiser, adicione quantos jogadores precisar. Tudo sem custo.
+                    Sim! Você não paga nada para usar o Bubble. Crie quantos
+                    torneios quiser, adicione quantos jogadores precisar. Tudo
+                    sem custo.
                   </p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-[#00ff88] mb-2">💳 E as taxas de pagamento?</h4>
+                  <h4 className="font-semibold text-[#00ff88] mb-2">
+                    💳 E as taxas de pagamento?
+                  </h4>
                   <p className="text-gray-400 text-sm">
-                    Se você cobrar inscrição dos jogadores, haverá a taxa padrão do gateway de pagamento (Mercado Pago, PagSeguro, etc). Essa taxa não é do Bubble, é do parceiro de pagamento.
+                    Se você cobrar inscrição dos jogadores, haverá a taxa padrão
+                    do gateway de pagamento (Mercado Pago, PagSeguro, etc). Essa
+                    taxa não é do Bubble, é do parceiro de pagamento.
                   </p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-[#00ff88] mb-2">🔒 Tem pegadinha? Vou pagar depois?</h4>
+                  <h4 className="font-semibold text-[#00ff88] mb-2">
+                    🔒 Tem pegadinha? Vou pagar depois?
+                  </h4>
                   <p className="text-gray-400 text-sm">
-                    Nenhuma pegadinha. O Bubble é 100% gratuito para você organizar torneios. Não tem mensalidade escondida, não tem período de teste que vira pago. É grátis mesmo.
+                    Nenhuma pegadinha. O Bubble é 100% gratuito para você
+                    organizar torneios. Não tem mensalidade escondida, não tem
+                    período de teste que vira pago. É grátis mesmo.
                   </p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-[#00ff88] mb-2">📊 Existe versão paga com mais recursos?</h4>
+                  <h4 className="font-semibold text-[#00ff88] mb-2">
+                    📊 Existe versão paga com mais recursos?
+                  </h4>
                   <p className="text-gray-400 text-sm">
-                    Não! Todos os recursos estão disponíveis gratuitamente. Nossa missão é democratizar a organização de torneios de padel no Brasil.
+                    Não! Todos os recursos estão disponíveis gratuitamente.
+                    Nossa missão é democratizar a organização de torneios de
+                    padel no Brasil.
                   </p>
                 </div>
               </div>
@@ -499,7 +845,7 @@ const Home = () => {
       <section className="py-20 px-6 lg:px-8 bg-[#0a0e27] relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#00ff88]/5 to-[#00ccff]/5"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#00ff88] rounded-full blur-[150px] opacity-10"></div>
-        
+
         <div className="relative max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-6xl font-black mb-6">
             Comece a Organizar Torneios
@@ -508,15 +854,29 @@ const Home = () => {
             </span>
           </h2>
           <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-            Junte-se a centenas de clubes e organizadores que já mudaram para o Bubble. Seu primeiro torneio está a apenas alguns minutos de distância.
+            Junte-se a centenas de clubes e organizadores que já mudaram para o
+            Bubble. Seu primeiro torneio está a apenas alguns minutos de
+            distância.
           </p>
           <button className="group px-10 py-5 bg-[#00ff88] text-[#0a0e27] rounded-xl font-bold text-xl hover:bg-[#00dd77] transition-all hover:scale-105 hover:shadow-[0_0_50px_rgba(0,255,136,0.5)] flex items-center gap-3 mx-auto">
             Criar Seu Torneio Agora
-            <svg className="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            <svg
+              className="w-6 h-6 group-hover:translate-x-1 transition-transform"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M13 7l5 5m0 0l-5 5m5-5H6"
+              />
             </svg>
           </button>
-          <p className="text-sm text-gray-500 mt-6">Não precisa de cartão de crédito • Teste grátis de 14 dias</p>
+          <p className="text-sm text-gray-500 mt-6">
+            Não precisa de cartão de crédito • Teste grátis de 14 dias
+          </p>
         </div>
       </section>
 
@@ -527,8 +887,18 @@ const Home = () => {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-[#0a0e27]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  <svg
+                    className="w-5 h-5 text-[#0a0e27]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2.5}
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
                   </svg>
                 </div>
                 <span className="text-xl font-bold">Bubble</span>
@@ -537,55 +907,138 @@ const Home = () => {
                 A plataforma moderna para gestão de torneios de padel.
               </p>
             </div>
-            
+
             <div>
               <h4 className="font-bold mb-4">Produto</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#features" className="hover:text-white transition-colors">Recursos</a></li>
-                <li><a href="#pricing" className="hover:text-white transition-colors">Preços</a></li>
-                <li><Link to="/tournaments" className="hover:text-white transition-colors">Torneios</Link></li>
-                <li><a href="#" className="hover:text-white transition-colors">API</a></li>
+                <li>
+                  <a
+                    href="#features"
+                    className="hover:text-white transition-colors"
+                  >
+                    Recursos
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#pricing"
+                    className="hover:text-white transition-colors"
+                  >
+                    Preços
+                  </a>
+                </li>
+                <li>
+                  <Link
+                    to="/tournaments"
+                    className="hover:text-white transition-colors"
+                  >
+                    Torneios
+                  </Link>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    API
+                  </a>
+                </li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-bold mb-4">Empresa</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Sobre</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Carreiras</a></li>
-                <li><Link to="/contact" className="hover:text-white transition-colors">Contato</Link></li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Sobre
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Blog
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Carreiras
+                  </a>
+                </li>
+                <li>
+                  <Link
+                    to="/contact"
+                    className="hover:text-white transition-colors"
+                  >
+                    Contato
+                  </Link>
+                </li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-bold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Privacidade</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Termos</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Segurança</a></li>
+                <li>
+                  <a
+                    href="/termos#privacidade"
+                    className="hover:text-white transition-colors"
+                  >
+                    Privacidade
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/termos"
+                    className="hover:text-white transition-colors"
+                  >
+                    Termos
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="hover:text-white transition-colors">
+                    Segurança
+                  </a>
+                </li>
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-500">
               © 2026 Bubble. Todos os direitos reservados.
             </p>
             <div className="flex gap-6">
-              <a href="#" className="text-gray-500 hover:text-white transition-colors">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+              <a
+                href="#"
+                className="text-gray-500 hover:text-white transition-colors"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
                 </svg>
               </a>
-              <a href="#" className="text-gray-500 hover:text-white transition-colors">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              <a
+                href="#"
+                className="text-gray-500 hover:text-white transition-colors"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
                 </svg>
               </a>
-              <a href="#" className="text-gray-500 hover:text-white transition-colors">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M4.98 3.5c0 1.381-1.11 2.5-2.48 2.5s-2.48-1.119-2.48-2.5c0-1.38 1.11-2.5 2.48-2.5s2.48 1.12 2.48 2.5zm.02 4.5h-5v16h5v-16zm7.982 0h-4.968v16h4.969v-8.399c0-4.67 6.029-5.052 6.029 0v8.399h4.988v-10.131c0-7.88-8.922-7.593-11.018-3.714v-2.155z"/>
+              <a
+                href="#"
+                className="text-gray-500 hover:text-white transition-colors"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M4.98 3.5c0 1.381-1.11 2.5-2.48 2.5s-2.48-1.119-2.48-2.5c0-1.38 1.11-2.5 2.48-2.5s2.48 1.12 2.48 2.5zm.02 4.5h-5v16h5v-16zm7.982 0h-4.968v16h4.969v-8.399c0-4.67 6.029-5.052 6.029 0v8.399h4.988v-10.131c0-7.88-8.922-7.593-11.018-3.714v-2.155z" />
                 </svg>
               </a>
             </div>

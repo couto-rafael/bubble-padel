@@ -1043,12 +1043,18 @@ const Tournaments = () => {
               <h4 className="font-bold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="/termos#privacidade"
+                    className="hover:text-white transition-colors"
+                  >
                     Privacidade
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="/termos"
+                    className="hover:text-white transition-colors"
+                  >
                     Termos
                   </a>
                 </li>
