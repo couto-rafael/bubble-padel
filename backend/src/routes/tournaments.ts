@@ -2,6 +2,10 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { requireAuth, AuthRequest } from "../middlewares/auth";
 import { z } from "zod";
+import {
+  sendInscricaoConfirmada,
+  sendNovaInscricaoParaClube,
+} from "../services/EmailService";
 
 export const tournamentRoutes = Router();
 
@@ -400,6 +404,46 @@ publicTournamentRoutes.post("/:id/register", async (req, res, next) => {
         paymentStatus: "PENDING",
       },
     });
+    console.log("🔥 chegou no bloco de emails");
+
+    // ── Emails assíncronos...
+    // ── Emails assíncronos — não bloqueiam a resposta ao atleta ──────────────
+    const tournamentDate = new Date(tournament.startDate).toLocaleDateString(
+      "pt-BR",
+      { day: "2-digit", month: "long", year: "numeric" },
+    );
+
+    // Task 1.2 — email de confirmação para os dois atletas da dupla
+    sendInscricaoConfirmada({
+      player1Name: data.player1Name,
+      player2Name: data.player2Name,
+      player1Email: data.player1Email,
+      player2Email: data.player2Email,
+      tournamentName: tournament.name,
+      tournamentDate,
+      category: data.category,
+      tournamentId,
+    }).catch((err) => console.error("[email] atleta falhou:", err));
+
+    // Task 1.3 — notificação ao clube
+    prisma.club
+      .findUnique({
+        where: { id: tournament.clubId },
+        include: { user: { select: { email: true } } },
+      })
+      .then((club) => {
+        if (club?.user?.email) {
+          sendNovaInscricaoParaClube({
+            clubEmail: club.user.email,
+            player1Name: data.player1Name,
+            player2Name: data.player2Name,
+            category: data.category,
+            tournamentName: tournament.name,
+            tournamentId,
+          }).catch((err) => console.error("[email] clube falhou:", err));
+        }
+      })
+      .catch((err) => console.error("[email] busca clube falhou:", err));
 
     return res.status(201).json({ data: team });
   } catch (err) {
