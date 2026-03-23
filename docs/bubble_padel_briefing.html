@@ -1,1224 +1,2467 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BubblePadel — Auditoria Completa + Plano de Lançamento</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<style>
-:root {
-  --bg: #050f1a;
-  --bg2: #0a1a2e;
-  --card: #0d2037;
-  --border: #1a3550;
-  --text: #dff0ff;
-  --muted: #7a9ab5;
-  --blue: #00ccff;
-  --green: #00ff88;
-  --red: #ef4444;
-  --amber: #f59e0b;
-  --purple: #8b5cf6;
-  --cyan: #06b6d4;
-  --pink: #ec4899;
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.6;
-  min-height: 100vh;
-}
-.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-.nav {
-  position: sticky; top: 0; z-index: 100;
-  background: rgba(5,15,26,0.95);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-  padding: 10px 0;
-  overflow-x: auto;
-}
-.nav-inner {
-  display: flex; gap: 6px; padding: 0 24px;
-  max-width: 1200px; margin: 0 auto;
-  white-space: nowrap; align-items: center;
-}
-.pill {
-  padding: 6px 14px; border-radius: 20px;
-  font-size: 12px; font-weight: 500;
-  color: var(--muted); background: transparent;
-  border: 1px solid transparent;
-  cursor: pointer; transition: all 0.25s;
-  text-decoration: none;
-}
-.pill:hover { color: var(--text); background: var(--bg2); }
-.pill.active { color: #fff; background: var(--blue); border-color: var(--blue); }
-.hero {
-  text-align: center;
-  padding: 80px 24px 60px;
-  background: linear-gradient(180deg, rgba(0,204,255,0.1) 0%, transparent 60%);
-}
-.hero h1 { font-size: 2.8rem; font-weight: 800; margin-bottom: 12px; }
-.hero h1 span { color: var(--blue); }
-.hero .subtitle { color: var(--muted); font-size: 1.05rem; max-width: 700px; margin: 0 auto 28px; }
-.badge-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; }
-.badge {
-  padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;
-  background: rgba(0,204,255,0.12); color: var(--blue); border: 1px solid rgba(0,204,255,0.3);
-}
-.badge.green { background: rgba(0,255,136,0.12); color: var(--green); border-color: rgba(0,255,136,0.3); }
-.badge.amber { background: rgba(245,158,11,0.12); color: var(--amber); border-color: rgba(245,158,11,0.3); }
-.hero .date { color: var(--muted); font-size: 14px; margin-top: 10px; }
-section { padding: 60px 0; border-top: 1px solid var(--border); }
-.section-title {
-  font-size: 1.6rem; font-weight: 700; margin-bottom: 8px;
-  display: flex; align-items: center; gap: 12px;
-}
-.section-title .icon { font-size: 1.4rem; }
-.section-desc { color: var(--muted); margin-bottom: 32px; font-size: 0.95rem; }
-.card {
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 12px; padding: 24px;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,204,255,0.08); }
-.card-grid { display: grid; gap: 16px; }
-.grid-2 { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
-.grid-3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-.grid-4 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-.grid-5 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
-.expert-card { position: relative; overflow: hidden; }
-.expert-card .score { font-size: 2rem; font-weight: 800; }
-.expert-card .role { font-size: 13px; color: var(--muted); margin-top: 4px; }
-.expert-card .name { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; }
-.ba-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-.ba-card { padding: 24px; border-radius: 12px; }
-.ba-before { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); }
-.ba-after { background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.2); }
-.ba-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
-.ba-before .ba-label { color: var(--red); }
-.ba-after .ba-label { color: var(--green); }
-.ba-card ul { list-style: none; padding: 0; }
-.ba-card li { padding: 6px 0; font-size: 14px; display: flex; align-items: flex-start; gap: 8px; }
-.ba-before li::before { content: '✗'; color: var(--red); font-weight: 700; flex-shrink: 0; }
-.ba-after li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; }
-.quote-row {
-  background: var(--bg2); border-left: 3px solid var(--blue);
-  padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0;
-}
-.quote-row .speaker { font-size: 12px; font-weight: 700; color: var(--blue); margin-bottom: 4px; }
-.quote-row p { font-style: italic; font-size: 14px; color: var(--text); }
-.decision-box {
-  background: rgba(0,204,255,0.06); border: 1px solid rgba(0,204,255,0.2);
-  border-radius: 12px; padding: 20px 24px; margin: 20px 0;
-}
-.decision-box .label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--blue); letter-spacing: 1.5px; margin-bottom: 8px; }
-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
-th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
-th { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); background: var(--bg2); }
-td { color: var(--text); }
-.risk-alto { color: var(--red); font-weight: 700; }
-.risk-medio { color: var(--amber); font-weight: 700; }
-.risk-ok { color: var(--green); font-weight: 700; }
-.timeline { position: relative; padding-left: 32px; }
-.timeline::before { content: ''; position: absolute; left: 12px; top: 0; bottom: 0; width: 2px; background: var(--border); }
-.timeline-item { position: relative; margin-bottom: 32px; }
-.timeline-item::before {
-  content: ''; position: absolute; left: -26px; top: 6px;
-  width: 12px; height: 12px; border-radius: 50%;
-  background: var(--blue); border: 2px solid var(--bg);
-}
-.timeline-item h4 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
-.timeline-item .period { font-size: 12px; color: var(--blue); font-weight: 600; margin-bottom: 8px; }
-.stat { text-align: center; }
-.stat .num { font-size: 2.4rem; font-weight: 800; }
-.stat .lbl { font-size: 13px; color: var(--muted); margin-top: 4px; }
-.metric-pill {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600;
-  background: var(--bg2); border: 1px solid var(--border); margin: 4px;
-}
-.finding-card { margin-bottom: 20px; }
-.finding-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.priority-badge { font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 8px; }
-.good-list, .bad-list { list-style: none; padding: 0; margin: 8px 0; }
-.good-list li, .bad-list li { padding: 5px 0; font-size: 14px; display: flex; gap: 8px; }
-.good-list li::before { content: '●'; color: var(--green); flex-shrink: 0; }
-.bad-list li::before { content: '●'; color: var(--red); flex-shrink: 0; }
-.impact-positive { color: var(--green); font-weight: 600; }
-.impact-negative { color: var(--red); font-weight: 600; }
-.debate-card { position: relative; }
-.debate-number {
-  position: absolute; top: -8px; left: 16px;
-  background: var(--blue); color: #fff; font-size: 11px; font-weight: 700;
-  padding: 2px 10px; border-radius: 10px;
-}
-.debate-parties { font-size: 13px; color: var(--muted); margin: 8px 0; }
-.debate-result {
-  font-size: 13px; font-weight: 600; color: var(--green);
-  padding: 8px 12px; background: rgba(0,255,136,0.06); border-radius: 8px; margin-top: 8px;
-}
-.feature-card {
-  padding: 16px; border-radius: 10px;
-  background: var(--bg2); border: 1px solid var(--border);
-}
-.feature-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
-.feature-card p { font-size: 13px; color: var(--muted); }
-.score-box {
-  text-align: center; padding: 40px; border-radius: 16px;
-  background: linear-gradient(135deg, rgba(0,204,255,0.1), rgba(0,255,136,0.06));
-  border: 1px solid var(--border); margin: 24px 0;
-}
-.score-box .arrow { font-size: 2rem; margin: 0 16px; color: var(--muted); }
-.score-box .big { font-size: 3rem; font-weight: 800; }
-.blocker { border-left: 3px solid var(--red); padding-left: 16px; margin-bottom: 12px; }
-.win { border-left: 3px solid var(--green); padding-left: 16px; margin-bottom: 12px; }
-.footer {
-  text-align: center; padding: 40px 24px;
-  border-top: 1px solid var(--border);
-  color: var(--muted); font-size: 13px;
-}
-.checklist { list-style: none; padding: 0; }
-.checklist li { padding: 6px 0; font-size: 14px; display: flex; align-items: flex-start; gap: 8px; }
-.checklist li::before { content: '☐'; color: var(--amber); flex-shrink: 0; font-size: 16px; }
-.chart-wrap { max-width: 520px; margin: 0 auto; }
-.status-flow {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  padding: 20px; background: var(--bg2); border-radius: 12px; border: 1px solid var(--border);
-}
-.status-pill {
-  padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700;
-}
-.status-arrow { color: var(--muted); font-size: 1.2rem; }
-@media (max-width: 768px) {
-  .hero h1 { font-size: 1.8rem; }
-  .ba-grid { grid-template-columns: 1fr; }
-  .grid-2, .grid-3, .grid-4, .grid-5 { grid-template-columns: 1fr; }
-  .nav-inner { padding: 0 12px; }
-}
-</style>
-</head>
-<body>
-
-<nav class="nav">
-<div class="nav-inner">
-  <a class="pill active" href="#painel">Painel</a>
-  <span style="color:var(--border);margin:0 2px;">|</span>
-  <a class="pill" href="#saude">Saúde</a>
-  <a class="pill" href="#construido">Construído</a>
-  <a class="pill" href="#gaps">Gaps</a>
-  <span style="color:var(--border);margin:0 2px;">|</span>
-  <a class="pill" href="#fluxo">Fluxo</a>
-  <a class="pill" href="#tech">Tech</a>
-  <a class="pill" href="#ux">UX/Produto</a>
-  <span style="color:var(--border);margin:0 2px;">|</span>
-  <a class="pill" href="#monetizacao">Monetização</a>
-  <a class="pill" href="#legal">Legal</a>
-  <a class="pill" href="#marketing">Marketing</a>
-  <span style="color:var(--border);margin:0 2px;">|</span>
-  <a class="pill" href="#launch">Launch</a>
-  <a class="pill" href="#financial">Financeiro</a>
-  <span style="color:var(--border);margin:0 2px;">|</span>
-  <a class="pill" href="#debates">Debates</a>
-  <a class="pill" href="#roadmap">Roadmap</a>
-  <a class="pill" href="#resumo">Resumo</a>
-</div>
-</nav>
-
-<header class="hero">
-  <h1><span>BubblePadel</span> — Auditoria Completa + Plano de Lançamento</h1>
-  <p class="subtitle">10 Especialistas analisaram o sistema, código, produto, monetização e go-to-market. Aqui estão as decisões, gaps e o plano de ação para o lançamento.</p>
-  <div class="badge-row">
-    <span class="badge">10 Especialistas</span>
-    <span class="badge">72+ Recomendações</span>
-    <span class="badge">12 Debates</span>
-    <span class="badge amber">Score Atual 5.2/10</span>
-    <span class="badge green">Meta Launch 7.5/10</span>
-  </div>
-  <p class="date">Março 2026</p>
-</header>
-
-<!-- ============================================================ -->
-<!-- SECTION 1: PAINEL DOS ESPECIALISTAS -->
-<!-- ============================================================ -->
-<section id="painel" class="container">
-  <h2 class="section-title"><span class="icon">📊</span> 1. Painel dos Especialistas</h2>
-  <p class="section-desc">10 especialistas avaliaram o BubblePadel de forma independente. Stack: React + TypeScript + Node.js + Prisma + PostgreSQL + Railway.</p>
-
-  <div class="card-grid grid-2">
-    <div class="card expert-card" style="border-top: 3px solid var(--green);">
-      <div class="name">Product / UX Specialist</div>
-      <div class="role">Tournament Flow & Athlete Experience</div>
-      <div class="score" style="color:var(--green);">7.0<span style="font-size:14px;color:var(--muted);">/10</span></div>
-      <p style="font-size:13px;color:var(--muted);margin-top:8px;">Fluxo de torneio completo e funcional (ciclo de vida, grupos, playoffs, resultados). Falta experiência do atleta pós-inscrição: notificações, área pessoal, histórico.</p>
-    </div>
-
-    <div class="card expert-card" style="border-top: 3px solid var(--blue);">
-      <div class="name">Fullstack Tech Lead</div>
-      <div class="role">React + TypeScript + Node.js</div>
-      <div class="score" style="color:var(--blue);">6.5<span style="font-size:14px;color:var(--muted);">/10</span></div>
-      <p style="font-size:13px;color:var(--muted);margin-top:8px;">Arquitetura de hooks sólida (useGroups, useTeams, useSchedule, usePlayoffs). Padrão enum maiúsculo/minúsculo resolvido. Falta error handling consistente no frontend e testes unitários.</p>
-    </div>
-
-    <div class="card expert-card" style="border-top: 3px solid var(--purple);">
-      <div class="name">Backend Architect</div>
-      <div class="role">Node.js + Prisma + Railway</div>
-      <div class="score" style="color:var(--purple);">6.0<span style="font-size:14px;color:var(--muted);">/10</span></div>
-      <p style="font-size:13px;color:var(--muted);margin-top:8px;">APIs REST funcionais com auth JWT. Schema Prisma bem modelado. Crítico: sem CI/CD, sem testes de API, sem rate limiting, sem health checks. Railway pode ter cold start.</p>
-    </div>
-
-    <div class="card expert-card" style="border-top: 3px solid var(--amber);">
-      <div class="name">Growth / Aquisição</div>
-      <div class="role">B2B Sports Market Specialist</div>
-      <div class="score" style="color:var(--amber);">3.5<span style="font-size:14px;color:var(--muted);">/10</span></div>
-      <p style="font-size:13px;color:var(--muted);margin-top:8px;">Produto funciona para quem já conhece. Falta landing page eficiente, funil de aquisição de clubes, trial estruturado, onboarding guiado para novos organizadores.</p>
-    </div>
-
-    <div class="card expert-card" style="border-top: 3px solid var(--red);">
-      <div class="name">Legal / Compliance</div>
-      <div class="role">LGPD, CDC, Esportes</div>
-      <div class="score" style="color:var(--red);">RISCO ALTO</div>
-      <p style="font-size:13px;color:var(--muted);margin-top:8px;">Sem termos de uso para clubes ou atletas. Sem política de privacidade (LGPD). Coleta de dados pessoais (email, nome) sem consentimento documentado. Bloqueador de lançamento.</p>
-    </div>
-
-    <div class="card expert-card" style="border-top: 3px solid var(--cyan);">
-      <div class="name">Branding & Design System</div>
-      <div class="role">Visual Identity</div>
-      <div class="score" style="color:var(--cyan);">5.5<span style="font-size:14px;color:var(--muted);">/10</span></div>
-      <p style="font-size:13px;color:var(--muted);margin-top:8px;">UI escura e moderna com identidade clara (verde #00ff88 + azul). Dashboard do clube e página pública têm estilos diferentes. Falta design system formal e responsividade mobile validada.</p>
-    </div>
-
-    <div class="card expert-card" style="border-top: 3px solid var(--pink);">
-      <div class="name">Customer Success</div>
-      <div class="role">Club Retention & Organizer NPS</div>
-      <div class="score" style="color:var(--pink);">4.0<span style="font-size:14px;color:var(--muted);">/10</span></div>
-      <p style="font-size:13px;color:var(--muted);margin-top:8px;">Nenhuma notificação automática implementada. Atletas não recebem confirmação de inscrição. Clubes não recebem alerta de novo inscrito. Churn silencioso por falta de comunicação.</p>
-    </div>
-
-    <div class="card expert-card" style="border-top: 3px solid var(--red);">
-      <div class="name">GTM / Launch</div>
-      <div class="role">Go-to-Market Strategy</div>
-      <div class="score" style="color:var(--red);">NÃO PRONTO</div>
-      <p style="font-size:13px;color:var(--muted);margin-top:8px;">Core do torneio funcional é o grande ativo. Bloqueadores: sem modelo de monetização definido, sem landing page, sem onboarding de clubes, sem emails transacionais.</p>
-    </div>
-
-    <div class="card expert-card" style="border-top: 3px solid var(--blue);">
-      <div class="name">Marketing Digital</div>
-      <div class="role">Sports Community & Content</div>
-      <div class="score" style="color:var(--blue);">4.5<span style="font-size:14px;color:var(--muted);">/10</span></div>
-      <p style="font-size:13px;color:var(--muted);margin-top:8px;">Nome "Bubble" memorável. Página pública de torneio é um ativo viral natural (compartilhável). Falta SEO, estratégia de conteúdo para comunidade padel/beach tennis, social proof.</p>
-    </div>
-
-    <div class="card expert-card" style="border-top: 3px solid var(--green);">
-      <div class="name">Sports Tech Benchmarking</div>
-      <div class="role">vs PlayTomic, Sportigo, TennisRunning</div>
-      <div class="score" style="color:var(--amber);">5.0<span style="font-size:14px;color:var(--muted);">/10</span></div>
-      <p style="font-size:13px;color:var(--muted);margin-top:8px;">Nicho bem definido (gestão de torneios B2B). PlayTomic foca em reservas de quadra — BubblePadel não compete diretamente. Gaps: pagamento de inscrição, app mobile, ranking de atletas.</p>
-    </div>
-  </div>
-
-  <div class="card-grid grid-5" style="margin-top: 32px;">
-    <div class="card stat"><div class="num" style="color:var(--blue);">72+</div><div class="lbl">Recomendações</div></div>
-    <div class="card stat"><div class="num" style="color:var(--green);">8</div><div class="lbl">Consensos</div></div>
-    <div class="card stat"><div class="num" style="color:var(--amber);">12</div><div class="lbl">Debates</div></div>
-    <div class="card stat"><div class="num" style="color:var(--red);">4</div><div class="lbl">Bloqueadores</div></div>
-    <div class="card stat"><div class="num" style="color:var(--pink);">10</div><div class="lbl">Novas Features</div></div>
-  </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- SECTION 2: SAÚDE DO SISTEMA -->
-<!-- ============================================================ -->
-<section id="saude" class="container">
-  <h2 class="section-title"><span class="icon">🩺</span> 2. Saúde do Sistema</h2>
-  <p class="section-desc">Radar de 12 dimensões avaliadas pelos especialistas. Vermelho = bloqueador de launch. Amarelo = melhorar antes de escalar. Verde = sólido.</p>
-
-  <div class="chart-wrap">
-    <canvas id="radarChart"></canvas>
-  </div>
-
-  <div class="card-grid grid-3" style="margin-top: 32px;">
-    <div class="card" style="border-left: 3px solid var(--red);">
-      <h4 style="color:var(--red);">Bloqueadores de Launch (≤3)</h4>
-      <p style="font-size:14px;color:var(--muted);margin-top:8px;">Legal/LGPD (2), Monetização (2), Emails transacionais (2.5), Onboarding de clubes (3)</p>
-    </div>
-    <div class="card" style="border-left: 3px solid var(--amber);">
-      <h4 style="color:var(--amber);">Melhorar antes de escalar (4–6)</h4>
-      <p style="font-size:14px;color:var(--muted);margin-top:8px;">Growth/Aquisição (3.5), Mobile (4), Notificações (4), Branding (5.5), Landing page (5), Backend robustez (6)</p>
-    </div>
-    <div class="card" style="border-left: 3px solid var(--green);">
-      <h4 style="color:var(--green);">Sólido (≥7)</h4>
-      <p style="font-size:14px;color:var(--muted);margin-top:8px;">Fluxo de torneio (8), Grupos/Playoffs (8.5), Schedule automático (7.5), Auth/segurança (7)</p>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- SECTION 3: O QUE JÁ FOI CONSTRUÍDO -->
-<!-- ============================================================ -->
-<section id="construido" class="container">
-  <h2 class="section-title"><span class="icon">✅</span> 3. O Que Já Foi Construído</h2>
-  <p class="section-desc">O core do produto está funcional. Esta é a base sólida sobre a qual o lançamento será construído.</p>
-
-  <div class="card-grid grid-2">
-    <div class="card" style="border-left: 3px solid var(--green);">
-      <h4 style="color:var(--green);">🎾 Ciclo Completo do Torneio</h4>
-      <ul class="good-list">
-        <li>Criação e edição de torneios (nome, datas, categorias, estrutura)</li>
-        <li>Status: DRAFT → PUBLISHED → OPEN → CLOSED → ONGOING → COMPLETED</li>
-        <li>Encerramento e reabertura de inscrições</li>
-        <li>syncStatus automático ao salvar placares</li>
-      </ul>
-    </div>
-    <div class="card" style="border-left: 3px solid var(--green);">
-      <h4 style="color:var(--green);">👥 Inscrições & Duplas</h4>
-      <ul class="good-list">
-        <li>Inscrição pública por atletas (sem autenticação obrigatória)</li>
-        <li>Gestão de duplas pelo clube (confirmar, rejeitar, ações em lote)</li>
-        <li>Filtro por status, busca por nome</li>
-        <li>Categorias múltiplas por torneio</li>
-      </ul>
-    </div>
-    <div class="card" style="border-left: 3px solid var(--green);">
-      <h4 style="color:var(--green);">⚡ Grupos Automáticos</h4>
-      <ul class="good-list">
-        <li>Geração automática de grupos por categoria</li>
-        <li>Drag & drop para reordenar duplas</li>
-        <li>Classificação em tempo real (V, S, G)</li>
-        <li>Reset e regeneração</li>
-      </ul>
-    </div>
-    <div class="card" style="border-left: 3px solid var(--green);">
-      <h4 style="color:var(--green);">🗓️ Schedule Inteligente</h4>
-      <ul class="good-list">
-        <li>Geração automática respeitando quadras e horários</li>
-        <li>Grupos SEMPRE antes dos playoffs no algoritmo</li>
-        <li>Conflito de atletas (mesmo atleta não joga 2 ao mesmo tempo)</li>
-        <li>Duração configurável por jogo</li>
-      </ul>
-    </div>
-    <div class="card" style="border-left: 3px solid var(--green);">
-      <h4 style="color:var(--green);">🏆 Playoffs Completos</h4>
-      <ul class="good-list">
-        <li>Brackets automáticos com seeding dos grupos</li>
-        <li>Avanço automático de fase ao salvar placar</li>
-        <li>Semifinal, Final com resultados</li>
-        <li>Página pública de resultados (campeão + vice)</li>
-      </ul>
-    </div>
-    <div class="card" style="border-left: 3px solid var(--green);">
-      <h4 style="color:var(--green);">🌐 Página Pública do Torneio</h4>
-      <ul class="good-list">
-        <li>Inscritos, grupos, jogos, playoffs, resultados visíveis</li>
-        <li>Status visual correto (Em Breve, Abertas, Encerradas, Em Andamento)</li>
-        <li>Lista de torneios com filtros (sport, estado, cidade, status)</li>
-        <li>Inscrição pública integrada com validação</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="decision-box" style="margin-top:24px;">
-    <div class="label">✦ Consenso dos Especialistas</div>
-    <p style="font-size:14px;">O core do produto — geração de grupos, schedule automático e gestão de playoffs — está acima da média para um sistema em fase pré-lançamento. A qualidade de execução do algoritmo de schedule (com respeito a conflitos de atletas e ordem grupos→playoffs) é um diferencial técnico real.</p>
-  </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- SECTION 4: GAPS CRÍTICOS -->
-<!-- ============================================================ -->
-<section id="gaps" class="container">
-  <h2 class="section-title"><span class="icon">🚧</span> 4. Gaps Críticos para o Launch</h2>
-  <p class="section-desc">O que está faltando para o primeiro torneio real pago ser gerenciado na plataforma.</p>
-
-  <div class="ba-grid">
-    <div class="ba-card ba-before">
-      <div class="ba-label">❌ O que falta</div>
-      <ul>
-        <li>Emails transacionais (confirmação de inscrição, lembrete de jogo)</li>
-        <li>Modelo de monetização para o clube (como a Bubble cobra?)</li>
-        <li>Termos de uso e política de privacidade (LGPD)</li>
-        <li>Onboarding guiado para novos clubes</li>
-        <li>Página de landing/marketing para captação de clubes</li>
-        <li>Pagamento de inscrição (atletas pagam no ato)</li>
-        <li>Notificação ao clube quando novo atleta se inscreve</li>
-        <li>Área do atleta (meus torneios, histórico)</li>
-      </ul>
-    </div>
-    <div class="ba-card ba-after">
-      <div class="ba-label">✅ Prioridade recomendada</div>
-      <ul>
-        <li><strong>P0 — Bloqueador:</strong> Termos de uso + LGPD</li>
-        <li><strong>P0 — Bloqueador:</strong> Email de confirmação de inscrição</li>
-        <li><strong>P0 — Bloqueador:</strong> Definir e implementar modelo de cobrança</li>
-        <li><strong>P1 — Antes do beta:</strong> Onboarding checklist para clubes</li>
-        <li><strong>P1 — Antes do beta:</strong> Notificação de nova inscrição para clube</li>
-        <li><strong>P2 — Após beta:</strong> Pagamento de inscrição pelos atletas</li>
-        <li><strong>P2 — Após beta:</strong> Área do atleta com histórico</li>
-        <li><strong>P3 — Escala:</strong> App mobile, ranking, live scoring</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- SECTION 5: FLUXO DO TORNEIO -->
-<!-- ============================================================ -->
-<section id="fluxo" class="container">
-  <h2 class="section-title"><span class="icon">🔄</span> 5. Fluxo do Torneio — Estado Atual</h2>
-  <p class="section-desc">O ciclo de vida completo implementado, com as decisões tomadas ao longo do desenvolvimento.</p>
-
-  <div class="status-flow">
-    <span class="status-pill" style="background:rgba(245,158,11,0.2);color:var(--amber);border:1px solid rgba(245,158,11,0.4);">DRAFT</span>
-    <span class="status-arrow">→</span>
-    <span class="status-pill" style="background:rgba(0,204,255,0.15);color:var(--blue);border:1px solid rgba(0,204,255,0.3);">PUBLISHED</span>
-    <span class="status-arrow">→</span>
-    <span class="status-pill" style="background:rgba(0,255,136,0.15);color:var(--green);border:1px solid rgba(0,255,136,0.3);">OPEN</span>
-    <span class="status-arrow">→</span>
-    <span class="status-pill" style="background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3);">CLOSED</span>
-    <span class="status-arrow">→</span>
-    <span class="status-pill" style="background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);">ONGOING</span>
-    <span class="status-arrow">→</span>
-    <span class="status-pill" style="background:rgba(139,92,246,0.15);color:var(--purple);border:1px solid rgba(139,92,246,0.3);">COMPLETED</span>
-  </div>
-
-  <div class="card-grid grid-3" style="margin-top:24px;">
-    <div class="card" style="border-top:3px solid var(--green);">
-      <h4>✓ Transições manuais</h4>
-      <p style="font-size:14px;color:var(--muted);margin-top:8px;">Clube controla: publicar, abrir inscrições, encerrar inscrições, reabrir, finalizar torneio.</p>
-    </div>
-    <div class="card" style="border-top:3px solid var(--blue);">
-      <h4>✓ Transições automáticas</h4>
-      <p style="font-size:14px;color:var(--muted);margin-top:8px;">ONGOING: quando primeiro placar de grupo é salvo. COMPLETED: quando todos os jogos de playoff são jogados.</p>
-    </div>
-    <div class="card" style="border-top:3px solid var(--amber);">
-      <h4>⚠ Falta implementar</h4>
-      <p style="font-size:14px;color:var(--muted);margin-top:8px;">ONGOING por data/hora: torneio muda automaticamente quando a hora do primeiro jogo chega. Requer cron job ou trigger no backend.</p>
-    </div>
-  </div>
-
-  <div class="quote-row" style="margin-top:24px;">
-    <div class="speaker">Product / UX Specialist</div>
-    <p>"O clube não deveria precisar lembrar de clicar em 'Iniciar Torneio'. O sistema deve detectar que chegou a hora e mudar automaticamente."</p>
-  </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- SECTION 6: TECH ARCHITECTURE -->
-<!-- ============================================================ -->
-<section id="tech" class="container">
-  <h2 class="section-title"><span class="icon">⚙️</span> 6. Arquitetura Tech — Gaps & Recomendações</h2>
-  <p class="section-desc">O que está sólido e o que precisa ser resolvido antes de escalar para múltiplos clubes simultâneos.</p>
-
-  <div class="ba-grid">
-    <div class="ba-card ba-before">
-      <div class="ba-label">❌ Gaps técnicos atuais</div>
-      <ul>
-        <li>Sem CI/CD (deploy manual)</li>
-        <li>Sem testes automatizados (unitários ou de integração)</li>
-        <li>Sem rate limiting nas APIs públicas</li>
-        <li>Sem health check endpoint</li>
-        <li>Railway cold start pode afetar UX (primeira request lenta)</li>
-        <li>Sem monitoramento de erros em produção (Sentry)</li>
-        <li>Imports com @/ em ambiente Windows/OneDrive (resolvido com relativos)</li>
-      </ul>
-    </div>
-    <div class="ba-card ba-after">
-      <div class="ba-label">✅ O que está sólido</div>
-      <ul>
-        <li>Arquitetura de hooks limpa e reutilizável</li>
-        <li>Auth JWT com middleware requireAuth</li>
-        <li>Prisma ORM com PostgreSQL em produção no Railway</li>
-        <li>Normalização de enums (MAIÚSCULO backend, minúsculo frontend)</li>
-        <li>Algoritmo de schedule complexo funcionando corretamente</li>
-        <li>Upserts seguros com Prisma (sem duplicatas)</li>
-        <li>API pública separada da autenticada</li>
-      </ul>
-    </div>
-  </div>
-
-  <h3 style="font-size:1.1rem;margin:32px 0 16px;">Padrões Estabelecidos (Não Quebrar)</h3>
-  <table>
-    <thead><tr><th>Padrão</th><th>Regra</th><th>Motivo</th></tr></thead>
-    <tbody>
-      <tr><td>Enums de status</td><td>Backend MAIÚSCULO, frontend .toLowerCase()</td><td>Prisma retorna maiúsculo, evita bugs de comparação</td></tr>
-      <tr><td>Imports</td><td>Sempre relativos (./hooks, ../types)</td><td>@/ quebra em Windows/OneDrive</td></tr>
-      <tr><td>Prisma migrations</td><td>Sempre npx prisma db push, nunca migrate dev</td><td>migrate dev reseta banco no Railway</td></tr>
-      <tr><td>Hook methods</td><td>reload (não refetch), setGroups (não updateGroups)</td><td>Nomes corretos evitam falhas silenciosas</td></tr>
-      <tr><td>Schedule</td><td>Grupos ANTES de playoffs no algoritmo</td><td>Ordem lógica do torneio</td></tr>
-    </tbody>
-  </table>
-
-  <div class="card-grid grid-2" style="margin-top:24px;">
-    <div class="card finding-card">
-      <div class="finding-header">
-        <h4>Backend Architect</h4>
-        <span class="priority-badge" style="background:rgba(245,158,11,0.15);color:var(--amber);">Prioridade 8/10</span>
-      </div>
-      <h5 style="color:var(--green);font-size:13px;margin-bottom:4px;">O que está bom</h5>
-      <ul class="good-list">
-        <li>Schema Prisma bem modelado (Tournament, Team, Group, Match, Schedule, Playoff)</li>
-        <li>Rotas separadas: privadas (requireAuth) e públicas</li>
-        <li>Zod para validação de entrada</li>
-      </ul>
-      <h5 style="color:var(--red);font-size:13px;margin-top:12px;margin-bottom:4px;">Gaps críticos</h5>
-      <ul class="bad-list">
-        <li>Sem rate limiting nas rotas públicas (inscrição pode ser spammada)</li>
-        <li>Sem envio de email (zero notificações transacionais)</li>
-        <li>Cron job para ONGOING automático por data não existe</li>
-      </ul>
-    </div>
-
-    <div class="card finding-card">
-      <div class="finding-header">
-        <h4>Fullstack Tech Lead</h4>
-        <span class="priority-badge" style="background:rgba(0,204,255,0.15);color:var(--blue);">Prioridade 7/10</span>
-      </div>
-      <h5 style="color:var(--green);font-size:13px;margin-bottom:4px;">O que está bom</h5>
-      <ul class="good-list">
-        <li>TypeScript em todo o stack com tipos compartilhados</li>
-        <li>Hooks com loading states e error handling</li>
-        <li>Debounce em saves de grupos (evita spam de requisições)</li>
-      </ul>
-      <h5 style="color:var(--red);font-size:13px;margin-top:12px;margin-bottom:4px;">Gaps</h5>
-      <ul class="bad-list">
-        <li>Sem testes (jest/vitest) — refatorações futuras são arriscadas</li>
-        <li>Error boundaries no React não implementados</li>
-        <li>Sem feedback visual global de erros de API</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- SECTION 7: UX / PRODUTO -->
-<!-- ============================================================ -->
-<section id="ux" class="container">
-  <h2 class="section-title"><span class="icon">🎨</span> 7. UX & Produto — Dois Mundos</h2>
-  <p class="section-desc">BubblePadel tem dois públicos distintos com UX completamente diferentes: o clube organizador e o atleta inscrito.</p>
-
-  <div class="card-grid grid-2">
-    <div class="card" style="border-top:3px solid var(--blue);">
-      <h4 style="color:var(--blue);">Dashboard do Clube (Admin)</h4>
-      <ul class="good-list" style="margin-top:12px;">
-        <li>Tabs bem organizadas (Torneio, Estrutura, Inscrições, Grupos, Jogos, Playoffs)</li>
-        <li>Ações bulk em inscrições funcionando</li>
-        <li>Geração automática com feedback visual</li>
-        <li>Modal de confirmação para ações destrutivas</li>
-      </ul>
-      <ul class="bad-list" style="margin-top:8px;">
-        <li>Sem onboarding guiado para novo clube (primeiro torneio)</li>
-        <li>Sem analytics (quantas inscrições hoje, receita esperada)</li>
-        <li>Sem notificação de nova inscrição em tempo real</li>
-      </ul>
-    </div>
-
-    <div class="card" style="border-top:3px solid var(--green);">
-      <h4 style="color:var(--green);">Experiência do Atleta (Pública)</h4>
-      <ul class="good-list" style="margin-top:12px;">
-        <li>Página pública do torneio com todas as informações</li>
-        <li>Formulário de inscrição simplificado</li>
-        <li>Status claro (Inscrições Abertas / Encerradas / Em Breve)</li>
-        <li>Visualização de grupos, jogos e resultados</li>
-      </ul>
-      <ul class="bad-list" style="margin-top:8px;">
-        <li>Sem email de confirmação ao se inscrever</li>
-        <li>Sem área pessoal do atleta (meus torneios)</li>
-        <li>Sem notificação quando grupos são gerados</li>
-        <li>Sem push notification para lembrar do jogo</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="ba-grid" style="margin-top:24px;">
-    <div class="ba-card ba-before">
-      <div class="ba-label">❌ Jornada atual do atleta</div>
-      <ul>
-        <li>Se inscreve e não recebe confirmação</li>
-        <li>Não sabe quando grupos são definidos</li>
-        <li>Tem que acessar a página manualmente para ver horário do jogo</li>
-        <li>Sem lembretes antes do jogo</li>
-        <li>Sem histórico de torneios anteriores</li>
-      </ul>
-    </div>
-    <div class="ba-card ba-after">
-      <div class="ba-label">✅ Jornada ideal (próximas sprints)</div>
-      <ul>
-        <li>Inscrição → email de confirmação imediato</li>
-        <li>Grupos gerados → email/WhatsApp com tabela e horários</li>
-        <li>24h antes do jogo → lembrete automático</li>
-        <li>Torneio finalizado → resultado e próximos torneios</li>
-        <li>Área pessoal com histórico e conquistas</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- SECTION 8: MONETIZAÇÃO -->
-<!-- ============================================================ -->
-<section id="monetizacao" class="container">
-  <h2 class="section-title"><span class="icon">💰</span> 8. Monetização — Modelo a Definir</h2>
-  <p class="section-desc">O produto está construído mas o modelo de receita não está definido. Esta é uma decisão estratégica crítica para o lançamento.</p>
-
-  <div class="card-grid grid-3">
-    <div class="card" style="border-top:3px solid var(--amber);">
-      <h4 style="color:var(--amber);">Modelo A — SaaS B2B (Clube paga)</h4>
-      <p style="font-size:14px;margin-top:8px;color:var(--muted);">Clube paga mensalidade para usar a plataforma. Atletas inscrevem-se gratuitamente. Simples de implementar, previsível.</p>
-      <div style="margin-top:12px;font-size:13px;">
-        <div style="color:var(--green);">✓ Receita previsível (SaaS)</div>
-        <div style="color:var(--green);">✓ Fácil de vender para clube</div>
-        <div style="color:var(--red);">✗ Clube precisa de volume de torneios</div>
-        <div style="color:var(--red);">✗ Difícil cobrar R$X/mês sem histórico</div>
-      </div>
-    </div>
-
-    <div class="card" style="border-top:3px solid var(--green); border: 2px solid var(--green);">
-      <h4 style="color:var(--green);">Modelo B — Comissão por inscrição (RECOMENDADO)</h4>
-      <p style="font-size:14px;margin-top:8px;color:var(--muted);">Bubble cobra X% ou R$Y por atleta inscrito. O clube recebe o restante. Zero custo para clube começar. Bubble cresce junto com o sucesso do clube.</p>
-      <div style="margin-top:12px;font-size:13px;">
-        <div style="color:var(--green);">✓ Zero barreira de entrada (PLG)</div>
-        <div style="color:var(--green);">✓ Bubble ganha escala naturalmente</div>
-        <div style="color:var(--green);">✓ Alinhamento de incentivos</div>
-        <div style="color:var(--amber);">⚡ Requer gateway de pagamento</div>
-      </div>
-    </div>
-
-    <div class="card" style="border-top:3px solid var(--blue);">
-      <h4 style="color:var(--blue);">Modelo C — Freemium + Features Premium</h4>
-      <p style="font-size:14px;margin-top:8px;color:var(--muted);">Torneios básicos grátis. Features avançadas (custom branding, analytics, múltiplos organizadores) no plano pago.</p>
-      <div style="margin-top:12px;font-size:13px;">
-        <div style="color:var(--green);">✓ Fácil de adotar</div>
-        <div style="color:var(--red);">✗ Difícil convencer a pagar sem histórico</div>
-        <div style="color:var(--red);">✗ Features premium ainda não existem</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="decision-box" style="margin-top:24px;">
-    <div class="label">📋 Decisão Pendente (Alta Prioridade)</div>
-    <p style="font-size:14px;">O modelo B (comissão por inscrição) é o mais recomendado pelos especialistas para o lançamento: elimina a barreira de entrada, alinha os incentivos e permite crescimento orgânico. Estimativa: R$2-5 por atleta inscrito (torneio médio de 30 duplas = 60 atletas = R$120-300 por torneio). Um clube com 2 torneios/mês = R$240-600/mês para a Bubble.</p>
-  </div>
-
-  <div class="quote-row">
-    <div class="speaker">Growth / Aquisição</div>
-    <p>"Cobrar mensalidade do clube antes de provar valor é o maior erro de PLG. Comissão faz a Bubble crescer junto com o clube — zero custo para começar, todos ganham ao mesmo tempo."</p>
-  </div>
-  <div class="quote-row">
-    <div class="speaker">Sports Tech Benchmarking</div>
-    <p>"PlayTomic cobra comissão de 15-20% por reserva. No Brasil, 5-8% por inscrição é competitivo e aceitável para clubes de padel premium."</p>
-  </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- SECTION 9: LEGAL & COMPLIANCE -->
-<!-- ============================================================ -->
-<section id="legal" class="container">
-  <h2 class="section-title"><span class="icon">⚖️</span> 9. Legal & Compliance</h2>
-  <p class="section-desc">Riscos jurídicos identificados — bloqueadores de lançamento com dados pessoais e pagamentos.</p>
-
-  <table>
-    <thead>
-      <tr><th>Área</th><th>Risco</th><th>Status Atual</th><th>Impacto</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>LGPD — Dados pessoais dos atletas</td><td class="risk-alto">ALTO</td><td>Coleta nome + email sem política</td><td>Multa + processo</td></tr>
-      <tr><td>Termos de Uso — Clube</td><td class="risk-alto">ALTO</td><td>Inexistentes</td><td>Sem proteção jurídica</td></tr>
-      <tr><td>Termos de Uso — Atleta</td><td class="risk-alto">ALTO</td><td>Inexistentes</td><td>Inscrição sem contrato</td></tr>
-      <tr><td>Política de Privacidade</td><td class="risk-alto">ALTO</td><td>Inexistente</td><td>Não-conformidade LGPD</td></tr>
-      <tr><td>Pagamento de inscrição</td><td class="risk-medio">MÉDIO</td><td>Sem gateway integrado</td><td>Impossível monetizar</td></tr>
-      <tr><td>Política de reembolso</td><td class="risk-medio">MÉDIO</td><td>Não definida</td><td>Chargeback / Procon</td></tr>
-      <tr><td>Responsabilidade em lesões</td><td class="risk-medio">MÉDIO</td><td>Sem isenção de responsabilidade</td><td>Ação judicial</td></tr>
-      <tr><td>Menores de idade</td><td class="risk-medio">MÉDIO</td><td>Sem verificação de idade</td><td>Consentimento responsável</td></tr>
-    </tbody>
-  </table>
-
-  <h3 style="font-size:1.1rem;margin:32px 0 16px;">Documentos Obrigatórios — Checklist</h3>
-  <ul class="checklist">
-    <li>Termos de Uso para Clubes (criação e gestão de torneios)</li>
-    <li>Termos de Uso para Atletas (inscrição e participação)</li>
-    <li>Política de Privacidade (LGPD — dados coletados, finalidade, retenção)</li>
-    <li>Política de Cancelamento e Reembolso de inscrição</li>
-    <li>Cláusula de isenção de responsabilidade por lesões durante o torneio</li>
-    <li>Consentimento explícito de menor (campo no formulário se < 18 anos)</li>
-    <li>DPA com provedores de email (Resend/SendGrid) e pagamento</li>
-  </ul>
-
-  <div class="quote-row" style="margin-top:20px;">
-    <div class="speaker">Legal / Compliance</div>
-    <p>"O atleta está cedendo nome, email e participando de atividade física. A plataforma é intermediária entre clube e atleta. Isso cria responsabilidade dupla — precisa de termos para os dois lados antes de qualquer torneio real."</p>
-  </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- SECTION 10: MARKETING DIGITAL -->
-<!-- ============================================================ -->
-<section id="marketing" class="container">
-  <h2 class="section-title"><span class="icon">📢</span> 10. Marketing Digital & Aquisição</h2>
-  <p class="section-desc">A comunidade de padel e beach tennis no Brasil é altamente engajada. Estratégia de canal e posicionamento.</p>
-
-  <div class="ba-grid">
-    <div class="ba-card ba-before">
-      <div class="ba-label">❌ Situação atual</div>
-      <ul>
-        <li>Sem landing page de captação de clubes</li>
-        <li>Sem presença no Instagram ou TikTok</li>
-        <li>Sem SEO (torneio não aparece no Google)</li>
-        <li>Zero social proof (depoimentos, números)</li>
-        <li>Página pública existe mas não é compartilhada</li>
-        <li>Sem estratégia de conteúdo para a comunidade</li>
-      </ul>
-    </div>
-    <div class="ba-card ba-after">
-      <div class="ba-label">✅ Estratégia recomendada</div>
-      <ul>
-        <li>Landing page focada em clube: "Gerencie seu torneio em 5 minutos"</li>
-        <li>Instagram: bastidores de torneios reais usando Bubble</li>
-        <li>Página pública do torneio como viral loop (atleta compartilha link)</li>
-        <li>WhatsApp grupos de padel: divulgação de torneios abertos</li>
-        <li>SEO básico: título da página com nome do torneio e cidade</li>
-        <li>Social proof: primeiro torneio → foto + depoimento do organizador</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="card" style="margin-top:16px;">
-    <h4 style="margin-bottom:12px;">Prioridade de Canais — Fase Beta</h4>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;">
-      <span class="metric-pill" style="border-color:var(--green);"><span style="color:var(--green);">P0</span> Indicação direta a clubes</span>
-      <span class="metric-pill" style="border-color:var(--green);"><span style="color:var(--green);">P0</span> WhatsApp grupos padel</span>
-      <span class="metric-pill" style="border-color:var(--blue);"><span style="color:var(--blue);">P1</span> Instagram reels</span>
-      <span class="metric-pill" style="border-color:var(--blue);"><span style="color:var(--blue);">P1</span> Link público viral</span>
-      <span class="metric-pill" style="border-color:var(--muted);"><span style="color:var(--muted);">P2</span> SEO local</span>
-      <span class="metric-pill" style="border-color:var(--muted);"><span style="color:var(--muted);">P3</span> Google Ads</span>
-    </div>
-  </div>
-
-  <div class="quote-row" style="margin-top:16px;">
-    <div class="speaker">Marketing Digital</div>
-    <p>"A página pública do torneio já é a melhor ferramenta de marketing — o atleta que se inscreve compartilha o link com o parceiro. É viral orgânico. Falta só facilitar o compartilhamento (botão share nativo, preview no WhatsApp/Instagram)."</p>
-  </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- SECTION 11: LAUNCH STRATEGY -->
-<!-- ============================================================ -->
-<section id="launch" class="container">
-  <h2 class="section-title"><span class="icon">🚀</span> 11. Estratégia de Lançamento</h2>
-  <p class="section-desc">Lançamento em 3 fases com critérios claros de go/no-go. Começar pequeno, validar, escalar.</p>
-
-  <div class="card-grid grid-3">
-    <div class="card" style="border-top:3px solid var(--amber);">
-      <h4 style="color:var(--amber);">Fase 1 — Alpha (2-3 semanas)</h4>
-      <p style="font-size:13px;color:var(--muted);margin-top:8px;">1-2 clubes conhecidos. Torneio real mas gratuito (sem cobrança). Foco em estabilidade e bugs. Feedback intensivo do organizador.</p>
-      <ul style="list-style:none;padding:0;margin-top:12px;font-size:13px;">
-        <li style="padding:3px 0;">✦ Termos de uso publicados</li>
-        <li style="padding:3px 0;">✦ Email de confirmação funcionando</li>
-        <li style="padding:3px 0;">✦ Fluxo completo sem erros</li>
-      </ul>
-    </div>
-    <div class="card" style="border-top:3px solid var(--blue);">
-      <h4 style="color:var(--blue);">Fase 2 — Beta Fechado (4-6 semanas)</h4>
-      <p style="font-size:13px;color:var(--muted);margin-top:8px;">5-10 clubes. Primeiro torneio com pagamento real de inscrição. Modelo de comissão ativo. NPS ≥ 7.</p>
-      <ul style="list-style:none;padding:0;margin-top:12px;font-size:13px;">
-        <li style="padding:3px 0;">✦ Gateway de pagamento integrado</li>
-        <li style="padding:3px 0;">✦ Notificações funcionando</li>
-        <li style="padding:3px 0;">✦ Suporte direto aos organizadores</li>
-      </ul>
-    </div>
-    <div class="card" style="border-top:3px solid var(--green);">
-      <h4 style="color:var(--green);">Fase 3 — Lançamento Público</h4>
-      <p style="font-size:13px;color:var(--muted);margin-top:8px;">Landing page no ar. Cadastro self-service para clubes. Marketing ativo. Meta: 20 clubes ativos no primeiro mês.</p>
-      <ul style="list-style:none;padding:0;margin-top:12px;font-size:13px;">
-        <li style="padding:3px 0;">✦ NPS ≥ 7 no beta</li>
-        <li style="padding:3px 0;">✦ Zero bugs críticos em 2 semanas</li>
-        <li style="padding:3px 0;">✦ Pelo menos 3 torneios completos</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- SECTION 12: PROJEÇÃO FINANCEIRA -->
-<!-- ============================================================ -->
-<section id="financial" class="container">
-  <h2 class="section-title"><span class="icon">📈</span> 12. Projeção Financeira</h2>
-  <p class="section-desc">Estimativa de receita com modelo de comissão por inscrição (Modelo B recomendado). Cenário conservador.</p>
-
-  <div class="card-grid grid-3" style="margin-bottom:32px;">
-    <div class="card stat" style="border-top:3px solid var(--amber);">
-      <div class="lbl">Receita por torneio</div>
-      <div class="num" style="color:var(--amber);">R$180</div>
-      <p style="font-size:12px;color:var(--muted);margin-top:4px;">30 duplas × 60 atletas × R$3 comissão</p>
-    </div>
-    <div class="card stat" style="border-top:3px solid var(--blue);">
-      <div class="lbl">MRR com 20 clubes (2 torneios/mês)</div>
-      <div class="num" style="color:var(--blue);">R$7.200</div>
-      <p style="font-size:12px;color:var(--muted);margin-top:4px;">20 clubes × 2 torneios × R$180</p>
-    </div>
-    <div class="card stat" style="border-top:3px solid var(--green);">
-      <div class="lbl">Meta Mês 12 (100 clubes)</div>
-      <div class="num" style="color:var(--green);">R$36.000</div>
-      <p style="font-size:12px;color:var(--muted);margin-top:4px;">100 clubes × 2 torneios × R$180</p>
-    </div>
-  </div>
-
-  <h3 style="font-size:1.1rem;margin:24px 0 16px;">Impacto por Feature no Crescimento</h3>
-  <table>
-    <thead>
-      <tr><th>Feature</th><th>Impacto</th><th>Esforço</th></tr>
-    </thead>
-    <tbody>
-      <tr><td>Email de confirmação de inscrição</td><td class="impact-positive">+25% retenção de atletas</td><td>Baixo (2-4h)</td></tr>
-      <tr><td>Notificação para clube de nova inscrição</td><td class="impact-positive">+Engajamento do organizador</td><td>Baixo (2h)</td></tr>
-      <tr><td>Gateway de pagamento (comissão)</td><td class="impact-positive">+100% (receita começa)</td><td>Alto (2-3 semanas)</td></tr>
-      <tr><td>Landing page de captação</td><td class="impact-positive">+Aquisição orgânica</td><td>Médio (1 semana)</td></tr>
-      <tr><td>Share nativo da página do torneio</td><td class="impact-positive">+Viral loop</td><td>Baixo (4h)</td></tr>
-      <tr><td>Área do atleta (meus torneios)</td><td class="impact-positive">+Retenção de atleta</td><td>Médio (1 semana)</td></tr>
-      <tr><td>App mobile (React Native)</td><td class="impact-positive">+Adoção mobile</td><td>Muito alto (2+ meses)</td></tr>
-      <tr><td>Ranking de atletas</td><td class="impact-positive">+Viralidade / volta</td><td>Alto (3-4 semanas)</td></tr>
-    </tbody>
-  </table>
-
-  <h3 style="font-size:1.1rem;margin:32px 0 16px;">10 Novas Features Propostas</h3>
-  <div class="card-grid grid-2">
-    <div class="feature-card"><h4>1. Emails Transacionais</h4><p>Confirmação de inscrição, grupos gerados, lembrete D-1 do jogo, resultado final. Via Resend ou SendGrid.</p></div>
-    <div class="feature-card"><h4>2. Gateway de Pagamento</h4><p>Atleta paga inscrição via PIX/cartão no ato. Bubble retém comissão, clube recebe o restante automaticamente.</p></div>
-    <div class="feature-card"><h4>3. Share Nativo do Torneio</h4><p>Botão de compartilhar com preview rico (OG tags) para WhatsApp e Instagram Stories.</p></div>
-    <div class="feature-card"><h4>4. Onboarding Checklist do Clube</h4><p>Checklist visual: "Complete seu perfil → Crie seu primeiro torneio → Publique e compartilhe → Gerencie inscrições".</p></div>
-    <div class="feature-card"><h4>5. ONGOING Automático por Data</h4><p>Cron job diário: se startDate chegou e torneio está CLOSED, muda para ONGOING automaticamente.</p></div>
-    <div class="feature-card"><h4>6. Notificações ao Clube</h4><p>Email/WhatsApp quando atleta se inscreve, quando limite de duplas for atingido, D-3 antes do torneio.</p></div>
-    <div class="feature-card"><h4>7. Área do Atleta</h4><p>Login opcional do atleta. Painel com "Meus torneios", histórico de resultados, próximos jogos.</p></div>
-    <div class="feature-card"><h4>8. Ranking de Atletas</h4><p>Pontuação acumulada por torneio. Ranking público por categoria/cidade. Motor de engajamento e volta.</p></div>
-    <div class="feature-card"><h4>9. Live Scoring Público</h4><p>Página de acompanhamento ao vivo para espectadores. Score atualiza em tempo real sem precisar de refresh.</p></div>
-    <div class="feature-card"><h4>10. PDF de Resultados / Certificado</h4><p>Gerar e enviar PDF com classificação final do torneio. Clube imprime e entrega. Atleta tem troféu digital.</p></div>
-  </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- SECTION 13: DEBATES -->
-<!-- ============================================================ -->
-<section id="debates" class="container">
-  <h2 class="section-title"><span class="icon">⚔️</span> 13. Debates — 12 Discussões Estratégicas</h2>
-  <p class="section-desc">Onde os especialistas divergiram e como o produto deve decidir. 8 debates de produto + 4 de tech.</p>
-
-  <h3 style="font-size:1.1rem;margin:24px 0 16px;color:var(--blue);">Debates de Produto (1-8)</h3>
-  <div class="card-grid grid-2">
-    <div class="card debate-card">
-      <div class="debate-number">#1</div>
-      <h4 style="margin-top:8px;">Modelo de monetização?</h4>
-      <div class="debate-parties">Growth vs GTM vs Produto</div>
-      <div class="debate-result">→ Comissão por inscrição (Modelo B) — zero barreira de entrada</div>
-    </div>
-    <div class="card debate-card">
-      <div class="debate-number">#2</div>
-      <h4 style="margin-top:8px;">Atleta precisa criar conta?</h4>
-      <div class="debate-parties">Produto vs CS vs Legal</div>
-      <div class="debate-result">→ Inscrição sem login obrigatório. Conta opcional para histórico</div>
-    </div>
-    <div class="card debate-card">
-      <div class="debate-number">#3</div>
-      <h4 style="margin-top:8px;">Focar só em padel ou multi-esporte?</h4>
-      <div class="debate-parties">GTM vs Marketing vs Benchmarking</div>
-      <div class="debate-result">→ Padel + Beach Tennis no launch. Multi-esporte no Q3 2026</div>
-    </div>
-    <div class="card debate-card">
-      <div class="debate-number">#4</div>
-      <h4 style="margin-top:8px;">App mobile agora ou depois?</h4>
-      <div class="debate-parties">Produto vs Tech vs Branding</div>
-      <div class="debate-result">→ Web responsivo primeiro. React Native após 50 clubes ativos</div>
-    </div>
-    <div class="card debate-card">
-      <div class="debate-number">#5</div>
-      <h4 style="margin-top:8px;">Lançar com gateway ou sem?</h4>
-      <div class="debate-parties">Growth vs Legal vs Tech</div>
-      <div class="debate-result">→ Alpha sem pagamento. Beta com PIX via AbacatePay ou Asaas</div>
-    </div>
-    <div class="card debate-card">
-      <div class="debate-number">#6</div>
-      <h4 style="margin-top:8px;">Clube gere o ranking ou Bubble?</h4>
-      <div class="debate-parties">Produto vs Marketing</div>
-      <div class="debate-result">→ Ranking gerido pela Bubble (mais viral, mais retenção)</div>
-    </div>
-    <div class="card debate-card">
-      <div class="debate-number">#7</div>
-      <h4 style="margin-top:8px;">Preview do torneio público ou privado?</h4>
-      <div class="debate-parties">GTM vs Legal</div>
-      <div class="debate-result">→ Público sem login (vital para viral loop e SEO)</div>
-    </div>
-    <div class="card debate-card">
-      <div class="debate-number">#8</div>
-      <h4 style="margin-top:8px;">Taxa de inscrição fixa ou por percentual?</h4>
-      <div class="debate-parties">Pricing vs Growth</div>
-      <div class="debate-result">→ R$3-5 fixo por atleta (mais simples, previsível para o clube)</div>
-    </div>
-  </div>
-
-  <h3 style="font-size:1.1rem;margin:32px 0 16px;color:var(--cyan);">Debates de Tech (9-12)</h3>
-  <div class="card-grid grid-2">
-    <div class="card debate-card">
-      <div class="debate-number">#9</div>
-      <h4 style="margin-top:8px;">Railway vs VPS própria?</h4>
-      <div class="debate-parties">Backend vs GTM</div>
-      <div class="debate-result">→ Manter Railway até 100 clubes. VPS quando custo Railway > R$500/mês</div>
-    </div>
-    <div class="card debate-card">
-      <div class="debate-number">#10</div>
-      <h4 style="margin-top:8px;">WebSockets para live scoring?</h4>
-      <div class="debate-parties">Tech vs Produto</div>
-      <div class="debate-result">→ Polling a cada 30s no MVP. WebSocket após validar demanda</div>
-    </div>
-    <div class="card debate-card">
-      <div class="debate-number">#11</div>
-      <h4 style="margin-top:8px;">Testes antes ou depois do launch?</h4>
-      <div class="debate-parties">Tech Lead vs GTM</div>
-      <div class="debate-result">→ Testes E2E dos fluxos críticos antes do beta (inscrição + grupos)</div>
-    </div>
-    <div class="card debate-card">
-      <div class="debate-number">#12</div>
-      <h4 style="margin-top:8px;">Monorepo ou repos separados?</h4>
-      <div class="debate-parties">Tech Lead vs Backend</div>
-      <div class="debate-result">→ Manter dois repos separados (projeto_novo + backend). Monorepo só se 3+ devs</div>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- SECTION 14: ROADMAP -->
-<!-- ============================================================ -->
-<section id="roadmap" class="container">
-  <h2 class="section-title"><span class="icon">🗺️</span> 14. Roadmap até o Lançamento Público</h2>
-  <p class="section-desc">Da situação atual até o primeiro torneio pago e depois a escala.</p>
-
-  <div class="timeline">
-    <div class="timeline-item">
-      <div class="period">Sprint 1 — 2 semanas</div>
-      <h4>Estabilidade + Legal + Emails</h4>
-      <div class="card" style="margin-top:8px;">
-        <ul style="list-style:none;padding:0;">
-          <li style="padding:4px 0;font-size:14px;">✦ Termos de uso (clube + atleta) publicados na plataforma</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Política de privacidade (LGPD) online</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Email transacional: confirmação de inscrição do atleta</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Email ao clube: nova inscrição recebida</li>
-          <li style="padding:4px 0;font-size:14px;">✦ ONGOING automático via cron job por data</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Rate limiting nas rotas públicas</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Share button + OG tags na página pública do torneio</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="timeline-item">
-      <div class="period">Sprint 2 — 2 semanas</div>
-      <h4>Alpha com 1-2 Clubes Reais</h4>
-      <div class="card" style="margin-top:8px;">
-        <ul style="list-style:none;padding:0;">
-          <li style="padding:4px 0;font-size:14px;">✦ Primeiro torneio real (gratuito, sem cobrança)</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Onboarding checklist visual para novos clubes</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Bug fixing baseado no uso real</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Mobile responsiveness validation</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Landing page simples (captação de clubes interessados)</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="timeline-item">
-      <div class="period">Sprint 3 — 3 semanas</div>
-      <h4>Beta Fechado + Pagamento</h4>
-      <div class="card" style="margin-top:8px;">
-        <ul style="list-style:none;padding:0;">
-          <li style="padding:4px 0;font-size:14px;">✦ Gateway PIX integrado (AbacatePay ou Asaas)</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Modelo de comissão ativo (R$3-5/atleta)</li>
-          <li style="padding:4px 0;font-size:14px;">✦ 5-10 clubes no beta</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Dashboard financeiro básico para o clube (receita esperada)</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Notificações D-1 antes do torneio</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="timeline-item">
-      <div class="period">Q2 2026</div>
-      <h4>Lançamento Público + Ranking</h4>
-      <div class="card" style="margin-top:8px;">
-        <ul style="list-style:none;padding:0;">
-          <li style="padding:4px 0;font-size:14px;">✦ Cadastro self-service de clubes</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Área do atleta (meus torneios, histórico)</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Ranking de atletas por categoria/cidade</li>
-          <li style="padding:4px 0;font-size:14px;">✦ PDF de resultados / certificado</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Marketing ativo (Instagram, WhatsApp grupos)</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Meta: 20 clubes ativos</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="timeline-item">
-      <div class="period">Q3-Q4 2026</div>
-      <h4>Escala + Multi-esporte + Mobile</h4>
-      <div class="card" style="margin-top:8px;">
-        <ul style="list-style:none;padding:0;">
-          <li style="padding:4px 0;font-size:14px;">✦ App mobile (React Native)</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Live scoring para espectadores</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Expansão para squash, tenis, beach volley</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Plano premium para clubes (branding, múltiplos admins)</li>
-          <li style="padding:4px 0;font-size:14px;">✦ Meta: 100 clubes, R$36k MRR</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <h3 style="font-size:1.1rem;margin:32px 0 16px;">Milestones de Go/No-Go</h3>
-  <div class="card-grid grid-3">
-    <div class="card" style="border-top:3px solid var(--amber);">
-      <h4>Alpha → Beta</h4>
-      <ul style="list-style:none;padding:0;margin-top:8px;font-size:14px;">
-        <li style="padding:3px 0;">✦ Termos publicados</li>
-        <li style="padding:3px 0;">✦ Email de confirmação funcionando</li>
-        <li style="padding:3px 0;">✦ Torneio completo sem erros críticos</li>
-        <li style="padding:3px 0;">✦ Feedback positivo de 1 organizador</li>
-      </ul>
-    </div>
-    <div class="card" style="border-top:3px solid var(--blue);">
-      <h4>Beta → Público</h4>
-      <ul style="list-style:none;padding:0;margin-top:8px;font-size:14px;">
-        <li style="padding:3px 0;">✦ NPS ≥ 7 dos organizadores</li>
-        <li style="padding:3px 0;">✦ Pelo menos 3 torneios completos</li>
-        <li style="padding:3px 0;">✦ Pagamento via PIX funcionando</li>
-        <li style="padding:3px 0;">✦ Zero bugs críticos em 2 semanas</li>
-      </ul>
-    </div>
-    <div class="card" style="border-top:3px solid var(--green);">
-      <h4>Público → Escala</h4>
-      <ul style="list-style:none;padding:0;margin-top:8px;font-size:14px;">
-        <li style="padding:3px 0;">✦ 20+ clubes ativos</li>
-        <li style="padding:3px 0;">✦ MRR > R$5.000</li>
-        <li style="padding:3px 0;">✦ Retenção > 80% (clube usa 2+ torneios)</li>
-        <li style="padding:3px 0;">✦ CAC < R$100 por clube</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- SECTION 15: RESUMO EXECUTIVO -->
-<!-- ============================================================ -->
-<section id="resumo" class="container">
-  <h2 class="section-title"><span class="icon">🎯</span> 15. Resumo Executivo</h2>
-  <p class="section-desc">Visão consolidada: bloqueadores, quick wins, score e próximos passos.</p>
-
-  <div class="ba-grid">
-    <div class="ba-card ba-before" style="background:rgba(239,68,68,0.06);">
-      <div class="ba-label" style="font-size:14px;">🚫 Top 4 Bloqueadores de Launch</div>
-      <div class="blocker"><strong>1. Sem termos legais</strong> — Coleta dados pessoais sem LGPD. Não pode operar comercialmente.</div>
-      <div class="blocker"><strong>2. Sem email transacional</strong> — Atleta se inscreve e não recebe confirmação. Churn silencioso.</div>
-      <div class="blocker"><strong>3. Sem modelo de monetização ativo</strong> — Produto está pronto mas não gera receita ainda.</div>
-      <div class="blocker"><strong>4. Sem onboarding de clubes</strong> — Novo clube entra e não sabe o que fazer primeiro.</div>
-    </div>
-    <div class="ba-card ba-after" style="background:rgba(0,255,136,0.06);">
-      <div class="ba-label" style="font-size:14px;">⚡ Top 5 Quick Wins</div>
-      <div class="win"><strong>1. Share button + OG tags</strong> — 4h de trabalho. Viral loop imediato na página pública.</div>
-      <div class="win"><strong>2. Email de confirmação</strong> — 4-8h com Resend. Primeiro passo de retenção do atleta.</div>
-      <div class="win"><strong>3. Rate limiting nas rotas públicas</strong> — 2h. Protege contra spam de inscrições.</div>
-      <div class="win"><strong>4. ONGOING automático por data</strong> — 4h. Remove fricção do organizador.</div>
-      <div class="win"><strong>5. Checklist de onboarding do clube</strong> — 6h. Melhora ativação de novos organizadores.</div>
-    </div>
-  </div>
-
-  <div class="score-box">
-    <p style="font-size:14px;color:var(--muted);margin-bottom:16px;">Score de Prontidão para Lançamento Comercial</p>
-    <span class="big" style="color:var(--amber);">5.2</span>
-    <span class="arrow">→</span>
-    <span class="big" style="color:var(--green);">7.5</span>
-    <p style="font-size:14px;color:var(--muted);margin-top:16px;">Com as implementações das Sprints 1-3</p>
-    <p style="font-size:12px;color:var(--muted);margin-top:12px;max-width:600px;margin-left:auto;margin-right:auto;">Score atual de 5.2 reflete um core de produto excepcionalmente sólido (grupos, schedule, playoffs = 8.5/10) mas zerado em monetização, legal e comunicação com atleta. O gap é fechável em 6-8 semanas com foco nos 4 bloqueadores.</p>
-  </div>
-
-  <h3 style="font-size:1.1rem;margin:24px 0 16px;">Próximos 30 Dias — Lista Prioritária</h3>
-  <div class="card" style="margin-bottom:24px;">
-    <ol style="padding-left:20px;font-size:14px;">
-      <li style="padding:6px 0;"><strong>Semana 1:</strong> Termos de uso + LGPD + email de confirmação de inscrição</li>
-      <li style="padding:6px 0;"><strong>Semana 2:</strong> Share nativo + rate limiting + ONGOING automático por data + checklist de onboarding</li>
-      <li style="padding:6px 0;"><strong>Semana 3-4:</strong> Alpha com 1-2 clubes reais. Bug fixing. Mobile validation</li>
-      <li style="padding:6px 0;"><strong>Semana 5-6:</strong> Gateway PIX integrado. Beta com 5-10 clubes. Modelo de comissão ativo</li>
-      <li style="padding:6px 0;"><strong>Q2 2026:</strong> Lançamento público com landing page, área do atleta e ranking</li>
-    </ol>
-  </div>
-
-  <div class="card" style="border: 2px solid var(--blue); text-align:center; padding:32px;">
-    <h3 style="color:var(--blue);margin-bottom:12px;">Conclusão</h3>
-    <p style="font-size:15px;max-width:700px;margin:0 auto;">O BubblePadel tem um core de produto raro: o algoritmo de schedule automático com respeito a conflitos de atletas e ordem grupos→playoffs é tecnicamente superior ao que a maioria dos competidores oferece. O gap entre o estado atual (5.2/10) e o mínimo viável para o primeiro torneio pago (7.5/10) é fechável em <strong>6-8 semanas</strong> com foco em legal, email e modelo de monetização. O mercado de padel e beach tennis no Brasil está em expansão acelerada — <strong>a janela de oportunidade é agora.</strong></p>
-  </div>
-</section>
-
-<footer class="footer">
-  <p>BubblePadel — Auditoria Completa + Plano de Lançamento · Março 2026 · 10 Especialistas · 72+ Recomendações · Projeções são estimativas baseadas em benchmarks do mercado de sports tech B2B no Brasil.</p>
-</footer>
-
-<script>
-document.querySelectorAll('.pill').forEach(pill => {
-  pill.addEventListener('click', function() {
-    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-    this.classList.add('active');
-  });
-});
-
-const sections = document.querySelectorAll('section[id]');
-const pills = document.querySelectorAll('.pill[href]');
-const pillMap = {};
-pills.forEach(p => { pillMap[p.getAttribute('href').replace('#', '')] = p; });
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      pills.forEach(p => p.classList.remove('active'));
-      const id = entry.target.getAttribute('id');
-      if (pillMap[id]) pillMap[id].classList.add('active');
-    }
-  });
-}, { rootMargin: '-20% 0px -70% 0px', threshold: 0 });
-sections.forEach(s => observer.observe(s));
-
-// Radar Chart
-const radarCtx = document.getElementById('radarChart').getContext('2d');
-new Chart(radarCtx, {
-  type: 'radar',
-  data: {
-    labels: ['Fluxo Torneio', 'Grupos/Playoffs', 'Schedule', 'Auth/Segurança', 'Backend Robustez', 'UX/Produto', 'Mobile', 'Notificações', 'Monetização', 'Legal/LGPD', 'Marketing', 'Onboarding Clube'],
-    datasets: [
-      {
-        label: 'Estado Atual',
-        data: [8.5, 8.5, 7.5, 7, 6, 6.5, 4, 2, 2, 2, 3, 3],
-        borderColor: '#ef4444',
-        backgroundColor: 'rgba(239,68,68,0.1)',
-        borderWidth: 2,
-        pointBackgroundColor: '#ef4444',
-        pointRadius: 4
-      },
-      {
-        label: 'Meta Launch (Sprint 1-3)',
-        data: [9, 9, 8, 8, 7, 7.5, 6, 7, 6, 7, 6, 7],
-        borderColor: '#00ff88',
-        backgroundColor: 'rgba(0,255,136,0.06)',
-        borderWidth: 2,
-        borderDash: [6, 4],
-        pointBackgroundColor: '#00ff88',
-        pointRadius: 4
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BubblePadel — Auditoria Completa + Plano de Lançamento</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+      :root {
+        --bg: #050f1a;
+        --bg2: #0a1a2e;
+        --card: #0d2037;
+        --border: #1a3550;
+        --text: #dff0ff;
+        --muted: #7a9ab5;
+        --blue: #00ccff;
+        --green: #00ff88;
+        --red: #ef4444;
+        --amber: #f59e0b;
+        --purple: #8b5cf6;
+        --cyan: #06b6d4;
+        --pink: #ec4899;
       }
-    ]
-  },
-  options: {
-    responsive: true,
-    scales: {
-      r: {
-        beginAtZero: true, max: 10,
-        ticks: { stepSize: 2, color: '#7a9ab5', backdropColor: 'transparent', font: { size: 10 } },
-        grid: { color: 'rgba(26,53,80,0.8)' },
-        angleLines: { color: 'rgba(26,53,80,0.8)' },
-        pointLabels: { color: '#dff0ff', font: { size: 11 } }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
-    },
-    plugins: {
-      legend: { labels: { color: '#dff0ff', font: { size: 12 } } }
-    }
-  }
-});
-</script>
-</body>
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family:
+          "Segoe UI",
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(5, 15, 26, 0.95);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        padding: 10px 0;
+        overflow-x: auto;
+      }
+      .nav-inner {
+        display: flex;
+        gap: 6px;
+        padding: 0 24px;
+        max-width: 1200px;
+        margin: 0 auto;
+        white-space: nowrap;
+        align-items: center;
+      }
+      .pill {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--muted);
+        background: transparent;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.25s;
+        text-decoration: none;
+      }
+      .pill:hover {
+        color: var(--text);
+        background: var(--bg2);
+      }
+      .pill.active {
+        color: #fff;
+        background: var(--blue);
+        border-color: var(--blue);
+      }
+      .hero {
+        text-align: center;
+        padding: 80px 24px 60px;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 204, 255, 0.1) 0%,
+          transparent 60%
+        );
+      }
+      .hero h1 {
+        font-size: 2.8rem;
+        font-weight: 800;
+        margin-bottom: 12px;
+      }
+      .hero h1 span {
+        color: var(--blue);
+      }
+      .hero .subtitle {
+        color: var(--muted);
+        font-size: 1.05rem;
+        max-width: 700px;
+        margin: 0 auto 28px;
+      }
+      .badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+      .badge {
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        background: rgba(0, 204, 255, 0.12);
+        color: var(--blue);
+        border: 1px solid rgba(0, 204, 255, 0.3);
+      }
+      .badge.green {
+        background: rgba(0, 255, 136, 0.12);
+        color: var(--green);
+        border-color: rgba(0, 255, 136, 0.3);
+      }
+      .badge.amber {
+        background: rgba(245, 158, 11, 0.12);
+        color: var(--amber);
+        border-color: rgba(245, 158, 11, 0.3);
+      }
+      .hero .date {
+        color: var(--muted);
+        font-size: 14px;
+        margin-top: 10px;
+      }
+      section {
+        padding: 60px 0;
+        border-top: 1px solid var(--border);
+      }
+      .section-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .section-title .icon {
+        font-size: 1.4rem;
+      }
+      .section-desc {
+        color: var(--muted);
+        margin-bottom: 32px;
+        font-size: 0.95rem;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+      .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px rgba(0, 204, 255, 0.08);
+      }
+      .card-grid {
+        display: grid;
+        gap: 16px;
+      }
+      .grid-2 {
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      }
+      .grid-3 {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+      .grid-4 {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+      .grid-5 {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      }
+      .expert-card {
+        position: relative;
+        overflow: hidden;
+      }
+      .expert-card .score {
+        font-size: 2rem;
+        font-weight: 800;
+      }
+      .expert-card .role {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .expert-card .name {
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      .ba-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 24px;
+      }
+      .ba-card {
+        padding: 24px;
+        border-radius: 12px;
+      }
+      .ba-before {
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+      }
+      .ba-after {
+        background: rgba(0, 255, 136, 0.08);
+        border: 1px solid rgba(0, 255, 136, 0.2);
+      }
+      .ba-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .ba-before .ba-label {
+        color: var(--red);
+      }
+      .ba-after .ba-label {
+        color: var(--green);
+      }
+      .ba-card ul {
+        list-style: none;
+        padding: 0;
+      }
+      .ba-card li {
+        padding: 6px 0;
+        font-size: 14px;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .ba-before li::before {
+        content: "✗";
+        color: var(--red);
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .ba-after li::before {
+        content: "✓";
+        color: var(--green);
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .quote-row {
+        background: var(--bg2);
+        border-left: 3px solid var(--blue);
+        padding: 16px 20px;
+        border-radius: 0 8px 8px 0;
+        margin: 16px 0;
+      }
+      .quote-row .speaker {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--blue);
+        margin-bottom: 4px;
+      }
+      .quote-row p {
+        font-style: italic;
+        font-size: 14px;
+        color: var(--text);
+      }
+      .decision-box {
+        background: rgba(0, 204, 255, 0.06);
+        border: 1px solid rgba(0, 204, 255, 0.2);
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin: 20px 0;
+      }
+      .decision-box .label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--blue);
+        letter-spacing: 1.5px;
+        margin-bottom: 8px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 14px;
+      }
+      th,
+      td {
+        padding: 10px 14px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      th {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--muted);
+        background: var(--bg2);
+      }
+      td {
+        color: var(--text);
+      }
+      .risk-alto {
+        color: var(--red);
+        font-weight: 700;
+      }
+      .risk-medio {
+        color: var(--amber);
+        font-weight: 700;
+      }
+      .risk-ok {
+        color: var(--green);
+        font-weight: 700;
+      }
+      .timeline {
+        position: relative;
+        padding-left: 32px;
+      }
+      .timeline::before {
+        content: "";
+        position: absolute;
+        left: 12px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--border);
+      }
+      .timeline-item {
+        position: relative;
+        margin-bottom: 32px;
+      }
+      .timeline-item::before {
+        content: "";
+        position: absolute;
+        left: -26px;
+        top: 6px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--blue);
+        border: 2px solid var(--bg);
+      }
+      .timeline-item h4 {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      .timeline-item .period {
+        font-size: 12px;
+        color: var(--blue);
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .stat {
+        text-align: center;
+      }
+      .stat .num {
+        font-size: 2.4rem;
+        font-weight: 800;
+      }
+      .stat .lbl {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .metric-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        margin: 4px;
+      }
+      .finding-card {
+        margin-bottom: 20px;
+      }
+      .finding-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .priority-badge {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 8px;
+      }
+      .good-list,
+      .bad-list {
+        list-style: none;
+        padding: 0;
+        margin: 8px 0;
+      }
+      .good-list li,
+      .bad-list li {
+        padding: 5px 0;
+        font-size: 14px;
+        display: flex;
+        gap: 8px;
+      }
+      .good-list li::before {
+        content: "●";
+        color: var(--green);
+        flex-shrink: 0;
+      }
+      .bad-list li::before {
+        content: "●";
+        color: var(--red);
+        flex-shrink: 0;
+      }
+      .impact-positive {
+        color: var(--green);
+        font-weight: 600;
+      }
+      .impact-negative {
+        color: var(--red);
+        font-weight: 600;
+      }
+      .debate-card {
+        position: relative;
+      }
+      .debate-number {
+        position: absolute;
+        top: -8px;
+        left: 16px;
+        background: var(--blue);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 10px;
+        border-radius: 10px;
+      }
+      .debate-parties {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 8px 0;
+      }
+      .debate-result {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--green);
+        padding: 8px 12px;
+        background: rgba(0, 255, 136, 0.06);
+        border-radius: 8px;
+        margin-top: 8px;
+      }
+      .feature-card {
+        padding: 16px;
+        border-radius: 10px;
+        background: var(--bg2);
+        border: 1px solid var(--border);
+      }
+      .feature-card h4 {
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      .feature-card p {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .score-box {
+        text-align: center;
+        padding: 40px;
+        border-radius: 16px;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 204, 255, 0.1),
+          rgba(0, 255, 136, 0.06)
+        );
+        border: 1px solid var(--border);
+        margin: 24px 0;
+      }
+      .score-box .arrow {
+        font-size: 2rem;
+        margin: 0 16px;
+        color: var(--muted);
+      }
+      .score-box .big {
+        font-size: 3rem;
+        font-weight: 800;
+      }
+      .blocker {
+        border-left: 3px solid var(--red);
+        padding-left: 16px;
+        margin-bottom: 12px;
+      }
+      .win {
+        border-left: 3px solid var(--green);
+        padding-left: 16px;
+        margin-bottom: 12px;
+      }
+      .footer {
+        text-align: center;
+        padding: 40px 24px;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .checklist {
+        list-style: none;
+        padding: 0;
+      }
+      .checklist li {
+        padding: 6px 0;
+        font-size: 14px;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .checklist li::before {
+        content: "☐";
+        color: var(--amber);
+        flex-shrink: 0;
+        font-size: 16px;
+      }
+      .chart-wrap {
+        max-width: 520px;
+        margin: 0 auto;
+      }
+      .status-flow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 20px;
+        background: var(--bg2);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+      }
+      .status-pill {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .status-arrow {
+        color: var(--muted);
+        font-size: 1.2rem;
+      }
+      @media (max-width: 768px) {
+        .hero h1 {
+          font-size: 1.8rem;
+        }
+        .ba-grid {
+          grid-template-columns: 1fr;
+        }
+        .grid-2,
+        .grid-3,
+        .grid-4,
+        .grid-5 {
+          grid-template-columns: 1fr;
+        }
+        .nav-inner {
+          padding: 0 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="nav">
+      <div class="nav-inner">
+        <a class="pill active" href="#painel">Painel</a>
+        <span style="color: var(--border); margin: 0 2px">|</span>
+        <a class="pill" href="#saude">Saúde</a>
+        <a class="pill" href="#construido">Construído</a>
+        <a class="pill" href="#gaps">Gaps</a>
+        <span style="color: var(--border); margin: 0 2px">|</span>
+        <a class="pill" href="#fluxo">Fluxo</a>
+        <a class="pill" href="#tech">Tech</a>
+        <a class="pill" href="#ux">UX/Produto</a>
+        <span style="color: var(--border); margin: 0 2px">|</span>
+        <a class="pill" href="#monetizacao">Monetização</a>
+        <a class="pill" href="#legal">Legal</a>
+        <a class="pill" href="#marketing">Marketing</a>
+        <span style="color: var(--border); margin: 0 2px">|</span>
+        <a class="pill" href="#launch">Launch</a>
+        <a class="pill" href="#financial">Financeiro</a>
+        <span style="color: var(--border); margin: 0 2px">|</span>
+        <a class="pill" href="#debates">Debates</a>
+        <a class="pill" href="#roadmap">Roadmap</a>
+        <a class="pill" href="#resumo">Resumo</a>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <h1>
+        <span>BubblePadel</span> — Auditoria Completa + Plano de Lançamento
+      </h1>
+      <p class="subtitle">
+        10 Especialistas analisaram o sistema, código, produto, monetização e
+        go-to-market. Aqui estão as decisões, gaps e o plano de ação para o
+        lançamento.
+      </p>
+      <div class="badge-row">
+        <span class="badge">10 Especialistas</span>
+        <span class="badge">72+ Recomendações</span>
+        <span class="badge">12 Debates</span>
+        <span class="badge amber">Score Atual 6.0/10</span>
+        <span class="badge green">Meta Launch 7.5/10</span>
+      </div>
+      <p class="date">Março 2026</p>
+    </header>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 1: PAINEL DOS ESPECIALISTAS -->
+    <!-- ============================================================ -->
+    <section id="painel" class="container">
+      <h2 class="section-title">
+        <span class="icon">📊</span> 1. Painel dos Especialistas
+      </h2>
+      <p class="section-desc">
+        10 especialistas avaliaram o BubblePadel de forma independente. Stack:
+        React + TypeScript + Node.js + Prisma + PostgreSQL + Railway.
+      </p>
+
+      <div class="card-grid grid-2">
+        <div
+          class="card expert-card"
+          style="border-top: 3px solid var(--green)"
+        >
+          <div class="name">Product / UX Specialist</div>
+          <div class="role">Tournament Flow & Athlete Experience</div>
+          <div class="score" style="color: var(--green)">
+            7.0<span style="font-size: 14px; color: var(--muted)">/10</span>
+          </div>
+          <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
+            Fluxo de torneio completo e funcional (ciclo de vida, grupos,
+            playoffs, resultados). Falta experiência do atleta pós-inscrição:
+            notificações, área pessoal, histórico.
+          </p>
+        </div>
+
+        <div class="card expert-card" style="border-top: 3px solid var(--blue)">
+          <div class="name">Fullstack Tech Lead</div>
+          <div class="role">React + TypeScript + Node.js</div>
+          <div class="score" style="color: var(--blue)">
+            6.5<span style="font-size: 14px; color: var(--muted)">/10</span>
+          </div>
+          <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
+            Arquitetura de hooks sólida (useGroups, useTeams, useSchedule,
+            usePlayoffs). Padrão enum maiúsculo/minúsculo resolvido. Falta error
+            handling consistente no frontend e testes unitários.
+          </p>
+        </div>
+
+        <div
+          class="card expert-card"
+          style="border-top: 3px solid var(--purple)"
+        >
+          <div class="name">Backend Architect</div>
+          <div class="role">Node.js + Prisma + Railway</div>
+          <div class="score" style="color: var(--purple)">
+            6.0<span style="font-size: 14px; color: var(--muted)">/10</span>
+          </div>
+          <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
+            ✅ <strong>Sprint 1:</strong> Rate limiting implementado (100
+            req/min geral, 5 inscrições/hora). Cron ONGOING automático ativo.
+            Pendente: CI/CD, testes de API, health monitoring.
+          </p>
+        </div>
+
+        <div
+          class="card expert-card"
+          style="border-top: 3px solid var(--amber)"
+        >
+          <div class="name">Growth / Aquisição</div>
+          <div class="role">B2B Sports Market Specialist</div>
+          <div class="score" style="color: var(--amber)">
+            3.5<span style="font-size: 14px; color: var(--muted)">/10</span>
+          </div>
+          <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
+            Produto funciona para quem já conhece. Falta landing page eficiente,
+            funil de aquisição de clubes, trial estruturado, onboarding guiado
+            para novos organizadores.
+          </p>
+        </div>
+
+        <div class="card expert-card" style="border-top: 3px solid var(--red)">
+          <div class="name">Legal / Compliance</div>
+          <div class="role">LGPD, CDC, Esportes</div>
+          <div class="score" style="color: var(--amber)">
+            6.0<span style="font-size: 14px; color: var(--muted)">/10</span>
+          </div>
+          <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
+            ✅ <strong>Sprint 1:</strong> Termos de uso (clube + atleta) e
+            Política de Privacidade publicados em /termos. lgpdAcceptedAt no
+            schema. Pendente: aceite obrigatório no formulário de inscrição
+            (task futura).
+          </p>
+        </div>
+
+        <div class="card expert-card" style="border-top: 3px solid var(--cyan)">
+          <div class="name">Branding & Design System</div>
+          <div class="role">Visual Identity</div>
+          <div class="score" style="color: var(--cyan)">
+            5.5<span style="font-size: 14px; color: var(--muted)">/10</span>
+          </div>
+          <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
+            UI escura e moderna com identidade clara (verde #00ff88 + azul).
+            Dashboard do clube e página pública têm estilos diferentes. Falta
+            design system formal e responsividade mobile validada.
+          </p>
+        </div>
+
+        <div class="card expert-card" style="border-top: 3px solid var(--pink)">
+          <div class="name">Customer Success</div>
+          <div class="role">Club Retention & Organizer NPS</div>
+          <div class="score" style="color: var(--blue)">
+            6.0<span style="font-size: 14px; color: var(--muted)">/10</span>
+          </div>
+          <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
+            ✅ <strong>Sprint 1:</strong> Email de confirmação para atletas
+            (ambos da dupla) e notificação ao clube implementados via Resend.
+            Pendente: lembrete D-1, email de resultado final.
+          </p>
+        </div>
+
+        <div class="card expert-card" style="border-top: 3px solid var(--red)">
+          <div class="name">GTM / Launch</div>
+          <div class="role">Go-to-Market Strategy</div>
+          <div class="score" style="color: var(--amber)">
+            5.0<span style="font-size: 14px; color: var(--muted)">/10</span>
+          </div>
+          <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
+            ✅ <strong>Sprint 1:</strong> Emails transacionais e termos legais
+            resolvidos. Pendente: modelo de monetização (2.T1), onboarding de
+            clubes, landing page.
+          </p>
+        </div>
+
+        <div class="card expert-card" style="border-top: 3px solid var(--blue)">
+          <div class="name">Marketing Digital</div>
+          <div class="role">Sports Community & Content</div>
+          <div class="score" style="color: var(--blue)">
+            4.5<span style="font-size: 14px; color: var(--muted)">/10</span>
+          </div>
+          <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
+            Nome "Bubble" memorável. Página pública de torneio é um ativo viral
+            natural (compartilhável). Falta SEO, estratégia de conteúdo para
+            comunidade padel/beach tennis, social proof.
+          </p>
+        </div>
+
+        <div
+          class="card expert-card"
+          style="border-top: 3px solid var(--green)"
+        >
+          <div class="name">Sports Tech Benchmarking</div>
+          <div class="role">vs PlayTomic, Sportigo, TennisRunning</div>
+          <div class="score" style="color: var(--amber)">
+            5.0<span style="font-size: 14px; color: var(--muted)">/10</span>
+          </div>
+          <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
+            Nicho bem definido (gestão de torneios B2B). PlayTomic foca em
+            reservas de quadra — BubblePadel não compete diretamente. Gaps:
+            pagamento de inscrição, app mobile, ranking de atletas.
+          </p>
+        </div>
+      </div>
+
+      <div class="card-grid grid-5" style="margin-top: 32px">
+        <div class="card stat">
+          <div class="num" style="color: var(--blue)">72+</div>
+          <div class="lbl">Recomendações</div>
+        </div>
+        <div class="card stat">
+          <div class="num" style="color: var(--green)">8</div>
+          <div class="lbl">Consensos</div>
+        </div>
+        <div class="card stat">
+          <div class="num" style="color: var(--amber)">12</div>
+          <div class="lbl">Debates</div>
+        </div>
+        <div class="card stat">
+          <div class="num" style="color: var(--amber)">2</div>
+          <div class="lbl">Bloqueadores</div>
+        </div>
+        <div class="card stat">
+          <div class="num" style="color: var(--pink)">10</div>
+          <div class="lbl">Novas Features</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 2: SAÚDE DO SISTEMA -->
+    <!-- ============================================================ -->
+    <section id="saude" class="container">
+      <h2 class="section-title">
+        <span class="icon">🩺</span> 2. Saúde do Sistema
+      </h2>
+      <p class="section-desc">
+        Radar de 12 dimensões avaliadas pelos especialistas. Vermelho =
+        bloqueador de launch. Amarelo = melhorar antes de escalar. Verde =
+        sólido.
+      </p>
+
+      <div class="chart-wrap">
+        <canvas id="radarChart"></canvas>
+      </div>
+
+      <div class="card-grid grid-3" style="margin-top: 32px">
+        <div class="card" style="border-left: 3px solid var(--red)">
+          <h4 style="color: var(--red)">Bloqueadores Restantes (≤3)</h4>
+          <p style="font-size: 14px; color: var(--muted); margin-top: 8px">
+            Monetização (2) ✅ emails, termos legais resolvidos na Sprint 1 ·
+            Onboarding de clubes (3) — Sprint 2
+          </p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--amber)">
+          <h4 style="color: var(--amber)">Melhorar antes de escalar (4–6)</h4>
+          <p style="font-size: 14px; color: var(--muted); margin-top: 8px">
+            Growth/Aquisição (3.5), Mobile (4), Notificações (4), Branding
+            (5.5), Landing page (5), Backend robustez (6)
+          </p>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--green)">
+          <h4 style="color: var(--green)">Sólido (≥7)</h4>
+          <p style="font-size: 14px; color: var(--muted); margin-top: 8px">
+            Fluxo de torneio (8), Grupos/Playoffs (8.5), Schedule automático
+            (7.5), Auth/segurança (7)
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 3: O QUE JÁ FOI CONSTRUÍDO -->
+    <!-- ============================================================ -->
+    <section id="construido" class="container">
+      <h2 class="section-title">
+        <span class="icon">✅</span> 3. O Que Já Foi Construído
+      </h2>
+      <p class="section-desc">
+        O core do produto está funcional. Esta é a base sólida sobre a qual o
+        lançamento será construído.
+      </p>
+
+      <div class="card-grid grid-2">
+        <div class="card" style="border-left: 3px solid var(--green)">
+          <h4 style="color: var(--green)">🎾 Ciclo Completo do Torneio</h4>
+          <ul class="good-list">
+            <li>
+              Criação e edição de torneios (nome, datas, categorias, estrutura)
+            </li>
+            <li>
+              Status: DRAFT → PUBLISHED → OPEN → CLOSED → ONGOING → COMPLETED
+            </li>
+            <li>Encerramento e reabertura de inscrições</li>
+            <li>syncStatus automático ao salvar placares</li>
+          </ul>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--green)">
+          <h4 style="color: var(--green)">👥 Inscrições & Duplas</h4>
+          <ul class="good-list">
+            <li>
+              Inscrição pública por atletas (sem autenticação obrigatória)
+            </li>
+            <li>
+              Gestão de duplas pelo clube (confirmar, rejeitar, ações em lote)
+            </li>
+            <li>Filtro por status, busca por nome</li>
+            <li>Categorias múltiplas por torneio</li>
+          </ul>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--green)">
+          <h4 style="color: var(--green)">⚡ Grupos Automáticos</h4>
+          <ul class="good-list">
+            <li>Geração automática de grupos por categoria</li>
+            <li>Drag & drop para reordenar duplas</li>
+            <li>Classificação em tempo real (V, S, G)</li>
+            <li>Reset e regeneração</li>
+          </ul>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--green)">
+          <h4 style="color: var(--green)">🗓️ Schedule Inteligente</h4>
+          <ul class="good-list">
+            <li>Geração automática respeitando quadras e horários</li>
+            <li>Grupos SEMPRE antes dos playoffs no algoritmo</li>
+            <li>
+              Conflito de atletas (mesmo atleta não joga 2 ao mesmo tempo)
+            </li>
+            <li>Duração configurável por jogo</li>
+          </ul>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--green)">
+          <h4 style="color: var(--green)">🏆 Playoffs Completos</h4>
+          <ul class="good-list">
+            <li>Brackets automáticos com seeding dos grupos</li>
+            <li>Avanço automático de fase ao salvar placar</li>
+            <li>Semifinal, Final com resultados</li>
+            <li>Página pública de resultados (campeão + vice)</li>
+          </ul>
+        </div>
+        <div class="card" style="border-left: 3px solid var(--green)">
+          <h4 style="color: var(--green)">🌐 Página Pública do Torneio</h4>
+          <ul class="good-list">
+            <li>Inscritos, grupos, jogos, playoffs, resultados visíveis</li>
+            <li>
+              Status visual correto (Em Breve, Abertas, Encerradas, Em
+              Andamento)
+            </li>
+            <li>
+              Lista de torneios com filtros (sport, estado, cidade, status)
+            </li>
+            <li>Inscrição pública integrada com validação</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="decision-box" style="margin-top: 24px">
+        <div class="label">✦ Consenso dos Especialistas</div>
+        <p style="font-size: 14px">
+          O core do produto — geração de grupos, schedule automático e gestão de
+          playoffs — está acima da média para um sistema em fase pré-lançamento.
+          A qualidade de execução do algoritmo de schedule (com respeito a
+          conflitos de atletas e ordem grupos→playoffs) é um diferencial técnico
+          real.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 4: GAPS CRÍTICOS -->
+    <!-- ============================================================ -->
+    <section id="gaps" class="container">
+      <h2 class="section-title">
+        <span class="icon">🚧</span> 4. Gaps Críticos para o Launch
+      </h2>
+      <p class="section-desc">
+        O que está faltando para o primeiro torneio real pago ser gerenciado na
+        plataforma.
+      </p>
+
+      <div class="ba-grid">
+        <div class="ba-card ba-before">
+          <div class="ba-label">❌ O que falta</div>
+          <ul>
+            <li>
+              <s
+                >Emails transacionais (confirmação de inscrição, lembrete de
+                jogo)</s
+              >
+              ✅ Sprint 1
+            </li>
+            <li>Modelo de monetização para o clube (como a Bubble cobra?)</li>
+            <li>
+              <s>Termos de uso e política de privacidade (LGPD)</s> ✅ Sprint 1
+            </li>
+            <li>Onboarding guiado para novos clubes</li>
+            <li>Página de landing/marketing para captação de clubes</li>
+            <li>Pagamento de inscrição (atletas pagam no ato)</li>
+            <li>Notificação ao clube quando novo atleta se inscreve</li>
+            <li>Área do atleta (meus torneios, histórico)</li>
+          </ul>
+        </div>
+        <div class="ba-card ba-after">
+          <div class="ba-label">✅ Prioridade recomendada</div>
+          <ul>
+            <li><strong>P0 — Bloqueador:</strong> Termos de uso + LGPD</li>
+            <li>
+              <strong>P0 — Bloqueador:</strong> Email de confirmação de
+              inscrição
+            </li>
+            <li>
+              <strong>P0 — Bloqueador:</strong> Definir e implementar modelo de
+              cobrança
+            </li>
+            <li>
+              <strong>P1 — Antes do beta:</strong> Onboarding checklist para
+              clubes
+            </li>
+            <li>
+              <strong>P1 — Antes do beta:</strong> Notificação de nova inscrição
+              para clube
+            </li>
+            <li>
+              <strong>P2 — Após beta:</strong> Pagamento de inscrição pelos
+              atletas
+            </li>
+            <li>
+              <strong>P2 — Após beta:</strong> Área do atleta com histórico
+            </li>
+            <li>
+              <strong>P3 — Escala:</strong> App mobile, ranking, live scoring
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 5: FLUXO DO TORNEIO -->
+    <!-- ============================================================ -->
+    <section id="fluxo" class="container">
+      <h2 class="section-title">
+        <span class="icon">🔄</span> 5. Fluxo do Torneio — Estado Atual
+      </h2>
+      <p class="section-desc">
+        O ciclo de vida completo implementado, com as decisões tomadas ao longo
+        do desenvolvimento.
+      </p>
+
+      <div class="status-flow">
+        <span
+          class="status-pill"
+          style="
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--amber);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+          "
+          >DRAFT</span
+        >
+        <span class="status-arrow">→</span>
+        <span
+          class="status-pill"
+          style="
+            background: rgba(0, 204, 255, 0.15);
+            color: var(--blue);
+            border: 1px solid rgba(0, 204, 255, 0.3);
+          "
+          >PUBLISHED</span
+        >
+        <span class="status-arrow">→</span>
+        <span
+          class="status-pill"
+          style="
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--green);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+          "
+          >OPEN</span
+        >
+        <span class="status-arrow">→</span>
+        <span
+          class="status-pill"
+          style="
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--red);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+          "
+          >CLOSED</span
+        >
+        <span class="status-arrow">→</span>
+        <span
+          class="status-pill"
+          style="
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+          "
+          >ONGOING</span
+        >
+        <span class="status-arrow">→</span>
+        <span
+          class="status-pill"
+          style="
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--purple);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+          "
+          >COMPLETED</span
+        >
+      </div>
+
+      <div class="card-grid grid-3" style="margin-top: 24px">
+        <div class="card" style="border-top: 3px solid var(--green)">
+          <h4>✓ Transições manuais</h4>
+          <p style="font-size: 14px; color: var(--muted); margin-top: 8px">
+            Clube controla: publicar, abrir inscrições, encerrar inscrições,
+            reabrir, finalizar torneio.
+          </p>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--blue)">
+          <h4>✓ Transições automáticas</h4>
+          <p style="font-size: 14px; color: var(--muted); margin-top: 8px">
+            ONGOING: quando primeiro placar de grupo é salvo. COMPLETED: quando
+            todos os jogos de playoff são jogados.
+          </p>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--amber)">
+          <h4>⚠ Falta implementar</h4>
+          <p style="font-size: 14px; color: var(--muted); margin-top: 8px">
+            ONGOING por data/hora: torneio muda automaticamente quando a hora do
+            primeiro jogo chega. Requer cron job ou trigger no backend.
+          </p>
+        </div>
+      </div>
+
+      <div class="quote-row" style="margin-top: 24px">
+        <div class="speaker">Product / UX Specialist</div>
+        <p>
+          "O clube não deveria precisar lembrar de clicar em 'Iniciar Torneio'.
+          O sistema deve detectar que chegou a hora e mudar automaticamente."
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 6: TECH ARCHITECTURE -->
+    <!-- ============================================================ -->
+    <section id="tech" class="container">
+      <h2 class="section-title">
+        <span class="icon">⚙️</span> 6. Arquitetura Tech — Gaps & Recomendações
+      </h2>
+      <p class="section-desc">
+        O que está sólido e o que precisa ser resolvido antes de escalar para
+        múltiplos clubes simultâneos.
+      </p>
+
+      <div class="ba-grid">
+        <div class="ba-card ba-before">
+          <div class="ba-label">❌ Gaps técnicos atuais</div>
+          <ul>
+            <li>Sem CI/CD (deploy manual)</li>
+            <li>Sem testes automatizados (unitários ou de integração)</li>
+            <li>Sem rate limiting nas APIs públicas</li>
+            <li>Sem health check endpoint</li>
+            <li>Railway cold start pode afetar UX (primeira request lenta)</li>
+            <li>Sem monitoramento de erros em produção (Sentry)</li>
+            <li>
+              Imports com @/ em ambiente Windows/OneDrive (resolvido com
+              relativos)
+            </li>
+          </ul>
+        </div>
+        <div class="ba-card ba-after">
+          <div class="ba-label">✅ O que está sólido</div>
+          <ul>
+            <li>Arquitetura de hooks limpa e reutilizável</li>
+            <li>Auth JWT com middleware requireAuth</li>
+            <li>Prisma ORM com PostgreSQL em produção no Railway</li>
+            <li>
+              Normalização de enums (MAIÚSCULO backend, minúsculo frontend)
+            </li>
+            <li>Algoritmo de schedule complexo funcionando corretamente</li>
+            <li>Upserts seguros com Prisma (sem duplicatas)</li>
+            <li>API pública separada da autenticada</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3 style="font-size: 1.1rem; margin: 32px 0 16px">
+        Padrões Estabelecidos (Não Quebrar)
+      </h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Padrão</th>
+            <th>Regra</th>
+            <th>Motivo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Enums de status</td>
+            <td>Backend MAIÚSCULO, frontend .toLowerCase()</td>
+            <td>Prisma retorna maiúsculo, evita bugs de comparação</td>
+          </tr>
+          <tr>
+            <td>Imports</td>
+            <td>Sempre relativos (./hooks, ../types)</td>
+            <td>@/ quebra em Windows/OneDrive</td>
+          </tr>
+          <tr>
+            <td>Prisma migrations</td>
+            <td>Sempre npx prisma db push, nunca migrate dev</td>
+            <td>migrate dev reseta banco no Railway</td>
+          </tr>
+          <tr>
+            <td>Hook methods</td>
+            <td>reload (não refetch), setGroups (não updateGroups)</td>
+            <td>Nomes corretos evitam falhas silenciosas</td>
+          </tr>
+          <tr>
+            <td>Schedule</td>
+            <td>Grupos ANTES de playoffs no algoritmo</td>
+            <td>Ordem lógica do torneio</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="card-grid grid-2" style="margin-top: 24px">
+        <div class="card finding-card">
+          <div class="finding-header">
+            <h4>Backend Architect</h4>
+            <span
+              class="priority-badge"
+              style="background: rgba(245, 158, 11, 0.15); color: var(--amber)"
+              >Prioridade 8/10</span
+            >
+          </div>
+          <h5 style="color: var(--green); font-size: 13px; margin-bottom: 4px">
+            O que está bom
+          </h5>
+          <ul class="good-list">
+            <li>
+              Schema Prisma bem modelado (Tournament, Team, Group, Match,
+              Schedule, Playoff)
+            </li>
+            <li>Rotas separadas: privadas (requireAuth) e públicas</li>
+            <li>Zod para validação de entrada</li>
+          </ul>
+          <h5
+            style="
+              color: var(--red);
+              font-size: 13px;
+              margin-top: 12px;
+              margin-bottom: 4px;
+            "
+          >
+            Gaps críticos
+          </h5>
+          <ul class="bad-list">
+            <li>
+              Sem rate limiting nas rotas públicas (inscrição pode ser spammada)
+            </li>
+            <li>Sem envio de email (zero notificações transacionais)</li>
+            <li>Cron job para ONGOING automático por data não existe</li>
+          </ul>
+        </div>
+
+        <div class="card finding-card">
+          <div class="finding-header">
+            <h4>Fullstack Tech Lead</h4>
+            <span
+              class="priority-badge"
+              style="background: rgba(0, 204, 255, 0.15); color: var(--blue)"
+              >Prioridade 7/10</span
+            >
+          </div>
+          <h5 style="color: var(--green); font-size: 13px; margin-bottom: 4px">
+            O que está bom
+          </h5>
+          <ul class="good-list">
+            <li>TypeScript em todo o stack com tipos compartilhados</li>
+            <li>Hooks com loading states e error handling</li>
+            <li>Debounce em saves de grupos (evita spam de requisições)</li>
+          </ul>
+          <h5
+            style="
+              color: var(--red);
+              font-size: 13px;
+              margin-top: 12px;
+              margin-bottom: 4px;
+            "
+          >
+            Gaps
+          </h5>
+          <ul class="bad-list">
+            <li>
+              Sem testes (jest/vitest) — refatorações futuras são arriscadas
+            </li>
+            <li>Error boundaries no React não implementados</li>
+            <li>Sem feedback visual global de erros de API</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 7: UX / PRODUTO -->
+    <!-- ============================================================ -->
+    <section id="ux" class="container">
+      <h2 class="section-title">
+        <span class="icon">🎨</span> 7. UX & Produto — Dois Mundos
+      </h2>
+      <p class="section-desc">
+        BubblePadel tem dois públicos distintos com UX completamente diferentes:
+        o clube organizador e o atleta inscrito.
+      </p>
+
+      <div class="card-grid grid-2">
+        <div class="card" style="border-top: 3px solid var(--blue)">
+          <h4 style="color: var(--blue)">Dashboard do Clube (Admin)</h4>
+          <ul class="good-list" style="margin-top: 12px">
+            <li>
+              Tabs bem organizadas (Torneio, Estrutura, Inscrições, Grupos,
+              Jogos, Playoffs)
+            </li>
+            <li>Ações bulk em inscrições funcionando</li>
+            <li>Geração automática com feedback visual</li>
+            <li>Modal de confirmação para ações destrutivas</li>
+          </ul>
+          <ul class="bad-list" style="margin-top: 8px">
+            <li>Sem onboarding guiado para novo clube (primeiro torneio)</li>
+            <li>Sem analytics (quantas inscrições hoje, receita esperada)</li>
+            <li>Sem notificação de nova inscrição em tempo real</li>
+          </ul>
+        </div>
+
+        <div class="card" style="border-top: 3px solid var(--green)">
+          <h4 style="color: var(--green)">Experiência do Atleta (Pública)</h4>
+          <ul class="good-list" style="margin-top: 12px">
+            <li>Página pública do torneio com todas as informações</li>
+            <li>Formulário de inscrição simplificado</li>
+            <li>Status claro (Inscrições Abertas / Encerradas / Em Breve)</li>
+            <li>Visualização de grupos, jogos e resultados</li>
+          </ul>
+          <ul class="bad-list" style="margin-top: 8px">
+            <li>Sem email de confirmação ao se inscrever</li>
+            <li>Sem área pessoal do atleta (meus torneios)</li>
+            <li>Sem notificação quando grupos são gerados</li>
+            <li>Sem push notification para lembrar do jogo</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="ba-grid" style="margin-top: 24px">
+        <div class="ba-card ba-before">
+          <div class="ba-label">❌ Jornada atual do atleta</div>
+          <ul>
+            <li>Se inscreve e não recebe confirmação</li>
+            <li>Não sabe quando grupos são definidos</li>
+            <li>
+              Tem que acessar a página manualmente para ver horário do jogo
+            </li>
+            <li>Sem lembretes antes do jogo</li>
+            <li>Sem histórico de torneios anteriores</li>
+          </ul>
+        </div>
+        <div class="ba-card ba-after">
+          <div class="ba-label">✅ Jornada ideal (próximas sprints)</div>
+          <ul>
+            <li>Inscrição → email de confirmação imediato</li>
+            <li>Grupos gerados → email/WhatsApp com tabela e horários</li>
+            <li>24h antes do jogo → lembrete automático</li>
+            <li>Torneio finalizado → resultado e próximos torneios</li>
+            <li>Área pessoal com histórico e conquistas</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 8: MONETIZAÇÃO -->
+    <!-- ============================================================ -->
+    <section id="monetizacao" class="container">
+      <h2 class="section-title">
+        <span class="icon">💰</span> 8. Monetização — Modelo a Definir
+      </h2>
+      <p class="section-desc">
+        O produto está construído mas o modelo de receita não está definido.
+        Esta é uma decisão estratégica crítica para o lançamento.
+      </p>
+
+      <div class="card-grid grid-3">
+        <div class="card" style="border-top: 3px solid var(--amber)">
+          <h4 style="color: var(--amber)">Modelo A — SaaS B2B (Clube paga)</h4>
+          <p style="font-size: 14px; margin-top: 8px; color: var(--muted)">
+            Clube paga mensalidade para usar a plataforma. Atletas inscrevem-se
+            gratuitamente. Simples de implementar, previsível.
+          </p>
+          <div style="margin-top: 12px; font-size: 13px">
+            <div style="color: var(--green)">✓ Receita previsível (SaaS)</div>
+            <div style="color: var(--green)">✓ Fácil de vender para clube</div>
+            <div style="color: var(--red)">
+              ✗ Clube precisa de volume de torneios
+            </div>
+            <div style="color: var(--red)">
+              ✗ Difícil cobrar R$X/mês sem histórico
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="card"
+          style="
+            border-top: 3px solid var(--green);
+            border: 2px solid var(--green);
+          "
+        >
+          <h4 style="color: var(--green)">
+            Modelo B — Comissão por inscrição (RECOMENDADO)
+          </h4>
+          <p style="font-size: 14px; margin-top: 8px; color: var(--muted)">
+            Bubble cobra X% ou R$Y por atleta inscrito. O clube recebe o
+            restante. Zero custo para clube começar. Bubble cresce junto com o
+            sucesso do clube.
+          </p>
+          <div style="margin-top: 12px; font-size: 13px">
+            <div style="color: var(--green)">
+              ✓ Zero barreira de entrada (PLG)
+            </div>
+            <div style="color: var(--green)">
+              ✓ Bubble ganha escala naturalmente
+            </div>
+            <div style="color: var(--green)">✓ Alinhamento de incentivos</div>
+            <div style="color: var(--amber)">
+              ⚡ Requer gateway de pagamento
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="border-top: 3px solid var(--blue)">
+          <h4 style="color: var(--blue)">
+            Modelo C — Freemium + Features Premium
+          </h4>
+          <p style="font-size: 14px; margin-top: 8px; color: var(--muted)">
+            Torneios básicos grátis. Features avançadas (custom branding,
+            analytics, múltiplos organizadores) no plano pago.
+          </p>
+          <div style="margin-top: 12px; font-size: 13px">
+            <div style="color: var(--green)">✓ Fácil de adotar</div>
+            <div style="color: var(--red)">
+              ✗ Difícil convencer a pagar sem histórico
+            </div>
+            <div style="color: var(--red)">
+              ✗ Features premium ainda não existem
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="decision-box" style="margin-top: 24px">
+        <div class="label">📋 Decisão Pendente (Alta Prioridade)</div>
+        <p style="font-size: 14px">
+          O modelo B (comissão por inscrição) é o mais recomendado pelos
+          especialistas para o lançamento: elimina a barreira de entrada, alinha
+          os incentivos e permite crescimento orgânico. Estimativa: R$2-5 por
+          atleta inscrito (torneio médio de 30 duplas = 60 atletas = R$120-300
+          por torneio). Um clube com 2 torneios/mês = R$240-600/mês para a
+          Bubble.
+        </p>
+      </div>
+
+      <div class="quote-row">
+        <div class="speaker">Growth / Aquisição</div>
+        <p>
+          "Cobrar mensalidade do clube antes de provar valor é o maior erro de
+          PLG. Comissão faz a Bubble crescer junto com o clube — zero custo para
+          começar, todos ganham ao mesmo tempo."
+        </p>
+      </div>
+      <div class="quote-row">
+        <div class="speaker">Sports Tech Benchmarking</div>
+        <p>
+          "PlayTomic cobra comissão de 15-20% por reserva. No Brasil, 5-8% por
+          inscrição é competitivo e aceitável para clubes de padel premium."
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 9: LEGAL & COMPLIANCE -->
+    <!-- ============================================================ -->
+    <section id="legal" class="container">
+      <h2 class="section-title">
+        <span class="icon">⚖️</span> 9. Legal & Compliance
+      </h2>
+      <p class="section-desc">
+        Riscos jurídicos identificados — bloqueadores de lançamento com dados
+        pessoais e pagamentos.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Área</th>
+            <th>Risco</th>
+            <th>Status Atual</th>
+            <th>Impacto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>LGPD — Dados pessoais dos atletas</td>
+            <td class="risk-alto">ALTO</td>
+            <td>Coleta nome + email sem política</td>
+            <td>Multa + processo</td>
+          </tr>
+          <tr>
+            <td>Termos de Uso — Clube</td>
+            <td class="risk-alto">ALTO</td>
+            <td>Inexistentes</td>
+            <td>Sem proteção jurídica</td>
+          </tr>
+          <tr>
+            <td>Termos de Uso — Atleta</td>
+            <td class="risk-alto">ALTO</td>
+            <td>Inexistentes</td>
+            <td>Inscrição sem contrato</td>
+          </tr>
+          <tr>
+            <td>Política de Privacidade</td>
+            <td class="risk-alto">ALTO</td>
+            <td>Inexistente</td>
+            <td>Não-conformidade LGPD</td>
+          </tr>
+          <tr>
+            <td>Pagamento de inscrição</td>
+            <td class="risk-medio">MÉDIO</td>
+            <td>Sem gateway integrado</td>
+            <td>Impossível monetizar</td>
+          </tr>
+          <tr>
+            <td>Política de reembolso</td>
+            <td class="risk-medio">MÉDIO</td>
+            <td>Não definida</td>
+            <td>Chargeback / Procon</td>
+          </tr>
+          <tr>
+            <td>Responsabilidade em lesões</td>
+            <td class="risk-medio">MÉDIO</td>
+            <td>Sem isenção de responsabilidade</td>
+            <td>Ação judicial</td>
+          </tr>
+          <tr>
+            <td>Menores de idade</td>
+            <td class="risk-medio">MÉDIO</td>
+            <td>Sem verificação de idade</td>
+            <td>Consentimento responsável</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="font-size: 1.1rem; margin: 32px 0 16px">
+        Documentos Obrigatórios — Checklist
+      </h3>
+      <ul class="checklist">
+        <li>Termos de Uso para Clubes (criação e gestão de torneios)</li>
+        <li>Termos de Uso para Atletas (inscrição e participação)</li>
+        <li>
+          Política de Privacidade (LGPD — dados coletados, finalidade, retenção)
+        </li>
+        <li>Política de Cancelamento e Reembolso de inscrição</li>
+        <li>
+          Cláusula de isenção de responsabilidade por lesões durante o torneio
+        </li>
+        <li>
+          Consentimento explícito de menor (campo no formulário se < 18 anos)
+        </li>
+        <li>DPA com provedores de email (Resend/SendGrid) e pagamento</li>
+      </ul>
+
+      <div class="quote-row" style="margin-top: 20px">
+        <div class="speaker">Legal / Compliance</div>
+        <p>
+          "O atleta está cedendo nome, email e participando de atividade física.
+          A plataforma é intermediária entre clube e atleta. Isso cria
+          responsabilidade dupla — precisa de termos para os dois lados antes de
+          qualquer torneio real."
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 10: MARKETING DIGITAL -->
+    <!-- ============================================================ -->
+    <section id="marketing" class="container">
+      <h2 class="section-title">
+        <span class="icon">📢</span> 10. Marketing Digital & Aquisição
+      </h2>
+      <p class="section-desc">
+        A comunidade de padel e beach tennis no Brasil é altamente engajada.
+        Estratégia de canal e posicionamento.
+      </p>
+
+      <div class="ba-grid">
+        <div class="ba-card ba-before">
+          <div class="ba-label">❌ Situação atual</div>
+          <ul>
+            <li>Sem landing page de captação de clubes</li>
+            <li>Sem presença no Instagram ou TikTok</li>
+            <li>Sem SEO (torneio não aparece no Google)</li>
+            <li>Zero social proof (depoimentos, números)</li>
+            <li>Página pública existe mas não é compartilhada</li>
+            <li>Sem estratégia de conteúdo para a comunidade</li>
+          </ul>
+        </div>
+        <div class="ba-card ba-after">
+          <div class="ba-label">✅ Estratégia recomendada</div>
+          <ul>
+            <li>
+              Landing page focada em clube: "Gerencie seu torneio em 5 minutos"
+            </li>
+            <li>Instagram: bastidores de torneios reais usando Bubble</li>
+            <li>
+              Página pública do torneio como viral loop (atleta compartilha
+              link)
+            </li>
+            <li>WhatsApp grupos de padel: divulgação de torneios abertos</li>
+            <li>SEO básico: título da página com nome do torneio e cidade</li>
+            <li>
+              Social proof: primeiro torneio → foto + depoimento do organizador
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 16px">
+        <h4 style="margin-bottom: 12px">Prioridade de Canais — Fase Beta</h4>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <span class="metric-pill" style="border-color: var(--green)"
+            ><span style="color: var(--green)">P0</span> Indicação direta a
+            clubes</span
+          >
+          <span class="metric-pill" style="border-color: var(--green)"
+            ><span style="color: var(--green)">P0</span> WhatsApp grupos
+            padel</span
+          >
+          <span class="metric-pill" style="border-color: var(--blue)"
+            ><span style="color: var(--blue)">P1</span> Instagram reels</span
+          >
+          <span class="metric-pill" style="border-color: var(--blue)"
+            ><span style="color: var(--blue)">P1</span> Link público viral</span
+          >
+          <span class="metric-pill" style="border-color: var(--muted)"
+            ><span style="color: var(--muted)">P2</span> SEO local</span
+          >
+          <span class="metric-pill" style="border-color: var(--muted)"
+            ><span style="color: var(--muted)">P3</span> Google Ads</span
+          >
+        </div>
+      </div>
+
+      <div class="quote-row" style="margin-top: 16px">
+        <div class="speaker">Marketing Digital</div>
+        <p>
+          "A página pública do torneio já é a melhor ferramenta de marketing — o
+          atleta que se inscreve compartilha o link com o parceiro. É viral
+          orgânico. Falta só facilitar o compartilhamento (botão share nativo,
+          preview no WhatsApp/Instagram)."
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 11: LAUNCH STRATEGY -->
+    <!-- ============================================================ -->
+    <section id="launch" class="container">
+      <h2 class="section-title">
+        <span class="icon">🚀</span> 11. Estratégia de Lançamento
+      </h2>
+      <p class="section-desc">
+        Lançamento em 3 fases com critérios claros de go/no-go. Começar pequeno,
+        validar, escalar.
+      </p>
+
+      <div class="card-grid grid-3">
+        <div class="card" style="border-top: 3px solid var(--amber)">
+          <h4 style="color: var(--amber)">Fase 1 — Alpha (2-3 semanas)</h4>
+          <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
+            1-2 clubes conhecidos. Torneio real mas gratuito (sem cobrança).
+            Foco em estabilidade e bugs. Feedback intensivo do organizador.
+          </p>
+          <ul
+            style="
+              list-style: none;
+              padding: 0;
+              margin-top: 12px;
+              font-size: 13px;
+            "
+          >
+            <li style="padding: 3px 0">✦ Termos de uso publicados</li>
+            <li style="padding: 3px 0">✦ Email de confirmação funcionando</li>
+            <li style="padding: 3px 0">✦ Fluxo completo sem erros</li>
+          </ul>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--blue)">
+          <h4 style="color: var(--blue)">
+            Fase 2 — Beta Fechado (4-6 semanas)
+          </h4>
+          <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
+            5-10 clubes. Primeiro torneio com pagamento real de inscrição.
+            Modelo de comissão ativo. NPS ≥ 7.
+          </p>
+          <ul
+            style="
+              list-style: none;
+              padding: 0;
+              margin-top: 12px;
+              font-size: 13px;
+            "
+          >
+            <li style="padding: 3px 0">✦ Gateway de pagamento integrado</li>
+            <li style="padding: 3px 0">✦ Notificações funcionando</li>
+            <li style="padding: 3px 0">✦ Suporte direto aos organizadores</li>
+          </ul>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--green)">
+          <h4 style="color: var(--green)">Fase 3 — Lançamento Público</h4>
+          <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
+            Landing page no ar. Cadastro self-service para clubes. Marketing
+            ativo. Meta: 20 clubes ativos no primeiro mês.
+          </p>
+          <ul
+            style="
+              list-style: none;
+              padding: 0;
+              margin-top: 12px;
+              font-size: 13px;
+            "
+          >
+            <li style="padding: 3px 0">✦ NPS ≥ 7 no beta</li>
+            <li style="padding: 3px 0">✦ Zero bugs críticos em 2 semanas</li>
+            <li style="padding: 3px 0">✦ Pelo menos 3 torneios completos</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 12: PROJEÇÃO FINANCEIRA -->
+    <!-- ============================================================ -->
+    <section id="financial" class="container">
+      <h2 class="section-title">
+        <span class="icon">📈</span> 12. Projeção Financeira
+      </h2>
+      <p class="section-desc">
+        Estimativa de receita com modelo de comissão por inscrição (Modelo B
+        recomendado). Cenário conservador.
+      </p>
+
+      <div class="card-grid grid-3" style="margin-bottom: 32px">
+        <div class="card stat" style="border-top: 3px solid var(--amber)">
+          <div class="lbl">Receita por torneio</div>
+          <div class="num" style="color: var(--amber)">R$180</div>
+          <p style="font-size: 12px; color: var(--muted); margin-top: 4px">
+            30 duplas × 60 atletas × R$3 comissão
+          </p>
+        </div>
+        <div class="card stat" style="border-top: 3px solid var(--blue)">
+          <div class="lbl">MRR com 20 clubes (2 torneios/mês)</div>
+          <div class="num" style="color: var(--blue)">R$7.200</div>
+          <p style="font-size: 12px; color: var(--muted); margin-top: 4px">
+            20 clubes × 2 torneios × R$180
+          </p>
+        </div>
+        <div class="card stat" style="border-top: 3px solid var(--green)">
+          <div class="lbl">Meta Mês 12 (100 clubes)</div>
+          <div class="num" style="color: var(--green)">R$36.000</div>
+          <p style="font-size: 12px; color: var(--muted); margin-top: 4px">
+            100 clubes × 2 torneios × R$180
+          </p>
+        </div>
+      </div>
+
+      <h3 style="font-size: 1.1rem; margin: 24px 0 16px">
+        Impacto por Feature no Crescimento
+      </h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Impacto</th>
+            <th>Esforço</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Email de confirmação de inscrição</td>
+            <td class="impact-positive">+25% retenção de atletas</td>
+            <td>Baixo (2-4h)</td>
+          </tr>
+          <tr>
+            <td>Notificação para clube de nova inscrição</td>
+            <td class="impact-positive">+Engajamento do organizador</td>
+            <td>Baixo (2h)</td>
+          </tr>
+          <tr>
+            <td>Gateway de pagamento (comissão)</td>
+            <td class="impact-positive">+100% (receita começa)</td>
+            <td>Alto (2-3 semanas)</td>
+          </tr>
+          <tr>
+            <td>Landing page de captação</td>
+            <td class="impact-positive">+Aquisição orgânica</td>
+            <td>Médio (1 semana)</td>
+          </tr>
+          <tr>
+            <td>Share nativo da página do torneio</td>
+            <td class="impact-positive">+Viral loop</td>
+            <td>Baixo (4h)</td>
+          </tr>
+          <tr>
+            <td>Área do atleta (meus torneios)</td>
+            <td class="impact-positive">+Retenção de atleta</td>
+            <td>Médio (1 semana)</td>
+          </tr>
+          <tr>
+            <td>App mobile (React Native)</td>
+            <td class="impact-positive">+Adoção mobile</td>
+            <td>Muito alto (2+ meses)</td>
+          </tr>
+          <tr>
+            <td>Ranking de atletas</td>
+            <td class="impact-positive">+Viralidade / volta</td>
+            <td>Alto (3-4 semanas)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="font-size: 1.1rem; margin: 32px 0 16px">
+        10 Novas Features Propostas
+      </h3>
+      <div class="card-grid grid-2">
+        <div class="feature-card">
+          <h4>1. Emails Transacionais</h4>
+          <p>
+            Confirmação de inscrição, grupos gerados, lembrete D-1 do jogo,
+            resultado final. Via Resend ou SendGrid.
+          </p>
+        </div>
+        <div class="feature-card">
+          <h4>2. Gateway de Pagamento</h4>
+          <p>
+            Atleta paga inscrição via PIX/cartão no ato. Bubble retém comissão,
+            clube recebe o restante automaticamente.
+          </p>
+        </div>
+        <div class="feature-card">
+          <h4>3. Share Nativo do Torneio</h4>
+          <p>
+            Botão de compartilhar com preview rico (OG tags) para WhatsApp e
+            Instagram Stories.
+          </p>
+        </div>
+        <div class="feature-card">
+          <h4>4. Onboarding Checklist do Clube</h4>
+          <p>
+            Checklist visual: "Complete seu perfil → Crie seu primeiro torneio →
+            Publique e compartilhe → Gerencie inscrições".
+          </p>
+        </div>
+        <div class="feature-card">
+          <h4>5. ONGOING Automático por Data</h4>
+          <p>
+            Cron job diário: se startDate chegou e torneio está CLOSED, muda
+            para ONGOING automaticamente.
+          </p>
+        </div>
+        <div class="feature-card">
+          <h4>6. Notificações ao Clube</h4>
+          <p>
+            Email/WhatsApp quando atleta se inscreve, quando limite de duplas
+            for atingido, D-3 antes do torneio.
+          </p>
+        </div>
+        <div class="feature-card">
+          <h4>7. Área do Atleta</h4>
+          <p>
+            Login opcional do atleta. Painel com "Meus torneios", histórico de
+            resultados, próximos jogos.
+          </p>
+        </div>
+        <div class="feature-card">
+          <h4>8. Ranking de Atletas</h4>
+          <p>
+            Pontuação acumulada por torneio. Ranking público por
+            categoria/cidade. Motor de engajamento e volta.
+          </p>
+        </div>
+        <div class="feature-card">
+          <h4>9. Live Scoring Público</h4>
+          <p>
+            Página de acompanhamento ao vivo para espectadores. Score atualiza
+            em tempo real sem precisar de refresh.
+          </p>
+        </div>
+        <div class="feature-card">
+          <h4>10. PDF de Resultados / Certificado</h4>
+          <p>
+            Gerar e enviar PDF com classificação final do torneio. Clube imprime
+            e entrega. Atleta tem troféu digital.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 13: DEBATES -->
+    <!-- ============================================================ -->
+    <section id="debates" class="container">
+      <h2 class="section-title">
+        <span class="icon">⚔️</span> 13. Debates — 12 Discussões Estratégicas
+      </h2>
+      <p class="section-desc">
+        Onde os especialistas divergiram e como o produto deve decidir. 8
+        debates de produto + 4 de tech.
+      </p>
+
+      <h3 style="font-size: 1.1rem; margin: 24px 0 16px; color: var(--blue)">
+        Debates de Produto (1-8)
+      </h3>
+      <div class="card-grid grid-2">
+        <div class="card debate-card">
+          <div class="debate-number">#1</div>
+          <h4 style="margin-top: 8px">Modelo de monetização?</h4>
+          <div class="debate-parties">Growth vs GTM vs Produto</div>
+          <div class="debate-result">
+            → Comissão por inscrição (Modelo B) — zero barreira de entrada
+          </div>
+        </div>
+        <div class="card debate-card">
+          <div class="debate-number">#2</div>
+          <h4 style="margin-top: 8px">Atleta precisa criar conta?</h4>
+          <div class="debate-parties">Produto vs CS vs Legal</div>
+          <div class="debate-result">
+            → Inscrição sem login obrigatório. Conta opcional para histórico
+          </div>
+        </div>
+        <div class="card debate-card">
+          <div class="debate-number">#3</div>
+          <h4 style="margin-top: 8px">Focar só em padel ou multi-esporte?</h4>
+          <div class="debate-parties">GTM vs Marketing vs Benchmarking</div>
+          <div class="debate-result">
+            → Padel + Beach Tennis no launch. Multi-esporte no Q3 2026
+          </div>
+        </div>
+        <div class="card debate-card">
+          <div class="debate-number">#4</div>
+          <h4 style="margin-top: 8px">App mobile agora ou depois?</h4>
+          <div class="debate-parties">Produto vs Tech vs Branding</div>
+          <div class="debate-result">
+            → Web responsivo primeiro. React Native após 50 clubes ativos
+          </div>
+        </div>
+        <div class="card debate-card">
+          <div class="debate-number">#5</div>
+          <h4 style="margin-top: 8px">Lançar com gateway ou sem?</h4>
+          <div class="debate-parties">Growth vs Legal vs Tech</div>
+          <div class="debate-result">
+            → Alpha sem pagamento. Beta com PIX via AbacatePay ou Asaas
+          </div>
+        </div>
+        <div class="card debate-card">
+          <div class="debate-number">#6</div>
+          <h4 style="margin-top: 8px">Clube gere o ranking ou Bubble?</h4>
+          <div class="debate-parties">Produto vs Marketing</div>
+          <div class="debate-result">
+            → Ranking gerido pela Bubble (mais viral, mais retenção)
+          </div>
+        </div>
+        <div class="card debate-card">
+          <div class="debate-number">#7</div>
+          <h4 style="margin-top: 8px">
+            Preview do torneio público ou privado?
+          </h4>
+          <div class="debate-parties">GTM vs Legal</div>
+          <div class="debate-result">
+            → Público sem login (vital para viral loop e SEO)
+          </div>
+        </div>
+        <div class="card debate-card">
+          <div class="debate-number">#8</div>
+          <h4 style="margin-top: 8px">
+            Taxa de inscrição fixa ou por percentual?
+          </h4>
+          <div class="debate-parties">Pricing vs Growth</div>
+          <div class="debate-result">
+            → R$3-5 fixo por atleta (mais simples, previsível para o clube)
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-size: 1.1rem; margin: 32px 0 16px; color: var(--cyan)">
+        Debates de Tech (9-12)
+      </h3>
+      <div class="card-grid grid-2">
+        <div class="card debate-card">
+          <div class="debate-number">#9</div>
+          <h4 style="margin-top: 8px">Railway vs VPS própria?</h4>
+          <div class="debate-parties">Backend vs GTM</div>
+          <div class="debate-result">
+            → Manter Railway até 100 clubes. VPS quando custo Railway >
+            R$500/mês
+          </div>
+        </div>
+        <div class="card debate-card">
+          <div class="debate-number">#10</div>
+          <h4 style="margin-top: 8px">WebSockets para live scoring?</h4>
+          <div class="debate-parties">Tech vs Produto</div>
+          <div class="debate-result">
+            → Polling a cada 30s no MVP. WebSocket após validar demanda
+          </div>
+        </div>
+        <div class="card debate-card">
+          <div class="debate-number">#11</div>
+          <h4 style="margin-top: 8px">Testes antes ou depois do launch?</h4>
+          <div class="debate-parties">Tech Lead vs GTM</div>
+          <div class="debate-result">
+            → Testes E2E dos fluxos críticos antes do beta (inscrição + grupos)
+          </div>
+        </div>
+        <div class="card debate-card">
+          <div class="debate-number">#12</div>
+          <h4 style="margin-top: 8px">Monorepo ou repos separados?</h4>
+          <div class="debate-parties">Tech Lead vs Backend</div>
+          <div class="debate-result">
+            → Manter dois repos separados (projeto_novo + backend). Monorepo só
+            se 3+ devs
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 14: ROADMAP -->
+    <!-- ============================================================ -->
+    <section id="roadmap" class="container">
+      <h2 class="section-title">
+        <span class="icon">🗺️</span> 14. Roadmap até o Lançamento Público
+      </h2>
+      <p class="section-desc">
+        Da situação atual até o primeiro torneio pago e depois a escala.
+      </p>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="period">Sprint 1 — 2 semanas</div>
+          <h4>Estabilidade + Legal + Emails</h4>
+          <div class="card" style="margin-top: 8px">
+            <ul style="list-style: none; padding: 0">
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Termos de uso (clube + atleta) publicados na plataforma
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Política de privacidade (LGPD) online
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Email transacional: confirmação de inscrição do atleta
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Email ao clube: nova inscrição recebida
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ ONGOING automático via cron job por data
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Rate limiting nas rotas públicas
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Share button + OG tags na página pública do torneio
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="period">Sprint 2 — 2 semanas</div>
+          <h4>Alpha com 1-2 Clubes Reais</h4>
+          <div class="card" style="margin-top: 8px">
+            <ul style="list-style: none; padding: 0">
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Primeiro torneio real (gratuito, sem cobrança)
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Onboarding checklist visual para novos clubes
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Bug fixing baseado no uso real
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Mobile responsiveness validation
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Landing page simples (captação de clubes interessados)
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="period">Sprint 3 — 3 semanas</div>
+          <h4>Beta Fechado + Pagamento</h4>
+          <div class="card" style="margin-top: 8px">
+            <ul style="list-style: none; padding: 0">
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Gateway PIX integrado (AbacatePay ou Asaas)
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Modelo de comissão ativo (R$3-5/atleta)
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ 5-10 clubes no beta
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Dashboard financeiro básico para o clube (receita esperada)
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Notificações D-1 antes do torneio
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="period">Q2 2026</div>
+          <h4>Lançamento Público + Ranking</h4>
+          <div class="card" style="margin-top: 8px">
+            <ul style="list-style: none; padding: 0">
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Cadastro self-service de clubes
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Área do atleta (meus torneios, histórico)
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Ranking de atletas por categoria/cidade
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ PDF de resultados / certificado
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Marketing ativo (Instagram, WhatsApp grupos)
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Meta: 20 clubes ativos
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="period">Q3-Q4 2026</div>
+          <h4>Escala + Multi-esporte + Mobile</h4>
+          <div class="card" style="margin-top: 8px">
+            <ul style="list-style: none; padding: 0">
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ App mobile (React Native)
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Live scoring para espectadores
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Expansão para squash, tenis, beach volley
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Plano premium para clubes (branding, múltiplos admins)
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Meta: 100 clubes, R$36k MRR
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-size: 1.1rem; margin: 32px 0 16px">
+        Milestones de Go/No-Go
+      </h3>
+      <div class="card-grid grid-3">
+        <div class="card" style="border-top: 3px solid var(--amber)">
+          <h4>Alpha → Beta</h4>
+          <ul
+            style="
+              list-style: none;
+              padding: 0;
+              margin-top: 8px;
+              font-size: 14px;
+            "
+          >
+            <li style="padding: 3px 0">✦ Termos publicados</li>
+            <li style="padding: 3px 0">✦ Email de confirmação funcionando</li>
+            <li style="padding: 3px 0">
+              ✦ Torneio completo sem erros críticos
+            </li>
+            <li style="padding: 3px 0">✦ Feedback positivo de 1 organizador</li>
+          </ul>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--blue)">
+          <h4>Beta → Público</h4>
+          <ul
+            style="
+              list-style: none;
+              padding: 0;
+              margin-top: 8px;
+              font-size: 14px;
+            "
+          >
+            <li style="padding: 3px 0">✦ NPS ≥ 7 dos organizadores</li>
+            <li style="padding: 3px 0">✦ Pelo menos 3 torneios completos</li>
+            <li style="padding: 3px 0">✦ Pagamento via PIX funcionando</li>
+            <li style="padding: 3px 0">✦ Zero bugs críticos em 2 semanas</li>
+          </ul>
+        </div>
+        <div class="card" style="border-top: 3px solid var(--green)">
+          <h4>Público → Escala</h4>
+          <ul
+            style="
+              list-style: none;
+              padding: 0;
+              margin-top: 8px;
+              font-size: 14px;
+            "
+          >
+            <li style="padding: 3px 0">✦ 20+ clubes ativos</li>
+            <li style="padding: 3px 0">✦ MRR > R$5.000</li>
+            <li style="padding: 3px 0">
+              ✦ Retenção > 80% (clube usa 2+ torneios)
+            </li>
+            <li style="padding: 3px 0">✦ CAC < R$100 por clube</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 15: RESUMO EXECUTIVO -->
+    <!-- ============================================================ -->
+    <section id="resumo" class="container">
+      <h2 class="section-title">
+        <span class="icon">🎯</span> 15. Resumo Executivo
+      </h2>
+      <p class="section-desc">
+        Visão consolidada: bloqueadores, quick wins, score e próximos passos.
+      </p>
+
+      <div class="ba-grid">
+        <div
+          class="ba-card ba-before"
+          style="background: rgba(239, 68, 68, 0.06)"
+        >
+          <div class="ba-label" style="font-size: 14px">
+            🚫 Top 4 Bloqueadores de Launch
+          </div>
+          <div class="blocker">
+            <strong>1. Sem termos legais</strong> — Coleta dados pessoais sem
+            LGPD. Não pode operar comercialmente.
+          </div>
+          <div class="blocker">
+            <strong>2. Sem email transacional</strong> — Atleta se inscreve e
+            não recebe confirmação. Churn silencioso.
+          </div>
+          <div class="blocker">
+            <strong>3. Sem modelo de monetização ativo</strong> — Produto está
+            pronto mas não gera receita ainda.
+          </div>
+          <div class="blocker">
+            <strong>4. Sem onboarding de clubes</strong> — Novo clube entra e
+            não sabe o que fazer primeiro.
+          </div>
+        </div>
+        <div
+          class="ba-card ba-after"
+          style="background: rgba(0, 255, 136, 0.06)"
+        >
+          <div class="ba-label" style="font-size: 14px">
+            ⚡ Top 5 Quick Wins
+          </div>
+          <div class="win">
+            <strong>1. Share button + OG tags</strong> — 4h de trabalho. Viral
+            loop imediato na página pública.
+          </div>
+          <div class="win">
+            <strong>2. Email de confirmação</strong> — 4-8h com Resend. Primeiro
+            passo de retenção do atleta.
+          </div>
+          <div class="win">
+            <strong>3. Rate limiting nas rotas públicas</strong> — 2h. Protege
+            contra spam de inscrições.
+          </div>
+          <div class="win">
+            <strong>4. ONGOING automático por data</strong> — 4h. Remove fricção
+            do organizador.
+          </div>
+          <div class="win">
+            <strong>5. Checklist de onboarding do clube</strong> — 6h. Melhora
+            ativação de novos organizadores.
+          </div>
+        </div>
+      </div>
+
+      <div class="score-box">
+        <p style="font-size: 14px; color: var(--muted); margin-bottom: 16px">
+          Score de Prontidão para Lançamento Comercial
+        </p>
+        <span class="big" style="color: var(--amber)">6.0</span>
+        <span class="arrow">→</span>
+        <span class="big" style="color: var(--green)">7.5</span>
+        <p style="font-size: 14px; color: var(--muted); margin-top: 16px">
+          Com as implementações das Sprints 1-3
+        </p>
+        <p
+          style="
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 12px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+          "
+        >
+          Score atual de 5.2 reflete um core de produto excepcionalmente sólido
+          (grupos, schedule, playoffs = 8.5/10) mas zerado em monetização, legal
+          e comunicação com atleta. O gap é fechável em 6-8 semanas com foco nos
+          4 bloqueadores.
+        </p>
+      </div>
+
+      <h3 style="font-size: 1.1rem; margin: 24px 0 16px">
+        Próximos 30 Dias — Lista Prioritária
+      </h3>
+      <div class="card" style="margin-bottom: 24px">
+        <ol style="padding-left: 20px; font-size: 14px">
+          <li style="padding: 6px 0">
+            <strong>Semana 1:</strong> Termos de uso + LGPD + email de
+            confirmação de inscrição
+          </li>
+          <li style="padding: 6px 0">
+            <strong>Semana 2:</strong> Share nativo + rate limiting + ONGOING
+            automático por data + checklist de onboarding
+          </li>
+          <li style="padding: 6px 0">
+            <strong>Semana 3-4:</strong> Alpha com 1-2 clubes reais. Bug fixing.
+            Mobile validation
+          </li>
+          <li style="padding: 6px 0">
+            <strong>Semana 5-6:</strong> Gateway PIX integrado. Beta com 5-10
+            clubes. Modelo de comissão ativo
+          </li>
+          <li style="padding: 6px 0">
+            <strong>Q2 2026:</strong> Lançamento público com landing page, área
+            do atleta e ranking
+          </li>
+        </ol>
+      </div>
+
+      <div
+        class="card"
+        style="border: 2px solid var(--blue); text-align: center; padding: 32px"
+      >
+        <h3 style="color: var(--blue); margin-bottom: 12px">Conclusão</h3>
+        <p style="font-size: 15px; max-width: 700px; margin: 0 auto">
+          O BubblePadel tem um core de produto raro: o algoritmo de schedule
+          automático com respeito a conflitos de atletas e ordem grupos→playoffs
+          é tecnicamente superior ao que a maioria dos competidores oferece. O
+          gap entre o estado atual (5.2/10) e o mínimo viável para o primeiro
+          torneio pago (7.5/10) é fechável em <strong>6-8 semanas</strong> com
+          foco em legal, email e modelo de monetização. O mercado de padel e
+          beach tennis no Brasil está em expansão acelerada —
+          <strong>a janela de oportunidade é agora.</strong>
+        </p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>
+        BubblePadel — Auditoria Completa + Plano de Lançamento · Março 2026 · 10
+        Especialistas · 72+ Recomendações · Projeções são estimativas baseadas
+        em benchmarks do mercado de sports tech B2B no Brasil.
+      </p>
+    </footer>
+
+    <script>
+      document.querySelectorAll(".pill").forEach((pill) => {
+        pill.addEventListener("click", function () {
+          document
+            .querySelectorAll(".pill")
+            .forEach((p) => p.classList.remove("active"));
+          this.classList.add("active");
+        });
+      });
+
+      const sections = document.querySelectorAll("section[id]");
+      const pills = document.querySelectorAll(".pill[href]");
+      const pillMap = {};
+      pills.forEach((p) => {
+        pillMap[p.getAttribute("href").replace("#", "")] = p;
+      });
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              pills.forEach((p) => p.classList.remove("active"));
+              const id = entry.target.getAttribute("id");
+              if (pillMap[id]) pillMap[id].classList.add("active");
+            }
+          });
+        },
+        { rootMargin: "-20% 0px -70% 0px", threshold: 0 },
+      );
+      sections.forEach((s) => observer.observe(s));
+
+      // Radar Chart
+      const radarCtx = document.getElementById("radarChart").getContext("2d");
+      new Chart(radarCtx, {
+        type: "radar",
+        data: {
+          labels: [
+            "Fluxo Torneio",
+            "Grupos/Playoffs",
+            "Schedule",
+            "Auth/Segurança",
+            "Backend Robustez",
+            "UX/Produto",
+            "Mobile",
+            "Notificações",
+            "Monetização",
+            "Legal/LGPD",
+            "Marketing",
+            "Onboarding Clube",
+          ],
+          datasets: [
+            {
+              label: "Estado Atual",
+              data: [8.5, 8.5, 7.5, 7, 6, 6.5, 4, 2, 2, 2, 3, 3],
+              borderColor: "#ef4444",
+              backgroundColor: "rgba(239,68,68,0.1)",
+              borderWidth: 2,
+              pointBackgroundColor: "#ef4444",
+              pointRadius: 4,
+            },
+            {
+              label: "Meta Launch (Sprint 1-3)",
+              data: [9, 9, 8, 8, 7, 7.5, 6, 7, 6, 7, 6, 7],
+              borderColor: "#00ff88",
+              backgroundColor: "rgba(0,255,136,0.06)",
+              borderWidth: 2,
+              borderDash: [6, 4],
+              pointBackgroundColor: "#00ff88",
+              pointRadius: 4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            r: {
+              beginAtZero: true,
+              max: 10,
+              ticks: {
+                stepSize: 2,
+                color: "#7a9ab5",
+                backdropColor: "transparent",
+                font: { size: 10 },
+              },
+              grid: { color: "rgba(26,53,80,0.8)" },
+              angleLines: { color: "rgba(26,53,80,0.8)" },
+              pointLabels: { color: "#dff0ff", font: { size: 11 } },
+            },
+          },
+          plugins: {
+            legend: { labels: { color: "#dff0ff", font: { size: 12 } } },
+          },
+        },
+      });
+    </script>
+  </body>
 </html>
