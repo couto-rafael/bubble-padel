@@ -156,6 +156,7 @@ const TournamentProfile = () => {
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerSuccess, setRegisterSuccess] = useState(false);
   const [registerError, setRegisterError] = useState("");
+  const [shareCopied, setShareCopied] = useState(false);
 
   const handleOpenRegister = () => {
     if (isAthlete && currentUser) {
@@ -333,6 +334,36 @@ const TournamentProfile = () => {
         ? "Encerradas"
         : "Não abertas";
   const confirmedTeams = tournament.teams ?? [];
+
+  // ── Share (task 1.6) ────────────────────────────────────────────────────
+  const handleShare = async () => {
+    const url = window.location.href;
+    const startDate = tournament.startDate
+      ? new Date(tournament.startDate).toLocaleDateString("pt-BR", {
+          day: "2-digit",
+          month: "short",
+        })
+      : "";
+    const city = tournament.club?.city ?? "";
+    const text = `🎾 ${tournament.name}${startDate ? " — " + startDate : ""}${city ? " em " + city : ""}. Inscrições ${statusRaw === "open" ? "abertas" : "encerradas"}! Saiba mais:`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: tournament.name, text, url });
+      } catch {
+        // usuário cancelou — ignora
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2500);
+      } catch {
+        // fallback: selecionar texto
+        prompt("Copie o link abaixo:", url);
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0e27] text-white">
@@ -640,25 +671,33 @@ const TournamentProfile = () => {
               ))}
             </div>
 
-            {/* Share Button */}
-            <button
-              className="ml-4 p-3 hover:bg-white/5 rounded-lg transition-colors"
-              title="Compartilhar"
-            >
-              <svg
-                className="w-5 h-5 text-gray-400 hover:text-white transition-colors"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            {/* Share Button — task 1.6 */}
+            <div className="relative ml-4">
+              <button
+                onClick={handleShare}
+                className="p-3 hover:bg-white/5 rounded-lg transition-colors"
+                title="Compartilhar torneio"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                />
-              </svg>
-            </button>
+                <svg
+                  className="w-5 h-5 text-gray-400 hover:text-white transition-colors"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                  />
+                </svg>
+              </button>
+              {shareCopied && (
+                <div className="absolute right-0 top-full mt-2 bg-[#00ff88] text-[#050f1a] text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap z-50 shadow-lg">
+                  ✓ Link copiado!
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
