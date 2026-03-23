@@ -10,6 +10,8 @@ import { playoffTournamentRoutes, playoffRoutes } from "./routes/playoffs";
 import { clubRoutes, publicClubRoutes } from "./routes/club";
 import { athleteRoutes, publicAthleteRoutes } from "./routes/athlete";
 import { errorHandler } from "./middlewares/errorHandler";
+import { generalLimiter, registerLimiter } from "./middlewares/rateLimiter";
+import { startStatusSyncJob } from "./jobs/statusSync";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -22,10 +24,12 @@ app.use(
   }),
 );
 app.use(express.json());
+app.use(generalLimiter);
 
 // Rotas
 app.use("/api/auth", authRoutes);
 app.use("/api/tournaments", tournamentRoutes);
+app.use("/api/public/tournaments/:id/register", registerLimiter);
 app.use("/api/public/tournaments", publicTournamentRoutes);
 app.use("/api/tournaments", teamRoutes);
 app.use("/api/tournaments", groupRoutes);
@@ -49,6 +53,7 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
+  startStatusSyncJob();
 });
 
 export default app;
