@@ -404,9 +404,7 @@ publicTournamentRoutes.post("/:id/register", async (req, res, next) => {
         paymentStatus: "PENDING",
       },
     });
-    console.log("🔥 chegou no bloco de emails");
 
-    // ── Emails assíncronos...
     // ── Emails assíncronos — não bloqueiam a resposta ao atleta ──────────────
     const tournamentDate = new Date(tournament.startDate).toLocaleDateString(
       "pt-BR",
@@ -427,11 +425,15 @@ publicTournamentRoutes.post("/:id/register", async (req, res, next) => {
 
     // Task 1.3 — notificação ao clube
     prisma.club
-      .findUnique({
-        where: { id: tournament.clubId },
+      .findFirst({
+        where: { tournaments: { some: { id: tournamentId } } },
         include: { user: { select: { email: true } } },
       })
       .then((club) => {
+        console.log(
+          "[email] clube encontrado:",
+          club?.user?.email ?? "NÃO ENCONTRADO",
+        );
         if (club?.user?.email) {
           sendNovaInscricaoParaClube({
             clubEmail: club.user.email,
