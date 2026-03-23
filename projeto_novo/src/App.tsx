@@ -16,6 +16,7 @@ import CreateTournament from "./CreateTournament";
 import EditTournament from "./EditTournament";
 import AthleteDashboard from "./AthleteDashboard";
 import AthleteProfile from "./AthleteProfile";
+import TermsPage from "./TermsPage";
 
 // ─── React Query client ───────────────────────────────────────────────────────
 const queryClient = new QueryClient({
@@ -60,6 +61,9 @@ const App = () => {
             {/* Rotas do Atleta */}
             <Route path="/athlete/dashboard" element={<AthleteDashboard />} />
             <Route path="/athlete/profile" element={<AthleteProfile />} />
+
+            {/* Legal */}
+            <Route path="/termos" element={<TermsPage />} />
           </Routes>
         </Router>
       </AuthProvider>
