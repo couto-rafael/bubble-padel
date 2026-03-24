@@ -49,8 +49,9 @@ function normalizeStatus(status: string): Tournament["status"] {
 }
 
 function formatDateRange(start: string, end: string): string {
-  const s = new Date(start);
-  const e = new Date(end);
+  // T12:00:00 evita bug de fuso horário UTC-3 Brasil
+  const s = new Date(start.slice(0, 10) + "T12:00:00");
+  const e = new Date(end.slice(0, 10) + "T12:00:00");
   const months = [
     "Jan",
     "Fev",

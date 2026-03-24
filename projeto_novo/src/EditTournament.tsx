@@ -702,7 +702,9 @@ const EditTournament = () => {
                             (s: any, i: number) => (
                               <div key={i} className="text-xs text-gray-600">
                                 <span className="text-gray-400">
-                                  {new Date(s.date).toLocaleDateString("pt-BR")}
+                                  {new Date(
+                                    s.date.slice(0, 10) + "T12:00:00",
+                                  ).toLocaleDateString("pt-BR")}
                                 </span>{" "}
                                 {s.startTime}–{s.endTime}
                               </div>

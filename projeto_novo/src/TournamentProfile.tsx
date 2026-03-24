@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Footer from "./Footer";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import AuthModal from "./AuthModal";
 import MobileMenu from "./MobileMenu";
@@ -509,7 +508,7 @@ const TournamentProfile = () => {
                       d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                   </svg>
-                  <span>{`${new Date(tournament.startDate).toLocaleDateString("pt-BR")} – ${new Date(tournament.endDate).toLocaleDateString("pt-BR")}`}</span>
+                  <span>{`${new Date((tournament.startDate ?? "").slice(0, 10) + "T12:00:00").toLocaleDateString("pt-BR")} – ${new Date((tournament.endDate ?? "").slice(0, 10) + "T12:00:00").toLocaleDateString("pt-BR")}`}</span>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -779,7 +778,7 @@ const TournamentProfile = () => {
                           <div>
                             <p className="text-gray-400">Data do Evento</p>
                             <p className="text-white font-medium">
-                              {`${new Date(tournament.startDate).toLocaleDateString("pt-BR")} – ${new Date(tournament.endDate).toLocaleDateString("pt-BR")}`}
+                              {`${new Date((tournament.startDate ?? "").slice(0, 10) + "T12:00:00").toLocaleDateString("pt-BR")} – ${new Date((tournament.endDate ?? "").slice(0, 10) + "T12:00:00").toLocaleDateString("pt-BR")}`}
                             </p>
                           </div>
                         </div>
@@ -1531,7 +1530,7 @@ const TournamentProfile = () => {
                                     const t2Name = getTeamName(m.team2Id);
                                     const sch = m.schedule;
                                     const scheduleStr = sch
-                                      ? `${sch.court} · ${sch.time ?? ""} · ${sch.date ? new Date(sch.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : ""}`
+                                      ? `${sch.court} · ${sch.time ?? ""} · ${sch.date ? new Date(String(sch.date).slice(0, 10) + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }) : ""}`
                                           .trim()
                                           .replace(/·\s*$/, "")
                                       : null;
@@ -2308,7 +2307,11 @@ const TournamentProfile = () => {
       )}
 
       {/* Footer */}
-      <Footer />
+      <footer className="bg-[#0a0e27] border-t border-white/5 py-8 md:py-12 px-4 md:px-6 lg:px-8 mt-12 md:mt-20">
+        <div className="max-w-7xl mx-auto text-center text-gray-400">
+          <p>&copy; 2026 Bubble. Todos os direitos reservados.</p>
+        </div>
+      </footer>
     </div>
   );
 };

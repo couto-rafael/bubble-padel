@@ -23,10 +23,17 @@ function mapStatus(
 }
 
 // Formata datas do torneio: "12–14 Mar 2026" ou "12 Mar 2026"
+// Converte string de data para Date sem bug de fuso horário (UTC-3 Brasil)
+// "2026-03-23" → new Date("2026-03-23") = 22 mar em UTC-3 ← BUG
+// "2026-03-23" → new Date("2026-03-23T12:00:00") = 23 mar em qualquer fuso ← CORRETO
+function parseLocalDate(d: string): Date {
+  return new Date(d.slice(0, 10) + "T12:00:00");
+}
+
 function formatDateRange(startDate?: string, endDate?: string): string {
   if (!startDate) return "—";
   const fmt = (d: string) => {
-    const date = new Date(d);
+    const date = parseLocalDate(d);
     return date.toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "short",
@@ -34,8 +41,8 @@ function formatDateRange(startDate?: string, endDate?: string): string {
     });
   };
   if (!endDate || startDate === endDate) return fmt(startDate);
-  const s = new Date(startDate);
-  const e = new Date(endDate);
+  const s = parseLocalDate(startDate);
+  const e = parseLocalDate(endDate);
   const sameMonth =
     s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear();
   if (sameMonth) {
