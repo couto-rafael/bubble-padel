@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import DashboardHeader from "./DashboardHeader";
 import { useTournaments } from "./hooks";
+import OnboardingChecklist from "./OnboardingChecklist";
 
 // ─── Helpers ───────────────────────────────────────────────
 
@@ -225,6 +226,9 @@ const ClubDashboard = () => {
               </div>
             </div>
           </div>
+
+          {/* Onboarding Checklist — task 2.1 (some após 3 torneios) */}
+          <OnboardingChecklist tournaments={tournaments} />
 
           {/* Quick Actions */}
           <div className="mb-8">
