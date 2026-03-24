@@ -207,7 +207,7 @@ const Tournaments = () => {
 
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e27]/95 backdrop-blur-sm border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <Link to="/" className="flex items-center gap-2">
               <div className="w-10 h-10 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center">
@@ -283,7 +283,7 @@ const Tournaments = () => {
       </nav>
 
       {/* Page Header */}
-      <section className="pt-32 pb-12 px-6 lg:px-8">
+      <section className="pt-32 pb-12 px-4 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-4">
             Torneios
@@ -295,7 +295,7 @@ const Tournaments = () => {
       </section>
 
       {/* Filter Bar */}
-      <section className="pb-8 px-6 lg:px-8">
+      <section className="pb-8 px-4 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden">
             {/* Mobile Filter Toggle Button */}
@@ -726,7 +726,7 @@ const Tournaments = () => {
       </section>
 
       {/* Tournament Grid */}
-      <section className="pb-20 px-6 lg:px-8">
+      <section className="pb-20 px-4 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {loadingTournaments ? (
             <div className="text-center py-20">
@@ -759,7 +759,7 @@ const Tournaments = () => {
               </p>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {filteredTournaments.map((tournament) => (
                 <div
                   key={tournament.id}
@@ -954,7 +954,7 @@ const Tournaments = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#050817] border-t border-white/5 py-12 px-6 lg:px-8">
+      <footer className="bg-[#050817] border-t border-white/5 py-12 px-4 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
@@ -1043,18 +1043,12 @@ const Tournaments = () => {
               <h4 className="font-bold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li>
-                  <a
-                    href="/termos#privacidade"
-                    className="hover:text-white transition-colors"
-                  >
+                  <a href="#" className="hover:text-white transition-colors">
                     Privacidade
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="/termos"
-                    className="hover:text-white transition-colors"
-                  >
+                  <a href="#" className="hover:text-white transition-colors">
                     Termos
                   </a>
                 </li>

@@ -94,7 +94,7 @@ const Home = () => {
               </span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6 leading-[1.1]">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-black tracking-tight mb-6 leading-[1.1]">
               Organize Torneios de Padel
               <span className="block bg-gradient-to-r from-[#00ff88] to-[#00ccff] bg-clip-text text-transparent mt-2">
                 Sem Complicação
@@ -133,18 +133,18 @@ const Home = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 px-6 lg:px-8 bg-gradient-to-b from-[#0a0e27] to-[#0f1540]">
+      <section className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-b from-[#0a0e27] to-[#0f1540]">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-4">
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-black mb-4">
               Como Funciona
             </h2>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+            <p className="text-base md:text-xl text-gray-400 max-w-2xl mx-auto">
               Três passos simples para realizar torneios profissionais
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-4 md:gap-8">
             {[
               {
                 step: "01",
@@ -153,7 +153,7 @@ const Home = () => {
                   "Configure seu torneio em minutos. Defina formato, grupos, datas e regras de inscrição com nosso criador intuitivo.",
                 icon: (
                   <svg
-                    className="w-8 h-8"
+                    className="w-6 h-6"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -174,7 +174,7 @@ const Home = () => {
                   "Compartilhe o link do torneio. Jogadores se inscrevem e pagam online. Acompanhe as inscrições em tempo real com confirmações automáticas.",
                 icon: (
                   <svg
-                    className="w-8 h-8"
+                    className="w-6 h-6"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -195,7 +195,7 @@ const Home = () => {
                   "Gere partidas automaticamente. Atualize placares em tempo real. Jogadores e espectadores acompanham classificações e chaves ao vivo.",
                 icon: (
                   <svg
-                    className="w-8 h-8"
+                    className="w-6 h-6"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -212,15 +212,23 @@ const Home = () => {
             ].map((item, index) => (
               <div key={index} className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#00ff88]/10 to-[#00ccff]/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all"></div>
-                <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-8 rounded-2xl border border-white/10 hover:border-[#00ff88]/30 transition-all">
-                  <div className="text-[#00ff88]/30 text-6xl font-black mb-4">
-                    {item.step}
+                <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-4 md:p-8 rounded-2xl border border-white/10 hover:border-[#00ff88]/30 transition-all">
+                  {/* Mobile: número + ícone + título todos na mesma linha */}
+                  <div className="flex items-center gap-3 mb-2 md:block">
+                    <span className="text-[#00ff88]/40 text-xl md:text-6xl font-black leading-none md:mb-4 flex-shrink-0">
+                      {item.step}
+                    </span>
+                    <div className="w-8 h-8 md:w-16 md:h-16 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg md:rounded-xl flex items-center justify-center md:mb-6 text-[#0a0e27] flex-shrink-0">
+                      {item.icon}
+                    </div>
+                    <h3 className="text-base md:hidden font-bold leading-tight">
+                      {item.title}
+                    </h3>
                   </div>
-                  <div className="w-16 h-16 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-xl flex items-center justify-center mb-6 text-[#0a0e27]">
-                    {item.icon}
-                  </div>
-                  <h3 className="text-2xl font-bold mb-3">{item.title}</h3>
-                  <p className="text-gray-400 leading-relaxed">
+                  <h3 className="hidden md:block text-2xl font-bold mb-2">
+                    {item.title}
+                  </h3>
+                  <p className="text-gray-400 leading-relaxed text-sm md:text-base">
                     {item.description}
                   </p>
                 </div>
@@ -231,18 +239,21 @@ const Home = () => {
       </section>
 
       {/* Features */}
-      <section id="features" className="py-20 px-6 lg:px-8 bg-[#0a0e27]">
+      <section
+        id="features"
+        className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-[#0a0e27]"
+      >
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-4">
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-black mb-4">
               Feito Para o Padel Moderno
             </h2>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+            <p className="text-base md:text-xl text-gray-400 max-w-2xl mx-auto">
               Tudo que você precisa para realizar torneios de classe mundial
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {[
               {
                 title: "Criação de Torneios",
@@ -367,12 +378,16 @@ const Home = () => {
             ].map((feature, index) => (
               <div
                 key={index}
-                className="group bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/5 hover:border-[#00ff88]/30 transition-all hover:scale-[1.02]"
+                className="group bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-4 md:p-6 rounded-xl border border-white/5 hover:border-[#00ff88]/30 transition-all hover:scale-[1.02]"
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-[#00ff88]/20 to-[#00ccff]/20 rounded-lg flex items-center justify-center mb-4 text-[#00ff88] group-hover:scale-110 transition-transform">
-                  {feature.icon}
+                <div className="flex items-center gap-3 mb-2 md:block">
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-[#00ff88]/20 to-[#00ccff]/20 rounded-lg flex items-center justify-center md:mb-4 text-[#00ff88] group-hover:scale-110 transition-transform flex-shrink-0">
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-base md:text-xl font-bold md:mb-2">
+                    {feature.title}
+                  </h3>
                 </div>
-                <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">
                   {feature.description}
                 </p>
@@ -383,39 +398,41 @@ const Home = () => {
       </section>
 
       {/* Who Is It For */}
-      <section className="py-20 px-6 lg:px-8 bg-gradient-to-b from-[#0a0e27] to-[#0f1540]">
+      <section className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-b from-[#0a0e27] to-[#0f1540]">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-4">
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-black mb-4">
               Para Quem é o Bubble?
             </h2>
-            <p className="text-xl text-gray-400">
+            <p className="text-base md:text-xl text-gray-400">
               Feito para todos no ecossistema do padel
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-br from-[#00ff88]/10 to-transparent rounded-2xl blur-2xl"></div>
-              <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-10 rounded-2xl border border-white/10 hover:border-[#00ff88]/30 transition-all">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-2xl flex items-center justify-center mb-6">
-                  <svg
-                    className="w-8 h-8 text-[#0a0e27]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                    />
-                  </svg>
+              <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-5 md:p-10 rounded-2xl border border-white/10 hover:border-[#00ff88]/30 transition-all">
+                <div className="flex items-center gap-4 mb-4 md:block">
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-2xl flex items-center justify-center md:mb-6 flex-shrink-0">
+                    <svg
+                      className="w-6 h-6 md:w-8 md:h-8 text-[#0a0e27]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl md:text-3xl font-bold md:mb-4">
+                    Clubes & Organizadores
+                  </h3>
                 </div>
-                <h3 className="text-3xl font-bold mb-4">
-                  Clubes & Organizadores
-                </h3>
                 <p className="text-gray-400 mb-6 leading-relaxed">
                   Realize torneios profissionais sem pesadelo administrativo.
                   Economize horas de organização, elimine o caos das inscrições
@@ -457,23 +474,27 @@ const Home = () => {
 
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-br from-[#00ccff]/10 to-transparent rounded-2xl blur-2xl"></div>
-              <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-10 rounded-2xl border border-white/10 hover:border-[#00ccff]/30 transition-all">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#00ccff] to-[#0099cc] rounded-2xl flex items-center justify-center mb-6">
-                  <svg
-                    className="w-8 h-8 text-[#0a0e27]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-                    />
-                  </svg>
+              <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-5 md:p-10 rounded-2xl border border-white/10 hover:border-[#00ccff]/30 transition-all">
+                <div className="flex items-center gap-4 mb-4 md:block">
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-[#00ccff] to-[#0099cc] rounded-2xl flex items-center justify-center md:mb-6 flex-shrink-0">
+                    <svg
+                      className="w-6 h-6 md:w-8 md:h-8 text-[#0a0e27]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl md:text-3xl font-bold md:mb-4">
+                    Jogadores & Atletas
+                  </h3>
                 </div>
-                <h3 className="text-3xl font-bold mb-4">Jogadores & Atletas</h3>
                 <p className="text-gray-400 mb-6 leading-relaxed">
                   Foque no seu jogo, não na logística. Inscreva-se em torneios
                   em segundos, acompanhe suas partidas ao vivo e construa seu
@@ -516,24 +537,24 @@ const Home = () => {
       </section>
 
       {/* Social Proof */}
-      <section className="py-20 px-6 lg:px-8 bg-[#0a0e27]">
+      <section className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-[#0a0e27]">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-4">
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-black mb-4">
               Feito Para Clubes de Padel Modernos
             </h2>
-            <p className="text-xl text-gray-400">
+            <p className="text-base md:text-xl text-gray-400">
               Confiável pelos principais clubes do Brasil
             </p>
           </div>
 
           {/* Logo Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 mb-8 md:mb-16">
             {["Padel Pro", "Court Masters", "Racket Club", "Ace Courts"].map(
               (name, index) => (
                 <div
                   key={index}
-                  className="bg-gradient-to-br from-[#1a1f4a]/30 to-[#0f1540]/30 p-8 rounded-xl border border-white/5 flex items-center justify-center"
+                  className="bg-gradient-to-br from-[#1a1f4a]/30 to-[#0f1540]/30 p-4 md:p-8 rounded-xl border border-white/5 flex items-center justify-center"
                 >
                   <div className="text-gray-500 font-bold text-lg">{name}</div>
                 </div>
@@ -542,7 +563,7 @@ const Home = () => {
           </div>
 
           {/* Testimonials */}
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             {[
               {
                 quote:
@@ -594,14 +615,14 @@ const Home = () => {
       {/* Pricing */}
       <section
         id="pricing"
-        className="py-20 px-6 lg:px-8 bg-gradient-to-b from-[#0a0e27] to-[#0f1540]"
+        className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-b from-[#0a0e27] to-[#0f1540]"
       >
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black mb-4">
+          <div className="text-center mb-8 md:mb-16">
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-black mb-4">
               100% Gratuito Para Você
             </h2>
-            <p className="text-xl text-gray-400">
+            <p className="text-base md:text-xl text-gray-400">
               Organize quantos torneios quiser. Sem mensalidade, sem custo fixo.
             </p>
           </div>
@@ -610,14 +631,14 @@ const Home = () => {
           <div className="max-w-4xl mx-auto mb-16">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-[#00ff88]/20 to-[#00ccff]/20 rounded-3xl blur-2xl"></div>
-              <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-12 md:p-16 rounded-3xl border-2 border-[#00ff88]/50 shadow-[0_0_60px_rgba(0,255,136,0.3)]">
+              <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-6 md:p-12 lg:p-16 rounded-3xl border-2 border-[#00ff88]/50 shadow-[0_0_60px_rgba(0,255,136,0.3)]">
                 <div className="text-center">
                   {/* Big ZERO */}
-                  <div className="mb-8">
-                    <div className="text-[120px] md:text-[180px] lg:text-[220px] font-black leading-none bg-gradient-to-r from-[#00ff88] via-[#00ffaa] to-[#00ccff] bg-clip-text text-transparent tracking-tighter">
+                  <div className="mb-6 md:mb-8">
+                    <div className="text-[80px] md:text-[140px] lg:text-[180px] font-black leading-[0.9] bg-gradient-to-r from-[#00ff88] via-[#00ffaa] to-[#00ccff] bg-clip-text text-transparent tracking-tighter">
                       0
                     </div>
-                    <div className="text-2xl md:text-3xl font-bold text-gray-300 -mt-8">
+                    <div className="text-xl md:text-3xl font-bold text-gray-300 mt-2 md:-mt-6">
                       REAIS POR MÊS
                     </div>
                   </div>
@@ -655,7 +676,7 @@ const Home = () => {
             <h3 className="text-2xl md:text-3xl font-bold text-center mb-10">
               O Que Você Ganha de Graça
             </h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {[
                 {
                   icon: (
@@ -776,12 +797,16 @@ const Home = () => {
               ].map((feature, index) => (
                 <div
                   key={index}
-                  className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10"
+                  className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-4 md:p-6 rounded-xl border border-white/10"
                 >
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#00ff88]/20 to-[#00ccff]/20 rounded-lg flex items-center justify-center mb-4 text-[#00ff88]">
-                    {feature.icon}
+                  <div className="flex items-center gap-3 mb-2 md:block">
+                    <div className="w-9 h-9 md:w-12 md:h-12 bg-gradient-to-br from-[#00ff88]/20 to-[#00ccff]/20 rounded-lg flex items-center justify-center md:mb-4 text-[#00ff88] flex-shrink-0">
+                      {feature.icon}
+                    </div>
+                    <h4 className="text-base md:text-lg font-bold md:mb-2">
+                      {feature.title}
+                    </h4>
                   </div>
-                  <h4 className="text-lg font-bold mb-2">{feature.title}</h4>
                   <p className="text-gray-400 text-sm">{feature.description}</p>
                 </div>
               ))}
@@ -842,9 +867,9 @@ const Home = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="py-20 px-6 lg:px-8 bg-[#0a0e27] relative overflow-hidden">
+      <section className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-[#0a0e27] relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#00ff88]/5 to-[#00ccff]/5"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#00ff88] rounded-full blur-[150px] opacity-10"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(800px,100vw)] h-[min(800px,100vw)] bg-[#00ff88] rounded-full blur-[150px] opacity-10"></div>
 
         <div className="relative max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-6xl font-black mb-6">
@@ -881,11 +906,58 @@ const Home = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#050817] border-t border-white/5 py-12 px-6 lg:px-8">
+      <footer className="bg-[#050817] border-t border-white/5 py-6 md:py-12 px-4 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
+          {/* Mobile: logo + links horizontais compactos */}
+          <div className="flex items-center gap-2 mb-4 md:hidden">
+            <div className="w-7 h-7 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center">
+              <svg
+                className="w-4 h-4 text-[#0a0e27]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+            </div>
+            <span className="font-bold">Bubble Padel</span>
+          </div>
+          <div className="flex flex-wrap gap-x-6 gap-y-1 mb-4 md:hidden text-sm text-gray-400">
+            <a href="#features" className="hover:text-white transition-colors">
+              Recursos
+            </a>
+            <a href="#pricing" className="hover:text-white transition-colors">
+              Preços
+            </a>
+            <Link
+              to="/tournaments"
+              className="hover:text-white transition-colors"
+            >
+              Torneios
+            </Link>
+            <Link to="/contact" className="hover:text-white transition-colors">
+              Contato
+            </Link>
+            <Link to="/termos" className="hover:text-white transition-colors">
+              Termos
+            </Link>
+            <Link
+              to="/termos#privacidade"
+              className="hover:text-white transition-colors"
+            >
+              Privacidade
+            </Link>
+          </div>
+
+          {/* Desktop: grid completo */}
+          <div className="hidden md:grid md:grid-cols-4 gap-8 mb-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
+              <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center">
                   <svg
                     className="w-5 h-5 text-[#0a0e27]"
@@ -976,18 +1048,12 @@ const Home = () => {
               <h4 className="font-bold mb-4">Legal</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li>
-                  <a
-                    href="/termos#privacidade"
-                    className="hover:text-white transition-colors"
-                  >
+                  <a href="#" className="hover:text-white transition-colors">
                     Privacidade
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="/termos"
-                    className="hover:text-white transition-colors"
-                  >
+                  <a href="#" className="hover:text-white transition-colors">
                     Termos
                   </a>
                 </li>
@@ -1000,8 +1066,8 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-gray-500">
+          <div className="border-t border-white/5 pt-4 md:pt-8 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4">
+            <p className="text-xs md:text-sm text-gray-500">
               © 2026 Bubble. Todos os direitos reservados.
             </p>
             <div className="flex gap-6">

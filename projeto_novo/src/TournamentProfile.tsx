@@ -156,7 +156,6 @@ const TournamentProfile = () => {
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerSuccess, setRegisterSuccess] = useState(false);
   const [registerError, setRegisterError] = useState("");
-  const [shareCopied, setShareCopied] = useState(false);
 
   const handleOpenRegister = () => {
     if (isAthlete && currentUser) {
@@ -335,36 +334,6 @@ const TournamentProfile = () => {
         : "Não abertas";
   const confirmedTeams = tournament.teams ?? [];
 
-  // ── Share (task 1.6) ────────────────────────────────────────────────────
-  const handleShare = async () => {
-    const url = window.location.href;
-    const startDate = tournament.startDate
-      ? new Date(tournament.startDate).toLocaleDateString("pt-BR", {
-          day: "2-digit",
-          month: "short",
-        })
-      : "";
-    const city = tournament.club?.city ?? "";
-    const text = `🎾 ${tournament.name}${startDate ? " — " + startDate : ""}${city ? " em " + city : ""}. Inscrições ${statusRaw === "open" ? "abertas" : "encerradas"}! Saiba mais:`;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: tournament.name, text, url });
-      } catch {
-        // usuário cancelou — ignora
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        setShareCopied(true);
-        setTimeout(() => setShareCopied(false), 2500);
-      } catch {
-        // fallback: selecionar texto
-        prompt("Copie o link abaixo:", url);
-      }
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#0a0e27] text-white">
       <AuthModal
@@ -395,7 +364,7 @@ const TournamentProfile = () => {
               <span className="text-2xl font-bold tracking-tight">Bubble</span>
             </Link>
 
-            <div className="hidden md:flex items-center gap-8">
+            <div className="hidden md:flex items-center gap-4 md:gap-8">
               <Link
                 to="/"
                 className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
@@ -448,7 +417,7 @@ const TournamentProfile = () => {
       </nav>
 
       {/* Hero */}
-      <section className="relative pt-24 pb-8 px-6 lg:px-8">
+      <section className="relative pt-20 pb-6 px-4 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6 text-sm text-gray-400">
             <Link to="/tournaments" className="hover:text-[#00ff88]">
@@ -458,9 +427,9 @@ const TournamentProfile = () => {
             <span>{tournamentName}</span>
           </div>
 
-          <div className="grid lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-8">
             <div className="lg:col-span-3">
-              <div className="flex flex-wrap items-center gap-3 mb-4">
+              <div className="flex flex-wrap items-center gap-2 mb-3">
                 <span className="px-3 py-1 bg-[#00ff88]/20 text-[#00ff88] rounded-full text-sm font-semibold border border-[#00ff88]/30">
                   {statusLabel}
                 </span>
@@ -469,11 +438,11 @@ const TournamentProfile = () => {
                 </span>
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-black mb-4">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-4">
                 {tournamentName}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-4 text-gray-300 mb-6">
+              <div className="flex flex-wrap items-center gap-3 text-gray-300 mb-4">
                 <div className="flex items-center gap-2">
                   <svg
                     className="w-5 h-5 text-[#00ff88]"
@@ -671,33 +640,25 @@ const TournamentProfile = () => {
               ))}
             </div>
 
-            {/* Share Button — task 1.6 */}
-            <div className="relative ml-4">
-              <button
-                onClick={handleShare}
-                className="p-3 hover:bg-white/5 rounded-lg transition-colors"
-                title="Compartilhar torneio"
+            {/* Share Button */}
+            <button
+              className="ml-4 p-3 hover:bg-white/5 rounded-lg transition-colors"
+              title="Compartilhar"
+            >
+              <svg
+                className="w-5 h-5 text-gray-400 hover:text-white transition-colors"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                <svg
-                  className="w-5 h-5 text-gray-400 hover:text-white transition-colors"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                  />
-                </svg>
-              </button>
-              {shareCopied && (
-                <div className="absolute right-0 top-full mt-2 bg-[#00ff88] text-[#050f1a] text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap z-50 shadow-lg">
-                  ✓ Link copiado!
-                </div>
-              )}
-            </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                />
+              </svg>
+            </button>
           </div>
         </div>
       </section>
@@ -726,14 +687,14 @@ const TournamentProfile = () => {
       )}
 
       {/* Content */}
-      <section className="py-12 px-6 lg:px-8">
+      <section className="py-8 md:py-12 px-4 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* INFO TAB */}
           {activeTab === "info" && (
             <>
               {/* General Sub-tab */}
               {activeSubTab === "general" && (
-                <div className="grid lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8">
                   <div className="lg:col-span-2 space-y-8">
                     <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10">
                       <h2 className="text-2xl font-bold mb-4">
@@ -743,7 +704,7 @@ const TournamentProfile = () => {
                         {tournament.description}
                       </p>
 
-                      <div className="grid md:grid-cols-2 gap-4 pt-6 border-t border-white/10">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-6 border-t border-white/10">
                         <div>
                           <h3 className="font-semibold text-[#00ccff] mb-2">
                             Inscrições
@@ -766,7 +727,7 @@ const TournamentProfile = () => {
                       <h2 className="text-2xl font-bold mb-4">
                         Categorias Disponíveis
                       </h2>
-                      <div className="grid md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {tournament.categories.map(
                           (category: string, index: number) => (
                             <div
@@ -1457,7 +1418,7 @@ const TournamentProfile = () => {
                     <h2 className="text-xl font-bold text-[#00ccff] mb-4 pb-2 border-b border-white/10">
                       {cat}
                     </h2>
-                    <div className="grid lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       {groups.map((group: any, groupIndex: number) => {
                         const standings = (group.teams ?? [])
                           .map((gt: any) => {
@@ -1642,7 +1603,7 @@ const TournamentProfile = () => {
               <div
                 className={`mb-6 ${!filtersExpanded ? "hidden md:block" : "block"}`}
               >
-                <div className="grid md:grid-cols-4 gap-4 p-4 md:p-0">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 md:p-0">
                   {/* Search */}
                   <div className="relative">
                     <svg
@@ -2080,7 +2041,7 @@ const TournamentProfile = () => {
                 </div>
               ) : (
                 <>
-                  <div className="grid md:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                     {(tournament.playoffBrackets ?? []).map((bracket: any) => {
                       const final = bracket.matches.find(
                         (m: any) => m.roundSize === 1 && m.played,
@@ -2346,7 +2307,7 @@ const TournamentProfile = () => {
       )}
 
       {/* Footer */}
-      <footer className="bg-[#0a0e27] border-t border-white/5 py-12 px-6 lg:px-8 mt-20">
+      <footer className="bg-[#0a0e27] border-t border-white/5 py-8 md:py-12 px-4 md:px-6 lg:px-8 mt-12 md:mt-20">
         <div className="max-w-7xl mx-auto text-center text-gray-400">
           <p>&copy; 2026 Bubble. Todos os direitos reservados.</p>
         </div>
