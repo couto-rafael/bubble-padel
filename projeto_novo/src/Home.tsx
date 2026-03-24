@@ -637,7 +637,7 @@ const Home = () => {
                     <div className="text-[80px] md:text-[140px] lg:text-[180px] font-black leading-[0.9] bg-gradient-to-r from-[#00ff88] via-[#00ffaa] to-[#00ccff] bg-clip-text text-transparent tracking-tighter">
                       0
                     </div>
-                    <div className="text-xl md:text-3xl font-bold text-gray-300 mt-2 md:mt-0 md:-mt-6">
+                    <div className="text-xl md:text-3xl font-bold text-gray-300 mt-2 md:-mt-6">
                       AGORA
                     </div>
                   </div>

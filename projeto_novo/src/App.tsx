@@ -17,12 +17,13 @@ import EditTournament from "./EditTournament";
 import AthleteDashboard from "./AthleteDashboard";
 import AthleteProfile from "./AthleteProfile";
 import TermsPage from "./TermsPage";
+import { ToastProvider } from "./Toast";
+import { ErrorBoundary } from "./ErrorBoundary";
 
-// ─── React Query client ───────────────────────────────────────────────────────
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 30, // 30s antes de refetch automático
+      staleTime: 1000 * 30,
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -31,43 +32,53 @@ const queryClient = new QueryClient({
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/tournaments" element={<Tournaments />} />
-            <Route path="/tournaments/:id" element={<TournamentProfile />} />
-            <Route path="/contact" element={<Contact />} />
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>
+          <AuthProvider>
+            <Router>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/tournaments" element={<Tournaments />} />
+                <Route
+                  path="/tournaments/:id"
+                  element={<TournamentProfile />}
+                />
+                <Route path="/contact" element={<Contact />} />
 
-            {/* Rotas do Clube */}
-            <Route path="/dashboard" element={<ClubDashboard />} />
-            <Route
-              path="/dashboard/profile"
-              element={<ClubDashboardProfile />}
-            />
-            <Route path="/dashboard/settings" element={<ClubSettings />} />
-            <Route path="/dashboard/tournaments" element={<MyTournaments />} />
-            <Route
-              path="/dashboard/tournaments/create"
-              element={<CreateTournament />}
-            />
-            <Route
-              path="/dashboard/tournaments/:id/edit"
-              element={<EditTournament />}
-            />
-            <Route path="/clubs/:id" element={<ClubProfile />} />
+                <Route path="/dashboard" element={<ClubDashboard />} />
+                <Route
+                  path="/dashboard/profile"
+                  element={<ClubDashboardProfile />}
+                />
+                <Route path="/dashboard/settings" element={<ClubSettings />} />
+                <Route
+                  path="/dashboard/tournaments"
+                  element={<MyTournaments />}
+                />
+                <Route
+                  path="/dashboard/tournaments/create"
+                  element={<CreateTournament />}
+                />
+                <Route
+                  path="/dashboard/tournaments/:id/edit"
+                  element={<EditTournament />}
+                />
+                <Route path="/clubs/:id" element={<ClubProfile />} />
 
-            {/* Rotas do Atleta */}
-            <Route path="/athlete/dashboard" element={<AthleteDashboard />} />
-            <Route path="/athlete/profile" element={<AthleteProfile />} />
+                <Route
+                  path="/athlete/dashboard"
+                  element={<AthleteDashboard />}
+                />
+                <Route path="/athlete/profile" element={<AthleteProfile />} />
 
-            {/* Legal */}
-            <Route path="/termos" element={<TermsPage />} />
-          </Routes>
-        </Router>
-      </AuthProvider>
-    </QueryClientProvider>
+                <Route path="/termos" element={<TermsPage />} />
+              </Routes>
+            </Router>
+          </AuthProvider>
+        </ToastProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 
