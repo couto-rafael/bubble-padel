@@ -212,20 +212,17 @@ const Home = () => {
             ].map((item, index) => (
               <div key={index} className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#00ff88]/10 to-[#00ccff]/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all"></div>
-                <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-4 md:p-8 rounded-2xl border border-white/10 hover:border-[#00ff88]/30 transition-all">
-                  {/* Mobile: número + ícone + título todos na mesma linha */}
-                  <div className="flex items-center gap-3 mb-2 md:block">
-                    <span className="text-[#00ff88]/40 text-xl md:text-6xl font-black leading-none md:mb-4 flex-shrink-0">
+                <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-5 md:p-8 rounded-2xl border border-white/10 hover:border-[#00ff88]/30 transition-all">
+                  {/* Mobile: horizontal layout — número + ícone na mesma linha */}
+                  <div className="flex items-center gap-4 mb-3 md:block">
+                    <div className="text-[#00ff88]/40 text-3xl md:text-6xl font-black md:mb-4 leading-none">
                       {item.step}
-                    </span>
-                    <div className="w-8 h-8 md:w-16 md:h-16 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg md:rounded-xl flex items-center justify-center md:mb-6 text-[#0a0e27] flex-shrink-0">
+                    </div>
+                    <div className="w-10 h-10 md:w-16 md:h-16 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-xl flex items-center justify-center md:mb-6 text-[#0a0e27] flex-shrink-0">
                       {item.icon}
                     </div>
-                    <h3 className="text-base md:hidden font-bold leading-tight">
-                      {item.title}
-                    </h3>
                   </div>
-                  <h3 className="hidden md:block text-2xl font-bold mb-2">
+                  <h3 className="text-lg md:text-2xl font-bold mb-2">
                     {item.title}
                   </h3>
                   <p className="text-gray-400 leading-relaxed text-sm md:text-base">
@@ -620,10 +617,12 @@ const Home = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8 md:mb-16">
             <h2 className="text-2xl md:text-4xl lg:text-5xl font-black mb-4">
-              100% Gratuito Para Você
+              Grátis Durante o Lançamento
             </h2>
             <p className="text-base md:text-xl text-gray-400">
-              Organize quantos torneios quiser. Sem mensalidade, sem custo fixo.
+              Organize quantos torneios quiser, agora sem custo. Você paga
+              apenas a taxa do gateway quando seus atletas fazem inscrições
+              pagas.
             </p>
           </div>
 
@@ -638,8 +637,8 @@ const Home = () => {
                     <div className="text-[80px] md:text-[140px] lg:text-[180px] font-black leading-[0.9] bg-gradient-to-r from-[#00ff88] via-[#00ffaa] to-[#00ccff] bg-clip-text text-transparent tracking-tighter">
                       0
                     </div>
-                    <div className="text-xl md:text-3xl font-bold text-gray-300 mt-2 md:-mt-6">
-                      REAIS POR MÊS
+                    <div className="text-xl md:text-3xl font-bold text-gray-300 mt-2 md:mt-0 md:-mt-6">
+                      AGORA
                     </div>
                   </div>
 
@@ -649,22 +648,22 @@ const Home = () => {
                       <span className="text-[#00ff88] font-bold">
                         torneios ilimitados
                       </span>
-                      , adicione{" "}
+                      , gerencie{" "}
                       <span className="text-[#00ff88] font-bold">
-                        jogadores ilimitados
+                        grupos e playoffs
                       </span>{" "}
-                      e gerencie tudo sem pagar nada.
+                      e receba inscrições com PIX direto na sua conta.
                     </p>
                     <p className="text-sm text-gray-500 leading-relaxed">
-                      * Você paga apenas a taxa do gateway de pagamento (ex:
-                      Mercado Pago, PagSeguro) quando seus jogadores fazem
-                      inscrições pagas. Essa taxa é do parceiro de pagamento,
-                      não do Bubble.
+                      * Grátis para os primeiros clubes do lançamento. A Bubble
+                      não cobra comissão — você paga apenas a taxa do gateway
+                      (~1%) quando seus atletas fazem inscrições pagas. O PIX
+                      vai direto para sua conta.
                     </p>
                   </div>
 
                   <button className="px-12 py-5 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-xl font-black text-xl transition-all hover:scale-105 shadow-lg hover:shadow-[0_0_40px_rgba(0,255,136,0.5)]">
-                    Começar Grátis Agora
+                    Começar Gratuitamente
                   </button>
                 </div>
               </div>
@@ -900,63 +899,16 @@ const Home = () => {
             </svg>
           </button>
           <p className="text-sm text-gray-500 mt-6">
-            Não precisa de cartão de crédito • Teste grátis de 14 dias
+            Não precisa de cartão de crédito • Grátis no lançamento
           </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#050817] border-t border-white/5 py-6 md:py-12 px-4 md:px-6 lg:px-8">
+      <footer className="bg-[#050817] border-t border-white/5 py-8 md:py-12 px-4 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          {/* Mobile: logo + links horizontais compactos */}
-          <div className="flex items-center gap-2 mb-4 md:hidden">
-            <div className="w-7 h-7 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center">
-              <svg
-                className="w-4 h-4 text-[#0a0e27]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M13 10V3L4 14h7v7l9-11h-7z"
-                />
-              </svg>
-            </div>
-            <span className="font-bold">Bubble Padel</span>
-          </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-1 mb-4 md:hidden text-sm text-gray-400">
-            <a href="#features" className="hover:text-white transition-colors">
-              Recursos
-            </a>
-            <a href="#pricing" className="hover:text-white transition-colors">
-              Preços
-            </a>
-            <Link
-              to="/tournaments"
-              className="hover:text-white transition-colors"
-            >
-              Torneios
-            </Link>
-            <Link to="/contact" className="hover:text-white transition-colors">
-              Contato
-            </Link>
-            <Link to="/termos" className="hover:text-white transition-colors">
-              Termos
-            </Link>
-            <Link
-              to="/termos#privacidade"
-              className="hover:text-white transition-colors"
-            >
-              Privacidade
-            </Link>
-          </div>
-
-          {/* Desktop: grid completo */}
-          <div className="hidden md:grid md:grid-cols-4 gap-8 mb-8">
-            <div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 mb-6 md:mb-8">
+            <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center">
                   <svg
@@ -1066,8 +1018,8 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="border-t border-white/5 pt-4 md:pt-8 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4">
-            <p className="text-xs md:text-sm text-gray-500">
+          <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-gray-500">
               © 2026 Bubble. Todos os direitos reservados.
             </p>
             <div className="flex gap-6">
