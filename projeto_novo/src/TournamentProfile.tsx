@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Footer from "./Footer";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import AuthModal from "./AuthModal";
 import MobileMenu from "./MobileMenu";
@@ -2307,11 +2308,7 @@ const TournamentProfile = () => {
       )}
 
       {/* Footer */}
-      <footer className="bg-[#0a0e27] border-t border-white/5 py-8 md:py-12 px-4 md:px-6 lg:px-8 mt-12 md:mt-20">
-        <div className="max-w-7xl mx-auto text-center text-gray-400">
-          <p>&copy; 2026 Bubble. Todos os direitos reservados.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
