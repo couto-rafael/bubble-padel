@@ -14,6 +14,7 @@ import { errorHandler } from "./middlewares/errorHandler";
 import { generalLimiter, registerLimiter } from "./middlewares/rateLimiter";
 import { startStatusSyncJob } from "./jobs/statusSync";
 import { prisma } from "./lib/prisma";
+import { paymentRoutes, webhookRoutes } from "./routes/payments";
 
 // ─── Sentry (task 2.4) ────────────────────────────────────────────────────────
 // Inicializar ANTES de qualquer outro middleware
@@ -57,6 +58,10 @@ app.use("/api/club", clubRoutes);
 app.use("/api/public/clubs", publicClubRoutes);
 app.use("/api/athlete", athleteRoutes);
 app.use("/api/public/athletes", publicAthleteRoutes);
+
+// ─── Pagamentos (task 3.1) ───────────────────────────────────────────────────
+app.use("/api/payments", paymentRoutes);
+app.use("/api/webhooks", webhookRoutes);
 
 // ─── Health check (task 2.4) ──────────────────────────────────────────────────
 app.get("/api/health", async (_req, res) => {

@@ -111,22 +111,28 @@ enum TournamentStatus {
 }
 
 model Team {
-  id               String        @id @default(cuid())
-  tournamentId     String
-  tournament       Tournament    @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  player1Name      String
-  player1Email     String
-  player2Name      String
-  player2Email     String
-  category         String
-  status           TeamStatus    @default(PENDING)
-  paymentStatus    PaymentStatus @default(PENDING)
-  registrationDate DateTime      @default(now())
-  amount           Float         @default(0)
-  hasRestriction   Boolean       @default(false)
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  groupTeams       GroupTeam[]
+  id                    String        @id @default(cuid())
+  tournamentId          String
+  tournament            Tournament    @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  player1Name           String
+  player1Email          String
+  player2Name           String
+  player2Email          String
+  category              String
+  status                TeamStatus    @default(PENDING)
+  // Pagamento individual por atleta (task 3.1)
+  player1PaymentStatus  ChargeStatus  @default(PENDING)
+  player2PaymentStatus  ChargeStatus  @default(PENDING)
+  player1ChargeId       String?       // ID da cobrança no AbacatePay
+  player2ChargeId       String?       // ID da cobrança no AbacatePay
+  // Valor total da inscrição (dividido por 2 para cada atleta)
+  amount                Float         @default(0)
+  registrationDate      DateTime      @default(now())
+  hasRestriction        Boolean       @default(false)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  groupTeams            GroupTeam[]
+  payments              Payment[]
   @@map("teams")
 }
 
@@ -135,9 +141,31 @@ enum TeamStatus {
   PENDING
 }
 
-enum PaymentStatus {
-  PAID
-  PENDING
+enum ChargeStatus {
+  PENDING   // aguardando pagamento
+  PAID      // pago e confirmado via webhook
+  EXPIRED   // QR Code expirou sem pagamento
+  REFUNDED  // reembolsado pelo clube
+}
+
+model Payment {
+  id             String       @id @default(cuid())
+  teamId         String
+  team           Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  tournamentId   String
+  playerNumber   Int          // 1 ou 2 — qual jogador da dupla
+  playerEmail    String
+  amount         Float
+  status         ChargeStatus @default(PENDING)
+  externalId     String?      // ID da cobrança no AbacatePay
+  pixCode        String?      // código copia-e-cola
+  pixQrCode      String?      // base64 da imagem do QR Code
+  paidAt         DateTime?
+  expiresAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  @@unique([teamId, playerNumber]) // 1 cobrança ativa por jogador por dupla
+  @@map("payments")
 }
 
 model Group {
