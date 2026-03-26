@@ -123,8 +123,8 @@ export async function createPixCharge(params: CreatePixParams): Promise<{
         customer: {
           name: playerName,
           email: playerEmail,
-          cellphone: "00000000000", // placeholder até termos o telefone do atleta
-          taxId: "00000000000", // placeholder até termos o CPF do atleta
+          cellphone: "11999999999", // placeholder até termos o telefone do atleta
+          taxId: "529.982.247-25", // placeholder até termos o CPF do atleta
         },
         externalId: `${teamId}_p${playerNumber}`,
         metadata: {
