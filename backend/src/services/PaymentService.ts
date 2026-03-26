@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma";
-import { sendInscricaoConfirmada } from "./EmailService";
+import { randomBytes } from "crypto";
+import { sendInscricaoConfirmada, sendPixParaParceiro } from "./EmailService";
 
 const ABACATEPAY_API_KEY = process.env.ABACATEPAY_API_KEY ?? "";
 const ABACATEPAY_BASE_URL = "https://api.abacatepay.com/v1";
@@ -167,6 +168,45 @@ export async function createPixCharge(params: CreatePixParams): Promise<{
         : { player2ChargeId: billingId }),
     },
   });
+
+  // Se é o Jogador 1 que acabou de pagar → gera token e envia email para o Jogador 2
+  if (playerNumber === 1) {
+    const team = await prisma.team.findUnique({ where: { id: teamId } });
+    if (team) {
+      const token = randomBytes(32).toString("hex");
+      // Cria (ou upsert) cobrança para o Jogador 2 com token
+      const p2Amount = amountCents / 100;
+      await prisma.payment.upsert({
+        where: { teamId_playerNumber: { teamId, playerNumber: 2 } },
+        create: {
+          teamId,
+          tournamentId,
+          playerNumber: 2,
+          playerEmail: team.player2Email,
+          amount: p2Amount,
+          status: "PENDING",
+          paymentToken: token,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 dias
+        },
+        update: {
+          paymentToken: token,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        },
+      });
+
+      // Envia email para o Jogador 2 com link de pagamento
+      const payLink = `${FRONTEND_URL}/pay/${token}`;
+      sendPixParaParceiro({
+        player2Email: team.player2Email,
+        player2Name: team.player2Name,
+        player1Name: team.player1Name,
+        tournamentName: params.tournamentName,
+        category: params.category,
+        amount: p2Amount,
+        payLink,
+      }).catch((err) => console.error("[email] email parceiro falhou:", err));
+    }
+  }
 
   return {
     paymentId: payment.id,

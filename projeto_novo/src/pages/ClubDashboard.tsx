@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import DashboardHeader from "./DashboardHeader";
-import { useTournaments } from "./hooks";
-import OnboardingChecklist from "./OnboardingChecklist";
+import DashboardHeader from "../components/DashboardHeader";
+import { useTournaments } from "../hooks";
+import OnboardingChecklist from "../components/OnboardingChecklist";
 
 // ─── Helpers ───────────────────────────────────────────────
 

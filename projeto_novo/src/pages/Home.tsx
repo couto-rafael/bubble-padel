@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import AuthModal from "./AuthModal";
-import MobileMenu from "./MobileMenu";
-import Footer from "./Footer";
+import AuthModal from "../components/AuthModal";
+import MobileMenu from "../components/MobileMenu";
+import Footer from "../components/Footer";
 
 const Home = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);

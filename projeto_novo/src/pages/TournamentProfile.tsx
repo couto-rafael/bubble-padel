@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import AuthModal from "./AuthModal";
-import MobileMenu from "./MobileMenu";
+import AuthModal from "../components/AuthModal";
+import { PaymentModal } from "../components/PaymentModal";
+import MobileMenu from "../components/MobileMenu";
 import {
   PublicTournamentService,
   AuthService,
   type PublicTournament,
-} from "./services/api";
+} from "../services/api";
 
 // Mock data
 const MOCK_TOURNAMENT = {
@@ -156,6 +157,9 @@ const TournamentProfile = () => {
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerSuccess, setRegisterSuccess] = useState(false);
   const [registerError, setRegisterError] = useState("");
+  // Task 3.2 — payment flow
+  const [showPayment, setShowPayment] = useState(false);
+  const [paymentTeamId, setPaymentTeamId] = useState("");
 
   const handleOpenRegister = () => {
     if (isAthlete && currentUser) {
@@ -210,9 +214,17 @@ const TournamentProfile = () => {
     setRegisterLoading(true);
     setRegisterError("");
     try {
-      await PublicTournamentService.register(id, registerForm);
-      setRegisterSuccess(true);
+      const result = await PublicTournamentService.register(id, registerForm);
       setShowRegisterForm(false);
+
+      // Se torneio tem valor → mostra modal de pagamento
+      if (tournament && tournament.priceFirstCategory > 0) {
+        setPaymentTeamId((result as any)?.id ?? "");
+        setShowPayment(true);
+      } else {
+        // Torneio gratuito → confirma direto
+        setRegisterSuccess(true);
+      }
     } catch (err: any) {
       try {
         const parsed = JSON.parse(err.message);
@@ -339,6 +351,7 @@ const TournamentProfile = () => {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+        returnUrl={`/tournaments/${id}?register=true`}
       />
 
       {/* Navigation */}
@@ -2170,6 +2183,29 @@ const TournamentProfile = () => {
       </section>
 
       {/* Modal de Inscrição */}
+      {/* Payment Modal — task 3.2 */}
+      {showPayment && tournament && (
+        <PaymentModal
+          teamId={paymentTeamId}
+          tournamentId={id ?? ""}
+          playerName={registerForm.player1Name}
+          playerEmail={registerForm.player1Email}
+          playerNumber={1}
+          amount={tournament.priceFirstCategory ?? 0}
+          tournamentName={tournament.name}
+          category={registerForm.category}
+          isFree={
+            !tournament.priceFirstCategory ||
+            tournament.priceFirstCategory === 0
+          }
+          onPaid={() => {
+            setShowPayment(false);
+            setRegisterSuccess(true);
+          }}
+          onClose={() => setShowPayment(false)}
+        />
+      )}
+
       {showRegisterForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
           <div className="bg-[#1a1f4a] border border-white/10 rounded-2xl p-6 w-full max-w-md">

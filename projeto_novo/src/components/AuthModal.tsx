@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthService } from "./services/api";
+import { AuthService } from "../services/api";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  returnUrl?: string;
 }
 
 type ModalView = "login" | "select-type" | "register-athlete" | "register-club";
@@ -86,7 +87,11 @@ const PasswordInput = ({
 const inputClass = (err?: string) =>
   `w-full px-4 py-3 bg-[#0a0e27] border ${err ? "border-red-500" : "border-white/10"} rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88]/50 transition-colors`;
 
-const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
+const AuthModal: React.FC<AuthModalProps> = ({
+  isOpen,
+  onClose,
+  returnUrl,
+}) => {
   const navigate = useNavigate();
   const [view, setView] = useState<ModalView>("login");
   const [loading, setLoading] = useState(false);
@@ -172,8 +177,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         loginData.email,
         loginData.password,
       );
+      // navigate antes do handleClose para evitar race condition de desmonte
+      if (returnUrl) {
+        navigate(returnUrl);
+      } else {
+        navigate(user.type === "CLUB" ? "/dashboard" : "/athlete/dashboard");
+      }
       handleClose();
-      navigate(user.type === "CLUB" ? "/dashboard" : "/athlete/dashboard");
     } catch (err: any) {
       setApiError(err.message ?? "Email ou senha incorretos.");
     } finally {
@@ -211,7 +221,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         type: "ATHLETE",
       });
       handleClose();
-      navigate("/athlete/dashboard");
+      if (returnUrl) {
+        navigate(returnUrl);
+      } else {
+        navigate("/athlete/dashboard");
+      }
     } catch (err: any) {
       setApiError(err.message ?? "Erro ao criar conta.");
     } finally {

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import DashboardHeader from "./DashboardHeader";
-import { useTournaments, useClub } from "./hooks";
-import { calculateCapacity } from "./utils/groupUtils";
+import DashboardHeader from "../components/DashboardHeader";
+import { useTournaments, useClub } from "../hooks";
+import { calculateCapacity } from "../utils/groupUtils";
 
 // ─── tipos ────────────────────────────────────────────────
 type Step =

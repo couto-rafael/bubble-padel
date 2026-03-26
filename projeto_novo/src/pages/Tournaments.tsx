@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import Footer from "./Footer";
+import Footer from "../components/Footer";
 import { Link, useNavigate } from "react-router-dom";
-import AuthModal from "./AuthModal";
-import MobileMenu from "./MobileMenu";
+import AuthModal from "../components/AuthModal";
+import MobileMenu from "../components/MobileMenu";
 import {
   PublicTournamentService,
   AuthService,
   type PublicTournament,
-} from "./services/api";
+} from "../services/api";
 
 interface Tournament {
   id: string;

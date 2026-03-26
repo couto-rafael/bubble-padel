@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Team } from "./types";
+import type { Team } from "../types";
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 

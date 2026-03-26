@@ -297,3 +297,72 @@ export async function sendNovaInscricaoParaClube(
     html,
   });
 }
+
+// ─── EMAIL PARA PARCEIRO (PIX) ────────────────────────────────────────────────
+
+interface PixParceiroData {
+  player2Email: string;
+  player2Name: string;
+  player1Name: string;
+  tournamentName: string;
+  category: string;
+  amount: number;
+  payLink: string;
+}
+
+export async function sendPixParaParceiro(
+  data: PixParceiroData,
+): Promise<void> {
+  const html = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><title>Pague sua inscrição</title></head>
+<body style="margin:0;padding:0;background:#f4f7fb;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7fb;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+        <tr>
+          <td style="background:#050f1a;padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#00ff88;font-size:24px;font-weight:800;">Bubble Padel</h1>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:40px 40px 32px;">
+            <h2 style="margin:0 0 8px;color:#0d2037;font-size:22px;font-weight:700;">🎾 Finalize sua inscrição!</h2>
+            <p style="margin:0 0 24px;color:#4a6580;font-size:15px;line-height:1.6;">
+              Olá, <strong>${data.player2Name}</strong>! <strong>${data.player1Name}</strong> te inscreveu como parceiro no torneio <strong>${data.tournamentName}</strong> (${data.category}).
+            </p>
+            <p style="margin:0 0 24px;color:#4a6580;font-size:15px;line-height:1.6;">
+              Para confirmar sua vaga, você precisa pagar sua parte: <strong style="color:#0d2037;">R$ ${data.amount.toFixed(2).replace(".", ",")}</strong>
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td align="center" style="padding:8px 0 24px;">
+                  <a href="${data.payLink}" style="display:inline-block;background:#00ff88;color:#050f1a;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:8px;">
+                    Pagar minha inscrição via PIX →
+                  </a>
+                </td>
+              </tr>
+            </table>
+            <p style="margin:0;color:#4a6580;font-size:13px;line-height:1.6;">
+              Este link é válido por 7 dias. Se não reconhece esta inscrição, ignore este email.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:24px 40px;border-top:1px solid #e0e8f0;text-align:center;">
+            <p style="margin:0;color:#7a9ab5;font-size:12px;">Bubble Padel · privacidade@bubblepadel.com</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  await sendEmail({
+    to: data.player2Email,
+    subject: `🎾 ${data.player1Name} te inscreveu em ${data.tournamentName} — pague sua parte`,
+    html,
+  });
+}

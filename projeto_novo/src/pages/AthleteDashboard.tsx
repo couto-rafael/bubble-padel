@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import AthleteHeader from "./AthleteHeader";
+import AthleteHeader from "../components/AthleteHeader";
 
 const AthleteDashboard: React.FC = () => {
   return (

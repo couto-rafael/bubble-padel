@@ -3,22 +3,24 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./contexts/AuthContext";
 
-import Home from "./Home";
-import Tournaments from "./Tournaments";
-import Contact from "./Contact";
-import TournamentProfile from "./TournamentProfile";
-import ClubDashboard from "./ClubDashboard";
-import ClubProfile from "./ClubProfile";
-import ClubDashboardProfile from "./ClubDashboardProfile";
-import ClubSettings from "./ClubSettings";
-import MyTournaments from "./MyTournaments";
-import CreateTournament from "./CreateTournament";
-import EditTournament from "./EditTournament";
-import AthleteDashboard from "./AthleteDashboard";
-import AthleteProfile from "./AthleteProfile";
-import TermsPage from "./TermsPage";
-import { ToastProvider } from "./Toast";
-import { ErrorBoundary } from "./ErrorBoundary";
+import Home from "./pages/Home";
+import Tournaments from "./pages/Tournaments";
+import Contact from "./pages/Contact";
+import TournamentProfile from "./pages/TournamentProfile";
+import ClubDashboard from "./pages/ClubDashboard";
+import ClubProfile from "./pages/ClubProfile";
+import ClubDashboardProfile from "./pages/ClubDashboardProfile";
+import ClubSettings from "./pages/ClubSettings";
+import MyTournaments from "./pages/MyTournaments";
+import CreateTournament from "./pages/CreateTournament";
+import EditTournament from "./pages/EditTournament";
+import AthleteDashboard from "./pages/AthleteDashboard";
+import AthleteProfile from "./pages/AthleteProfile";
+import TermsPage from "./pages/TermsPage";
+import PaymentPage from "./pages/PaymentPage";
+
+import { ToastProvider } from "./components/Toast";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -73,6 +75,7 @@ const App = () => {
                 <Route path="/athlete/profile" element={<AthleteProfile />} />
 
                 <Route path="/termos" element={<TermsPage />} />
+                <Route path="/pay/:token" element={<PaymentPage />} />
               </Routes>
             </Router>
           </AuthProvider>

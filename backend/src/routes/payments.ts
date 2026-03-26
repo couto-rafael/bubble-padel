@@ -166,3 +166,67 @@ webhookRoutes.post("/abacatepay", async (req, res, next) => {
     next(err);
   }
 });
+
+// ─── GET /api/pay/:token — rota pública para o Jogador 2 ─────────────────────
+paymentRoutes.get("/pay/:token", async (req, res, next) => {
+  try {
+    const { token } = req.params;
+
+    const payment = await prisma.payment.findFirst({
+      where: { paymentToken: token },
+      include: {
+        team: {
+          include: {
+            tournament: { select: { id: true, name: true } },
+          },
+        },
+      },
+    });
+
+    if (!payment) {
+      return res.status(404).json({ error: "Link inválido ou expirado." });
+    }
+
+    // Gera cobrança no AbacatePay se ainda não tem billingId
+    let billingUrl = "";
+    let billingId = payment.externalId ?? "";
+
+    if (!payment.externalId && payment.status === "PENDING") {
+      const { createPixCharge } = await import("../services/PaymentService");
+      const result = await createPixCharge({
+        teamId: payment.teamId,
+        tournamentId: payment.tournamentId,
+        playerNumber: payment.playerNumber as 1 | 2,
+        playerName: payment.team.player2Name,
+        playerEmail: payment.playerEmail,
+        amountCents: Math.round(payment.amount * 100),
+        tournamentName: payment.team.tournament.name,
+        category: payment.team.category,
+      });
+      billingUrl = result.billingUrl;
+      billingId = result.billingId;
+    } else {
+      billingUrl = `https://abacatepay.com/pay/${billingId}`;
+    }
+
+    return res.json({
+      data: {
+        playerName:
+          payment.playerNumber === 2
+            ? payment.team.player2Name
+            : payment.team.player1Name,
+        playerEmail: payment.playerEmail,
+        tournamentName: payment.team.tournament.name,
+        category: payment.team.category,
+        amount: payment.amount,
+        status: payment.status,
+        billingUrl,
+        billingId,
+        teamId: payment.teamId,
+        tournamentId: payment.tournamentId,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});

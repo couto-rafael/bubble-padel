@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
-import ScoreModal from "./ScoreModal";
-import type { Group, Team, Tournament } from "./types";
-import { usePlayoffs, useGroups } from "./hooks";
-import type { PlayoffBracketData, PlayoffMatchData } from "./services/api";
+import ScoreModal from "../components/ScoreModal";
+import type { Group, Team, Tournament } from "../types";
+import { usePlayoffs, useGroups } from "../hooks";
+import type { PlayoffBracketData, PlayoffMatchData } from "../services/api";
 
 // ─── ALGORITMO DE SEEDING ─────────────────────────────────────────────────────
 

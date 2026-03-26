@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { Tournament } from "./types";
+import type { Tournament } from "../types";
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 

@@ -574,12 +574,12 @@ export const PublicTournamentService = {
       category: string;
       athleteId?: string;
     },
-  ): Promise<void> => {
+  ): Promise<{ id: string }> => {
     const res = await fetch(`${API_URL}/public/tournaments/${id}/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    return handleResponse<void>(res);
+    return handleResponse<{ id: string }>(res);
   },
 };

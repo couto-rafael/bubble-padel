@@ -1,27 +1,27 @@
-import { useGroups, useClub, usePlayoffs, useSchedule } from "./hooks";
+import { useGroups, useClub, usePlayoffs, useSchedule } from "../hooks";
 import { useState, useRef } from "react";
 import ReactDOM from "react-dom";
-import type { Team, Group, GroupTeam, Match } from "./types";
-import ScoreModal from "./ScoreModal";
+import type { Team, Group, GroupTeam, Match } from "../types";
+import ScoreModal from "../components/ScoreModal";
 import {
   generateGroupsForCategory,
   recalculateStandings,
   tournamentHasStarted,
   calculateCapacity,
-} from "./utils/groupUtils";
+} from "../utils/groupUtils";
 import {
   buildSeeds,
   generateBracketMatches,
   generateAutoSchedule,
   buildDaySchedules,
-} from "./utils/scheduleUtils";
+} from "../utils/scheduleUtils";
 import {
   GroupService,
   PlayoffService,
   ScheduleService,
   TournamentService,
-} from "./services/api";
-import type { PlayoffBracketData, PlayoffMatchData } from "./services/api";
+} from "../services/api";
+import type { PlayoffBracketData, PlayoffMatchData } from "../services/api";
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 

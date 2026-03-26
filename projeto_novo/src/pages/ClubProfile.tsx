@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { PublicClubService, type PublicClub } from "./services/api";
+import { PublicClubService, type PublicClub } from "../services/api";
 
 function normalizeStatus(s: string) {
   switch (s.toUpperCase()) {

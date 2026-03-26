@@ -401,7 +401,6 @@ publicTournamentRoutes.post("/:id/register", async (req, res, next) => {
         category: data.category,
         amount,
         status: "PENDING",
-        paymentStatus: "PENDING",
       },
     });
 

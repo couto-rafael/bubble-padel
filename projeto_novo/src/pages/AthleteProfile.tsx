@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import AthleteHeader from "./AthleteHeader";
+import AthleteHeader from "../components/AthleteHeader";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

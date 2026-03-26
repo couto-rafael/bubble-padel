@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import DashboardHeader from "./DashboardHeader";
-import { useClub, useTournaments } from "./hooks";
-import { useAuth } from "./contexts/AuthContext";
+import DashboardHeader from "../components/DashboardHeader";
+import { useClub, useTournaments } from "../hooks";
+import { useAuth } from "../contexts/AuthContext";
 
 const INPUT_CLS =
   "w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";

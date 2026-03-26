@@ -1,11 +1,11 @@
 import { useState, useMemo } from "react";
-import type { Team, Group, Match } from "./utils/groupUtils";
-import { useGroups, useSchedule, usePlayoffs } from "./hooks";
-import ScoreModal from "./ScoreModal";
-import type { PlayoffBracketData, PlayoffMatchData } from "./services/api";
-import { PlayoffService } from "./services/api";
-import { autoSchedulePlayoffMatches } from "./utils/scheduleUtils";
-import type { DaySchedule } from "./utils/scheduleUtils";
+import type { Team, Group, Match } from "../utils/groupUtils";
+import { useGroups, useSchedule, usePlayoffs } from "../hooks";
+import ScoreModal from "../components/ScoreModal";
+import type { PlayoffBracketData, PlayoffMatchData } from "../services/api";
+import { PlayoffService } from "../services/api";
+import { autoSchedulePlayoffMatches } from "../utils/scheduleUtils";
+import type { DaySchedule } from "../utils/scheduleUtils";
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 

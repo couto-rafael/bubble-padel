@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Set } from "./types";
+import type { Set } from "../types";
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 

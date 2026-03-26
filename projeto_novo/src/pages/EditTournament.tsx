@@ -1,13 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import DashboardHeader from "./DashboardHeader";
-import { useTournaments, useTeams, useGroups } from "./hooks";
-import type { Tournament } from "./types";
-import TabGrupos from "./TabGrupos";
-import TabJogos from "./TabJogos";
-import TabPlayoffs from "./TabPlayoffs";
-import TabInscricoes from "./TabInscricoes";
-import { calculateCapacity } from "./utils/groupUtils";
+import DashboardHeader from "../components/DashboardHeader";
+import { useTournaments, useTeams, useGroups } from "../hooks";
+import type { Tournament } from "../types";
+import TabGrupos from "../components/TabGrupos";
+import TabJogos from "../components/TabJogos";
+import TabPlayoffs from "../components/TabPlayoffs";
+import TabInscricoes from "../components/TabInscricoes";
+import { calculateCapacity } from "../utils/groupUtils";
 
 // ─── TIPOS ────────────────────────────────────────────────
 type Tab =

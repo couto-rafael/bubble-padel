@@ -61,6 +61,7 @@ app.use("/api/public/athletes", publicAthleteRoutes);
 
 // ─── Pagamentos (task 3.1) ───────────────────────────────────────────────────
 app.use("/api/payments", paymentRoutes);
+app.use("/api/pay", paymentRoutes); // rota pública: GET /api/pay/:token
 app.use("/api/webhooks", webhookRoutes);
 
 // ─── Health check (task 2.4) ──────────────────────────────────────────────────
@@ -89,5 +90,24 @@ app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
   startStatusSyncJob();
 });
+
+const ALLOWED_ORIGINS = [
+  process.env.FRONTEND_URL ?? "http://localhost:5173",
+  "http://localhost:5173",
+  "http://localhost:5174",
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS bloqueado: ${origin}`));
+      }
+    },
+    credentials: true,
+  }),
+);
 
 export default app;

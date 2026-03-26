@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import AuthModal from "./AuthModal";
-import MobileMenu from "./MobileMenu";
+import AuthModal from "../components/AuthModal";
+import MobileMenu from "../components/MobileMenu";
 
 const Contact = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
