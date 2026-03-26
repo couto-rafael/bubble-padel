@@ -13,6 +13,7 @@ export const webhookRoutes = Router();
 
 // ─── POST /api/payments/pix/create ───────────────────────────────────────────
 // Cria cobrança PIX para um jogador de uma dupla inscrita
+// Chamado pelo atleta logado após se inscrever num torneio pago
 paymentRoutes.post(
   "/pix/create",
   requireAuth,
@@ -37,7 +38,6 @@ paymentRoutes.post(
             select: {
               id: true,
               name: true,
-              clubId: true,
               priceFirstCategory: true,
             },
           },
@@ -45,11 +45,6 @@ paymentRoutes.post(
       });
 
       if (!team) return res.status(404).json({ error: "Dupla não encontrada" });
-
-      // Verifica que o clube logado é dono do torneio
-      if (team.tournament.clubId !== req.clubId) {
-        return res.status(403).json({ error: "Sem permissão" });
-      }
 
       const playerName =
         playerNumber === 1 ? team.player1Name : team.player2Name;
@@ -108,6 +103,7 @@ paymentRoutes.post("/pix/simulate/:billingId", async (req, res, next) => {
 
 // ─── GET /api/payments/team/:teamId ───────────────────────────────────────────
 // Retorna status de pagamento dos dois jogadores de uma dupla
+// Usado pelo dashboard do clube — mantém verificação de ownership
 paymentRoutes.get(
   "/team/:teamId",
   requireAuth,
