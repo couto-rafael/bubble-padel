@@ -5,8 +5,7 @@ import { sendInscricaoConfirmada, sendPixParaParceiro } from "./EmailService";
 const ABACATEPAY_API_KEY = process.env.ABACATEPAY_API_KEY ?? "";
 const ABACATEPAY_BASE_URL = "https://api.abacatepay.com/v1";
 const FRONTEND_URL = process.env.FRONTEND_URL ?? "http://localhost:5173";
-const DEV_MODE =
-  !ABACATEPAY_API_KEY || ABACATEPAY_API_KEY.startsWith("abc_dev_");
+const DEV_MODE = !ABACATEPAY_API_KEY;
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 
