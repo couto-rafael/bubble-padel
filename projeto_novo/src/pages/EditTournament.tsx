@@ -7,6 +7,7 @@ import TabGrupos from "../components/TabGrupos";
 import TabJogos from "../components/TabJogos";
 import TabPlayoffs from "../components/TabPlayoffs";
 import TabInscricoes from "../components/TabInscricoes";
+import TabFinanceiro from "../components/TabFinanceiro";
 import { calculateCapacity } from "../utils/groupUtils";
 
 // ─── TIPOS ────────────────────────────────────────────────
@@ -1252,77 +1253,13 @@ const EditTournament = () => {
 
           {/* TAB CONTENT - Financeiro */}
           {activeTab === "financeiro" && (
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-6">
-                Configurações Financeiras
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-2">
-                    Preço 1ª Categoria
-                  </label>
-                  <input
-                    type="number"
-                    value={tournament.priceFirstCategory}
-                    onChange={(e) =>
-                      handleFieldChange(
-                        "priceFirstCategory",
-                        parseFloat(e.target.value),
-                        "o preço da 1ª categoria",
-                      )
-                    }
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-2">
-                    Preço 2ª+ Categoria
-                  </label>
-                  <input
-                    type="number"
-                    value={tournament.priceSecondCategory || 0}
-                    onChange={(e) =>
-                      handleFieldChange(
-                        "priceSecondCategory",
-                        parseFloat(e.target.value),
-                        "o preço da 2ª+ categoria",
-                      )
-                    }
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-600 mb-2">
-                    Chave PIX
-                  </label>
-                  <input
-                    type="text"
-                    value={tournament.pixKey || ""}
-                    onChange={(e) =>
-                      handleFieldChange("pixKey", e.target.value, "a chave PIX")
-                    }
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
-                    placeholder="Clique para alterar"
-                  />
-                </div>
-              </div>
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <p className="text-sm text-gray-500 italic flex items-center gap-2">
-                  <svg
-                    className="w-4 h-4 text-amber-500"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Alterações financeiras exigem confirmação
-                </p>
-              </div>
-            </div>
+            <TabFinanceiro
+              tournamentId={tournament.id}
+              priceFirstCategory={tournament.priceFirstCategory}
+              pixKey={tournament.pixKey || ""}
+              priceSecondCategory={tournament.priceSecondCategory || 0}
+              onFieldChange={handleFieldChange}
+            />
           )}
 
           {/* TAB CONTENT - Grupos */}
