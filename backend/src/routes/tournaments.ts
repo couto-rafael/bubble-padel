@@ -241,6 +241,67 @@ tournamentRoutes.post(
   },
 );
 
+// GET /api/tournaments/:id/financial — resumo financeiro do torneio
+tournamentRoutes.get(
+  "/:id/financial",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const tournament = await prisma.tournament.findFirst({
+        where: { id: req.params.id, clubId: req.clubId! },
+      });
+      if (!tournament)
+        return res.status(404).json({ error: "Torneio não encontrado" });
+
+      const teams = await prisma.team.findMany({
+        where: { tournamentId: req.params.id },
+        orderBy: { registrationDate: "asc" },
+      });
+
+      const payments = teams.map((t) => ({
+        teamId: t.id,
+        player1Name: t.player1Name,
+        player2Name: t.player2Name,
+        category: t.category,
+        amount: t.amount,
+        player1Status: t.player1PaymentStatus as string,
+        player2Status: t.player2PaymentStatus as string,
+        registrationDate: t.registrationDate,
+      }));
+
+      // Receita recebida = soma de pagamentos PAID (por jogador)
+      const grossRevenue = teams.reduce((acc, t) => {
+        const p1 = t.player1PaymentStatus === "PAID" ? t.amount / 2 : 0;
+        const p2 = t.player2PaymentStatus === "PAID" ? t.amount / 2 : 0;
+        return acc + p1 + p2;
+      }, 0);
+
+      // Receita esperada = soma de todas as inscrições (torneio gratuito = 0)
+      const expectedRevenue = teams.reduce((acc, t) => acc + t.amount, 0);
+
+      // Dupla paga = ambos os jogadores pagaram
+      const paidTeams = teams.filter(
+        (t) =>
+          t.player1PaymentStatus === "PAID" &&
+          t.player2PaymentStatus === "PAID",
+      ).length;
+
+      return res.json({
+        data: {
+          totalTeams: teams.length,
+          paidTeams,
+          pendingTeams: teams.length - paidTeams,
+          grossRevenue,
+          expectedRevenue,
+          payments,
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // ROTAS PÚBLICAS (sem autenticação)
 // ─────────────────────────────────────────────────────────────────────────────
