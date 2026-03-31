@@ -109,6 +109,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
     password: "",
     confirmPassword: "",
   });
+  const [athleteAcceptedTerms, setAthleteAcceptedTerms] = useState(false);
 
   // Clube
   const [clubData, setClubData] = useState({
@@ -118,6 +119,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
     password: "",
     confirmPassword: "",
   });
+  const [clubAcceptedTerms, setClubAcceptedTerms] = useState(false);
 
   if (!isOpen) return null;
 
@@ -206,6 +208,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
       errs.password = "Mínimo 6 caracteres";
     if (athleteData.password !== athleteData.confirmPassword)
       errs.confirmPassword = "Senhas não coincidem";
+    if (!athleteAcceptedTerms) errs.terms = "Aceite os termos para continuar";
     if (Object.keys(errs).length) {
       setErrors(errs);
       return;
@@ -250,6 +253,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
       errs.password = "Mínimo 6 caracteres";
     if (clubData.password !== clubData.confirmPassword)
       errs.confirmPassword = "Senhas não coincidem";
+    if (!clubAcceptedTerms) errs.terms = "Aceite os termos para continuar";
     if (Object.keys(errs).length) {
       setErrors(errs);
       return;
@@ -615,6 +619,44 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   error={errors.confirmPassword}
                 />
               </div>
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  id="ath-terms"
+                  checked={athleteAcceptedTerms}
+                  onChange={(e) => {
+                    setAthleteAcceptedTerms(e.target.checked);
+                    setErrors((v) => ({ ...v, terms: "" }));
+                  }}
+                  className="mt-0.5 w-4 h-4 accent-[#00ff88] cursor-pointer flex-shrink-0"
+                />
+                <label
+                  htmlFor="ath-terms"
+                  className="text-xs text-gray-400 cursor-pointer leading-relaxed"
+                >
+                  Li e aceito os{" "}
+                  <a
+                    href="/termos"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#00ff88] hover:underline"
+                  >
+                    Termos de Uso
+                  </a>{" "}
+                  e a{" "}
+                  <a
+                    href="/privacidade"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#00ff88] hover:underline"
+                  >
+                    Política de Privacidade
+                  </a>
+                </label>
+              </div>
+              {errors.terms && (
+                <p className="text-red-400 text-xs">{errors.terms}</p>
+              )}
               <SubmitBtn label="Criar Conta" />
             </form>
             <BackBtn to="select-type" />
@@ -730,6 +772,44 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   error={errors.confirmPassword}
                 />
               </div>
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  id="club-terms"
+                  checked={clubAcceptedTerms}
+                  onChange={(e) => {
+                    setClubAcceptedTerms(e.target.checked);
+                    setErrors((v) => ({ ...v, terms: "" }));
+                  }}
+                  className="mt-0.5 w-4 h-4 accent-[#00ff88] cursor-pointer flex-shrink-0"
+                />
+                <label
+                  htmlFor="club-terms"
+                  className="text-xs text-gray-400 cursor-pointer leading-relaxed"
+                >
+                  Li e aceito os{" "}
+                  <a
+                    href="/termos"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#00ff88] hover:underline"
+                  >
+                    Termos de Uso
+                  </a>{" "}
+                  e a{" "}
+                  <a
+                    href="/privacidade"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#00ff88] hover:underline"
+                  >
+                    Política de Privacidade
+                  </a>
+                </label>
+              </div>
+              {errors.terms && (
+                <p className="text-red-400 text-xs">{errors.terms}</p>
+              )}
               <SubmitBtn label="Criar Conta" />
             </form>
             <BackBtn to="select-type" />

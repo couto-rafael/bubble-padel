@@ -1,5 +1,10 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./contexts/AuthContext";
 
@@ -75,6 +80,10 @@ const App = () => {
                 <Route path="/athlete/profile" element={<AthleteProfile />} />
 
                 <Route path="/termos" element={<TermsPage />} />
+                <Route
+                  path="/privacidade"
+                  element={<Navigate to="/termos" replace />}
+                />
                 <Route path="/pay/:token" element={<PaymentPage />} />
               </Routes>
             </Router>
