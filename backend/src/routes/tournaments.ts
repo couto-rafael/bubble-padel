@@ -9,6 +9,8 @@ import {
   sendEmailVice,
   sendEmailEliminadoPlayoffs,
   sendEmailEliminadoGrupos,
+  sendRelatorioRepasse,
+  COMMISSION_PER_ATHLETE,
 } from "../services/EmailService";
 
 export const tournamentRoutes = Router();
@@ -45,7 +47,7 @@ const tournamentSchema = z.object({
     .optional(),
 });
 
-// ─── HELPER: Dispara emails de resultado quando torneio é COMPLETED ───────────
+// ─── HELPER: Emails de resultado ao completar torneio ─────────────────────────
 
 async function dispatchResultadoFinalEmails(
   tournamentId: string,
@@ -66,32 +68,21 @@ async function dispatchResultadoFinalEmails(
       },
       playoffs: {
         include: {
-          matches: {
-            orderBy: [{ roundSize: "desc" }, { matchIndex: "asc" }],
-          },
+          matches: { orderBy: [{ roundSize: "desc" }, { matchIndex: "asc" }] },
         },
       },
     },
   });
-
   if (!tournament) return;
 
   const teamsById = Object.fromEntries(tournament.teams.map((t) => [t.id, t]));
+  const base = { tournamentName: tournament.name, tournamentId: tournament.id };
 
-  const baseData = {
-    tournamentName: tournament.name,
-    tournamentId: tournament.id,
-  };
-
-  // Para cada categoria com bracket de playoffs
   for (const bracket of tournament.playoffs) {
     const { category, matches } = bracket;
-
-    // Final = roundSize 1, matchIndex 0
     const finalMatch = matches.find(
       (m) => m.roundSize === 1 && m.matchIndex === 0,
     );
-
     const championId = finalMatch?.winnerId ?? null;
     const viceId = finalMatch
       ? finalMatch.team1Id === championId
@@ -99,7 +90,6 @@ async function dispatchResultadoFinalEmails(
         : finalMatch.team1Id
       : null;
 
-    // Todos os teamIds que aparecem nos playoffs (excluindo BYEs)
     const playoffTeamIds = new Set<string>();
     for (const m of matches) {
       if (m.isBye) continue;
@@ -107,74 +97,120 @@ async function dispatchResultadoFinalEmails(
       if (m.team2Id) playoffTeamIds.add(m.team2Id);
     }
 
-    // Eliminados nos playoffs = estavam nos playoffs mas não são campeão/vice
     const playoffEliminatedIds = [...playoffTeamIds].filter(
       (id) => id !== championId && id !== viceId,
     );
-
-    // Eliminados na fase de grupos = confirmados na categoria mas não nos playoffs
-    const categoryTeams = tournament.teams.filter(
-      (t) => t.category === category,
-    );
-    const groupEliminatedIds = categoryTeams
-      .filter((t) => !playoffTeamIds.has(t.id))
+    const groupEliminatedIds = tournament.teams
+      .filter((t) => t.category === category && !playoffTeamIds.has(t.id))
       .map((t) => t.id);
 
-    // Dispara emails — todos assíncronos, nunca bloqueiam
     if (championId && teamsById[championId]) {
       const t = teamsById[championId];
-      sendEmailCampeao({ ...baseData, ...t, category }).catch((err: unknown) =>
+      sendEmailCampeao({ ...base, ...t, category }).catch((err: unknown) =>
         console.error("[email] campeão falhou:", err),
       );
     }
-
     if (viceId && teamsById[viceId]) {
       const t = teamsById[viceId];
-      sendEmailVice({ ...baseData, ...t, category }).catch((err: unknown) =>
+      sendEmailVice({ ...base, ...t, category }).catch((err: unknown) =>
         console.error("[email] vice falhou:", err),
       );
     }
-
     for (const id of playoffEliminatedIds) {
       const t = teamsById[id];
-      if (!t) continue;
-      sendEmailEliminadoPlayoffs({ ...baseData, ...t, category }).catch(
-        (err: unknown) =>
-          console.error("[email] eliminado playoffs falhou:", err),
-      );
+      if (t)
+        sendEmailEliminadoPlayoffs({ ...base, ...t, category }).catch(
+          (err: unknown) =>
+            console.error("[email] elim. playoffs falhou:", err),
+        );
     }
-
     for (const id of groupEliminatedIds) {
       const t = teamsById[id];
-      if (!t) continue;
-      sendEmailEliminadoGrupos({ ...baseData, ...t, category }).catch(
-        (err: unknown) =>
-          console.error("[email] eliminado grupos falhou:", err),
-      );
+      if (t)
+        sendEmailEliminadoGrupos({ ...base, ...t, category }).catch(
+          (err: unknown) => console.error("[email] elim. grupos falhou:", err),
+        );
     }
   }
 
-  // Categorias sem playoff — todos recebem email de eliminado grupos
   const categoriesWithPlayoff = new Set(
     tournament.playoffs.map((b) => b.category),
   );
   const categoriesWithoutPlayoff = [
     ...new Set(tournament.teams.map((t) => t.category)),
-  ].filter((cat) => !categoriesWithPlayoff.has(cat));
-
+  ].filter((c) => !categoriesWithPlayoff.has(c));
   for (const category of categoriesWithoutPlayoff) {
-    const categoryTeams = tournament.teams.filter(
-      (t) => t.category === category,
-    );
-    for (const t of categoryTeams) {
-      sendEmailEliminadoGrupos({ ...baseData, ...t, category }).catch(
+    for (const t of tournament.teams.filter((t) => t.category === category)) {
+      sendEmailEliminadoGrupos({ ...base, ...t, category }).catch(
         (err: unknown) => console.error("[email] sem playoff falhou:", err),
       );
     }
   }
 
   console.log(
-    `✅ [EMAIL RESULTADO] Emails disparados para torneio "${tournament.name}"`,
+    `✅ [EMAIL RESULTADO] Emails disparados para "${tournament.name}"`,
+  );
+}
+
+// ─── HELPER: Reconciliação financeira ao completar torneio ────────────────────
+
+async function dispatchReconciliacao(tournamentId: string): Promise<void> {
+  const tournament = await prisma.tournament.findUnique({
+    where: { id: tournamentId },
+    include: {
+      club: { include: { user: { select: { email: true } } } },
+      teams: { where: { status: "CONFIRMED" } },
+    },
+  });
+  if (!tournament) return;
+
+  // Verifica se já existe reconciliação para não duplicar
+  const existing = await prisma.reconciliation.findUnique({
+    where: { tournamentId },
+  });
+  if (existing) {
+    console.log(
+      `⚠️ [RECONCILIACAO] Torneio "${tournament.name}" já reconciliado.`,
+    );
+    return;
+  }
+
+  const totalAtletas = tournament.teams.length * 2;
+  const totalBruto = tournament.teams.reduce((acc, t) => acc + t.amount, 0);
+  const comissao = COMMISSION_PER_ATHLETE * totalAtletas;
+  const valorRepasse = totalBruto - comissao;
+
+  await prisma.reconciliation.create({
+    data: {
+      tournamentId,
+      totalBruto,
+      comissao,
+      valorRepasse,
+      totalAtletas,
+      status: "PENDENTE",
+    },
+  });
+
+  const clubEmail = tournament.club?.user?.email;
+  const clubName = tournament.club?.name ?? "Clube";
+
+  if (clubEmail) {
+    sendRelatorioRepasse({
+      clubEmail,
+      clubName,
+      tournamentName: tournament.name,
+      tournamentId,
+      totalBruto,
+      comissao,
+      valorRepasse,
+      totalAtletas,
+    }).catch((err: unknown) =>
+      console.error("[email] relatório repasse falhou:", err),
+    );
+  }
+
+  console.log(
+    `✅ [RECONCILIACAO] "${tournament.name}" — bruto: R$${totalBruto.toFixed(2)}, repasse: R$${valorRepasse.toFixed(2)}`,
   );
 }
 
@@ -289,10 +325,8 @@ tournamentRoutes.post(
           time: string;
         }>;
       };
-
-      if (!Array.isArray(schedules) || schedules.length === 0) {
+      if (!Array.isArray(schedules) || schedules.length === 0)
         return res.status(400).json({ error: "schedules array é obrigatório" });
-      }
 
       await Promise.all(
         schedules.map((s) =>
@@ -304,15 +338,10 @@ tournamentRoutes.post(
               date: new Date(s.date),
               time: s.time,
             },
-            update: {
-              court: s.court,
-              date: new Date(s.date),
-              time: s.time,
-            },
+            update: { court: s.court, date: new Date(s.date), time: s.time },
           }),
         ),
       );
-
       return res.json({ data: { count: schedules.length } });
     } catch (err) {
       next(err);
@@ -338,14 +367,12 @@ tournamentRoutes.post(
         return res.status(404).json({ error: "Torneio não encontrado" });
 
       const currentStatus = tournament.status as string;
-
       if (currentStatus === "COMPLETED")
         return res.json({ data: { status: currentStatus } });
 
       const anyGroupPlayed = (tournament as any).groups.some((g: any) =>
         g.matches.some((m: any) => m.played),
       );
-
       const allPlayoffMatches = (tournament as any).playoffs.flatMap((b: any) =>
         b.matches.filter((m: any) => !m.isBye),
       );
@@ -354,7 +381,6 @@ tournamentRoutes.post(
         allPlayoffMatches.every((m: any) => m.played);
 
       let newStatus: any = currentStatus;
-
       if (allPlayoffPlayed) {
         newStatus = "COMPLETED";
       } else if (
@@ -371,10 +397,13 @@ tournamentRoutes.post(
           data: { status: newStatus as any },
         });
 
-        // Dispara emails de resultado quando torneio é concluído
         if (newStatus === "COMPLETED") {
+          // Dispara emails de resultado e reconciliação — assíncronos
           dispatchResultadoFinalEmails(req.params.id).catch((err: unknown) =>
             console.error("[email] resultado final falhou:", err),
+          );
+          dispatchReconciliacao(req.params.id).catch((err: unknown) =>
+            console.error("[reconciliacao] falhou:", err),
           );
         }
       }
@@ -422,7 +451,6 @@ tournamentRoutes.get(
       }, 0);
 
       const expectedRevenue = teams.reduce((acc, t) => acc + t.amount, 0);
-
       const paidTeams = teams.filter(
         (t) =>
           t.player1PaymentStatus === "PAID" &&
@@ -459,8 +487,6 @@ const registerSchema = z.object({
   category: z.string(),
 });
 
-// ─── GET /api/public/tournaments ─────────────────────────────────────────────
-
 publicTournamentRoutes.get("/", async (req, res, next) => {
   try {
     const tournaments = await prisma.tournament.findMany({
@@ -486,8 +512,6 @@ publicTournamentRoutes.get("/", async (req, res, next) => {
     next(err);
   }
 });
-
-// ─── GET /api/public/tournaments/:id ─────────────────────────────────────────
 
 publicTournamentRoutes.get("/:id", async (req, res, next) => {
   try {
@@ -550,7 +574,6 @@ publicTournamentRoutes.get("/:id", async (req, res, next) => {
     const scheduleByMatchId = Object.fromEntries(
       schedules.map((s: any) => [s.matchId, s]),
     );
-
     const groupsWithSchedule = tournament.groups.map((g: any) => ({
       ...g,
       matches: g.matches.map((m: any) => ({
@@ -571,8 +594,6 @@ publicTournamentRoutes.get("/:id", async (req, res, next) => {
   }
 });
 
-// ─── POST /api/public/tournaments/:id/register ────────────────────────────────
-
 publicTournamentRoutes.post("/:id/register", async (req, res, next) => {
   try {
     const tournamentId = req.params.id;
@@ -582,18 +603,17 @@ publicTournamentRoutes.post("/:id/register", async (req, res, next) => {
       where: { id: tournamentId, status: "OPEN" },
       include: { _count: { select: { teams: true } } },
     });
-
     if (!tournament)
-      return res.status(404).json({
-        error: "Torneio não encontrado ou inscrições não estão abertas",
-      });
-
+      return res
+        .status(404)
+        .json({
+          error: "Torneio não encontrado ou inscrições não estão abertas",
+        });
     if (tournament._count.teams >= tournament.maxTeams)
       return res.status(400).json({ error: "Torneio lotado" });
 
     const amount =
       tournament.priceFirstCategory > 0 ? tournament.priceFirstCategory : 0;
-
     const team = await prisma.team.create({
       data: {
         tournamentId,
