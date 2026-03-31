@@ -157,6 +157,7 @@ const TournamentProfile = () => {
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerSuccess, setRegisterSuccess] = useState(false);
   const [registerError, setRegisterError] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   // Task 3.2 — payment flow
   const [showPayment, setShowPayment] = useState(false);
   const [paymentTeamId, setPaymentTeamId] = useState("");
@@ -209,6 +210,10 @@ const TournamentProfile = () => {
       !registerForm.category
     ) {
       setRegisterError("Preencha todos os campos.");
+      return;
+    }
+    if (!acceptedTerms) {
+      setRegisterError("Você precisa aceitar os Termos de Uso para continuar.");
       return;
     }
     setRegisterLoading(true);
@@ -2321,6 +2326,40 @@ const TournamentProfile = () => {
               {registerError && (
                 <p className="text-red-400 text-sm">{registerError}</p>
               )}
+
+              <div className="flex items-start gap-3 pt-1">
+                <input
+                  type="checkbox"
+                  id="reg-terms"
+                  checked={acceptedTerms}
+                  onChange={(e) => {
+                    setAcceptedTerms(e.target.checked);
+                    if (registerError.includes("Termos")) setRegisterError("");
+                  }}
+                  className="mt-1 w-4 h-4 accent-[#00ff88] cursor-pointer flex-shrink-0"
+                />
+                <label
+                  htmlFor="reg-terms"
+                  className="text-sm text-gray-400 cursor-pointer leading-relaxed"
+                >
+                  Li e aceito os{" "}
+                  <a
+                    href="/termos"
+                    target="_blank"
+                    className="text-[#00ff88] hover:underline"
+                  >
+                    Termos de Uso
+                  </a>{" "}
+                  e a{" "}
+                  <a
+                    href="/privacidade"
+                    target="_blank"
+                    className="text-[#00ff88] hover:underline"
+                  >
+                    Política de Privacidade
+                  </a>
+                </label>
+              </div>
 
               <div className="flex gap-3 pt-2">
                 <button

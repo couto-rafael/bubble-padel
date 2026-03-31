@@ -109,6 +109,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
     password: "",
     confirmPassword: "",
   });
+  const [athleteAcceptedTerms, setAthleteAcceptedTerms] = useState(false);
 
   // Clube
   const [clubData, setClubData] = useState({
@@ -118,6 +119,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
     password: "",
     confirmPassword: "",
   });
+  const [clubAcceptedTerms, setClubAcceptedTerms] = useState(false);
 
   if (!isOpen) return null;
 
@@ -126,6 +128,8 @@ const AuthModal: React.FC<AuthModalProps> = ({
     setErrors({});
     setApiError("");
     setLoading(false);
+    setAthleteAcceptedTerms(false);
+    setClubAcceptedTerms(false);
     setLoginData({ email: "", password: "" });
     setAthleteData({
       firstName: "",
@@ -206,6 +210,8 @@ const AuthModal: React.FC<AuthModalProps> = ({
       errs.password = "Mínimo 6 caracteres";
     if (athleteData.password !== athleteData.confirmPassword)
       errs.confirmPassword = "Senhas não coincidem";
+    if (!athleteAcceptedTerms)
+      errs.terms = "Você precisa aceitar os termos para continuar";
     if (Object.keys(errs).length) {
       setErrors(errs);
       return;
@@ -250,6 +256,8 @@ const AuthModal: React.FC<AuthModalProps> = ({
       errs.password = "Mínimo 6 caracteres";
     if (clubData.password !== clubData.confirmPassword)
       errs.confirmPassword = "Senhas não coincidem";
+    if (!clubAcceptedTerms)
+      errs.terms = "Você precisa aceitar os termos para continuar";
     if (Object.keys(errs).length) {
       setErrors(errs);
       return;
@@ -615,6 +623,42 @@ const AuthModal: React.FC<AuthModalProps> = ({
                   error={errors.confirmPassword}
                 />
               </div>
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="athlete-terms"
+                  checked={athleteAcceptedTerms}
+                  onChange={(e) => {
+                    setAthleteAcceptedTerms(e.target.checked);
+                    setErrors((v) => ({ ...v, terms: "" }));
+                  }}
+                  className="mt-1 w-4 h-4 accent-[#00ff88] cursor-pointer"
+                />
+                <label
+                  htmlFor="athlete-terms"
+                  className="text-sm text-gray-400 cursor-pointer leading-relaxed"
+                >
+                  Li e aceito os{" "}
+                  <a
+                    href="/termos"
+                    target="_blank"
+                    className="text-[#00ff88] hover:underline"
+                  >
+                    Termos de Uso
+                  </a>{" "}
+                  e a{" "}
+                  <a
+                    href="/privacidade"
+                    target="_blank"
+                    className="text-[#00ff88] hover:underline"
+                  >
+                    Política de Privacidade
+                  </a>
+                </label>
+              </div>
+              {errors.terms && (
+                <p className="text-red-400 text-sm">{errors.terms}</p>
+              )}
               <SubmitBtn label="Criar Conta" />
             </form>
             <BackBtn to="select-type" />
@@ -622,119 +666,153 @@ const AuthModal: React.FC<AuthModalProps> = ({
         )}
 
         {/* ── CADASTRO CLUBE ── */}
-        {view === "register-club" && (
-          <div>
-            <div className="text-center mb-8">
-              <Logo />
-              <h2 className="text-3xl font-black mb-2 text-white">
-                Criar Conta de Clube
-              </h2>
-              <p className="text-gray-400">Preencha os dados abaixo</p>
-            </div>
-            {apiError && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
-                {apiError}
-              </div>
-            )}
-            <form onSubmit={handleRegisterClub} className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-white">
-                  Nome do Clube
-                </label>
-                <input
-                  type="text"
-                  value={clubData.clubName}
-                  placeholder="Ex: Arena Padel Club"
-                  onChange={(e) => {
-                    setClubData((d) => ({ ...d, clubName: e.target.value }));
-                    setErrors((v) => ({ ...v, clubName: "" }));
-                  }}
-                  className={inputClass(errors.clubName)}
-                />
-                {errors.clubName && (
-                  <p className="text-red-400 text-sm mt-1">{errors.clubName}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-white">
-                  CNPJ
-                </label>
-                <input
-                  type="text"
-                  value={clubData.cnpj}
-                  placeholder="00.000.000/0000-00"
-                  maxLength={18}
-                  onChange={(e) => {
-                    setClubData((d) => ({
-                      ...d,
-                      cnpj: formatCNPJ(e.target.value),
-                    }));
-                    setErrors((v) => ({ ...v, cnpj: "" }));
-                  }}
-                  className={inputClass(errors.cnpj)}
-                />
-                {errors.cnpj && (
-                  <p className="text-red-400 text-sm mt-1">{errors.cnpj}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-white">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={clubData.email}
-                  placeholder="contato@seuclube.com.br"
-                  onChange={(e) => {
-                    setClubData((d) => ({ ...d, email: e.target.value }));
-                    setErrors((v) => ({ ...v, email: "" }));
-                  }}
-                  className={inputClass(errors.email)}
-                />
-                {errors.email && (
-                  <p className="text-red-400 text-sm mt-1">{errors.email}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-white">
-                  Senha
-                </label>
-                <PasswordInput
-                  id="club-pw"
-                  name="password"
-                  value={clubData.password}
-                  placeholder="Mínimo 6 caracteres"
-                  onChange={(e) => {
-                    setClubData((d) => ({ ...d, password: e.target.value }));
-                    setErrors((v) => ({ ...v, password: "" }));
-                  }}
-                  error={errors.password}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-white">
-                  Confirmar Senha
-                </label>
-                <PasswordInput
-                  id="club-cpw"
-                  name="confirmPassword"
-                  value={clubData.confirmPassword}
-                  placeholder="Repita sua senha"
-                  onChange={(e) => {
-                    setClubData((d) => ({
-                      ...d,
-                      confirmPassword: e.target.value,
-                    }));
-                    setErrors((v) => ({ ...v, confirmPassword: "" }));
-                  }}
-                  error={errors.confirmPassword}
-                />
-              </div>
-              <SubmitBtn label="Criar Conta" />
-            </form>
-            <BackBtn to="select-type" />
+        <div>
+          <div className="text-center mb-8">
+            <Logo />
+            <h2 className="text-3xl font-black mb-2 text-white">
+              Criar Conta de Clube
+            </h2>
+            <p className="text-gray-400">Preencha os dados abaixo</p>
           </div>
-        )}
+          {apiError && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+              {apiError}
+            </div>
+          )}
+          <form onSubmit={handleRegisterClub} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-white">
+                Nome do Clube
+              </label>
+              <input
+                type="text"
+                value={clubData.clubName}
+                placeholder="Ex: Arena Padel Club"
+                onChange={(e) => {
+                  setClubData((d) => ({ ...d, clubName: e.target.value }));
+                  setErrors((v) => ({ ...v, clubName: "" }));
+                }}
+                className={inputClass(errors.clubName)}
+              />
+              {errors.clubName && (
+                <p className="text-red-400 text-sm mt-1">{errors.clubName}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-white">
+                CNPJ
+              </label>
+              <input
+                type="text"
+                value={clubData.cnpj}
+                placeholder="00.000.000/0000-00"
+                maxLength={18}
+                onChange={(e) => {
+                  setClubData((d) => ({
+                    ...d,
+                    cnpj: formatCNPJ(e.target.value),
+                  }));
+                  setErrors((v) => ({ ...v, cnpj: "" }));
+                }}
+                className={inputClass(errors.cnpj)}
+              />
+              {errors.cnpj && (
+                <p className="text-red-400 text-sm mt-1">{errors.cnpj}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-white">
+                Email
+              </label>
+              <input
+                type="email"
+                value={clubData.email}
+                placeholder="contato@seuclube.com.br"
+                onChange={(e) => {
+                  setClubData((d) => ({ ...d, email: e.target.value }));
+                  setErrors((v) => ({ ...v, email: "" }));
+                }}
+                className={inputClass(errors.email)}
+              />
+              {errors.email && (
+                <p className="text-red-400 text-sm mt-1">{errors.email}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-white">
+                Senha
+              </label>
+              <PasswordInput
+                id="club-pw"
+                name="password"
+                value={clubData.password}
+                placeholder="Mínimo 6 caracteres"
+                onChange={(e) => {
+                  setClubData((d) => ({ ...d, password: e.target.value }));
+                  setErrors((v) => ({ ...v, password: "" }));
+                }}
+                error={errors.password}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2 text-white">
+                Confirmar Senha
+              </label>
+              <PasswordInput
+                id="club-cpw"
+                name="confirmPassword"
+                value={clubData.confirmPassword}
+                placeholder="Repita sua senha"
+                onChange={(e) => {
+                  setClubData((d) => ({
+                    ...d,
+                    confirmPassword: e.target.value,
+                  }));
+                  setErrors((v) => ({ ...v, confirmPassword: "" }));
+                }}
+                error={errors.confirmPassword}
+              />
+            </div>
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="club-terms"
+                checked={clubAcceptedTerms}
+                onChange={(e) => {
+                  setClubAcceptedTerms(e.target.checked);
+                  setErrors((v) => ({ ...v, terms: "" }));
+                }}
+                className="mt-1 w-4 h-4 accent-[#00ff88] cursor-pointer"
+              />
+              <label
+                htmlFor="club-terms"
+                className="text-sm text-gray-400 cursor-pointer leading-relaxed"
+              >
+                Li e aceito os{" "}
+                <a
+                  href="/termos"
+                  target="_blank"
+                  className="text-[#00ff88] hover:underline"
+                >
+                  Termos de Uso
+                </a>{" "}
+                e a{" "}
+                <a
+                  href="/privacidade"
+                  target="_blank"
+                  className="text-[#00ff88] hover:underline"
+                >
+                  Política de Privacidade
+                </a>
+              </label>
+            </div>
+            {errors.terms && (
+              <p className="text-red-400 text-sm">{errors.terms}</p>
+            )}
+            <SubmitBtn label="Criar Conta" />
+          </form>
+          <BackBtn to="select-type" />
+        </div>
       </div>
     </div>
   );
