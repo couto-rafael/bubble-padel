@@ -711,10 +711,12 @@
             6.0<span style="font-size: 14px; color: var(--muted)">/10</span>
           </div>
           <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
-            ✅ <strong>Sprint 1:</strong> Termos de uso (clube + atleta) e
-            Política de Privacidade publicados em /termos. lgpdAcceptedAt no
-            schema. Pendente: aceite obrigatório no formulário de inscrição
-            (task futura).
+            ✅ <strong>Sprint 1 + Sprint 3:</strong> Termos de uso (clube +
+            atleta) e Política de Privacidade publicados em /termos. Rota
+            /privacidade redireciona para /termos. Checkbox de aceite
+            obrigatório implementado no cadastro (clube + atleta) e no
+            formulário de inscrição pública. Conteúdo LGPD completo com bases
+            legais Art. 7º.
           </p>
         </div>
 
@@ -964,55 +966,46 @@
 
       <div class="ba-grid">
         <div class="ba-card ba-before">
-          <div class="ba-label">❌ O que falta</div>
+          <div class="ba-label">✅ O que foi feito (Sprints 1-3)</div>
           <ul>
             <li>
-              <s
-                >Emails transacionais (confirmação de inscrição, lembrete de
-                jogo)</s
-              >
-              ✅ Sprint 1
+              <s>Emails transacionais (confirmação, lembrete, resultado)</s> ✅
+              Sprint 1 + 3
             </li>
-            <li>Modelo de monetização para o clube (como a Bubble cobra?)</li>
+            <li>
+              <s>Modelo de monetização (comissão R$3/atleta via split)</s> ✅
+              Sprint 3
+            </li>
             <li>
               <s>Termos de uso e política de privacidade (LGPD)</s> ✅ Sprint 1
             </li>
-            <li>Onboarding guiado para novos clubes</li>
-            <li>Página de landing/marketing para captação de clubes</li>
-            <li>Pagamento de inscrição (atletas pagam no ato)</li>
-            <li>Notificação ao clube quando novo atleta se inscreve</li>
-            <li>Área do atleta (meus torneios, histórico)</li>
+            <li><s>Onboarding guiado para novos clubes</s> ✅ Sprint 2</li>
+            <li><s>Pagamento de inscrição PIX (AbacatePay)</s> ✅ Sprint 3</li>
+            <li>
+              <s>Notificação ao clube quando novo atleta se inscreve</s> ✅
+              Sprint 1
+            </li>
+            <li>Área do atleta (meus torneios, histórico) — Sprint 4</li>
+            <li>Landing page de captação de clubes — Sprint 9</li>
           </ul>
         </div>
         <div class="ba-card ba-after">
-          <div class="ba-label">✅ Prioridade recomendada</div>
+          <div class="ba-label">✅ Prioridade atual</div>
           <ul>
-            <li><strong>P0 — Bloqueador:</strong> Termos de uso + LGPD</li>
             <li>
-              <strong>P0 — Bloqueador:</strong> Email de confirmação de
-              inscrição
+              <strong>Sprint 4:</strong> Área do atleta + ranking + PDF + live
+              scoring
             </li>
             <li>
-              <strong>P0 — Bloqueador:</strong> Definir e implementar modelo de
-              cobrança
+              <strong>Sprint 5:</strong> Gamificação (badges, trophy room)
             </li>
+            <li><strong>Sprint 6:</strong> Design System + UI Audit</li>
             <li>
-              <strong>P1 — Antes do beta:</strong> Onboarding checklist para
-              clubes
+              <strong>Sprint 7:</strong> UI Redesign Desktop (todas as páginas)
             </li>
+            <li><strong>Sprint 8:</strong> Mobile Responsiveness</li>
             <li>
-              <strong>P1 — Antes do beta:</strong> Notificação de nova inscrição
-              para clube
-            </li>
-            <li>
-              <strong>P2 — Após beta:</strong> Pagamento de inscrição pelos
-              atletas
-            </li>
-            <li>
-              <strong>P2 — Após beta:</strong> Área do atleta com histórico
-            </li>
-            <li>
-              <strong>P3 — Escala:</strong> App mobile, ranking, live scoring
+              <strong>Sprint 9:</strong> Landing page + SEO + marketing ativo
             </li>
           </ul>
         </div>
@@ -1328,35 +1321,35 @@
             <li>Visualização de grupos, jogos e resultados</li>
           </ul>
           <ul class="bad-list" style="margin-top: 8px">
-            <li>Sem email de confirmação ao se inscrever</li>
-            <li>Sem área pessoal do atleta (meus torneios)</li>
-            <li>Sem notificação quando grupos são gerados</li>
-            <li>Sem push notification para lembrar do jogo</li>
+            <li>Sem área pessoal do atleta (meus torneios) — Sprint 4</li>
+            <li>Sem notificação quando grupos são gerados — Sprint 4</li>
+            <li>Sem ranking ou gamificação — Sprint 5</li>
           </ul>
         </div>
       </div>
 
       <div class="ba-grid" style="margin-top: 24px">
         <div class="ba-card ba-before">
-          <div class="ba-label">❌ Jornada atual do atleta</div>
+          <div class="ba-label">✅ Jornada atual do atleta (implementado)</div>
           <ul>
-            <li>Se inscreve e não recebe confirmação</li>
-            <li>Não sabe quando grupos são definidos</li>
+            <li>✅ Inscrição → email de confirmação imediato</li>
+            <li>✅ 24h antes do torneio → lembrete automático (D-1)</li>
             <li>
-              Tem que acessar a página manualmente para ver horário do jogo
+              ✅ Torneio finalizado → email de resultado por classificação
             </li>
-            <li>Sem lembretes antes do jogo</li>
-            <li>Sem histórico de torneios anteriores</li>
+            <li>✅ Pagamento PIX com QR Code e polling de confirmação</li>
+            <li>Grupos gerados → email/WhatsApp com tabela (Sprint 4)</li>
+            <li>Área pessoal com histórico e conquistas (Sprint 4 + 5)</li>
           </ul>
         </div>
         <div class="ba-card ba-after">
           <div class="ba-label">✅ Jornada ideal (próximas sprints)</div>
           <ul>
-            <li>Inscrição → email de confirmação imediato</li>
-            <li>Grupos gerados → email/WhatsApp com tabela e horários</li>
-            <li>24h antes do jogo → lembrete automático</li>
-            <li>Torneio finalizado → resultado e próximos torneios</li>
-            <li>Área pessoal com histórico e conquistas</li>
+            <li>Área pessoal com histórico de torneios e resultados</li>
+            <li>Ranking de atletas por categoria e cidade</li>
+            <li>Trophy room com badges e conquistas</li>
+            <li>Certificado digital de participação</li>
+            <li>Live scoring público durante o torneio</li>
           </ul>
         </div>
       </div>
@@ -1367,12 +1360,49 @@
     <!-- ============================================================ -->
     <section id="monetizacao" class="container">
       <h2 class="section-title">
-        <span class="icon">💰</span> 8. Monetização — Modelo a Definir
+        <span class="icon">💰</span> 8. Monetização — Modelo Definido ✅
       </h2>
       <p class="section-desc">
-        O produto está construído mas o modelo de receita não está definido.
-        Esta é uma decisão estratégica crítica para o lançamento.
+        Modelo de comissão por atleta definido na Sprint 3. Split de pagamento
+        planejado quando AbacatePay lançar o recurso. Durante o lançamento: R$0
+        de comissão ("Grátis durante o lançamento").
       </p>
+      <div
+        class="card"
+        style="
+          border-left: 4px solid var(--green);
+          padding: 20px;
+          margin-bottom: 24px;
+          background: rgba(0, 255, 136, 0.05);
+        "
+      >
+        <h4 style="color: var(--green); margin-bottom: 12px">
+          ✅ Decisão final — Modelo B: Comissão por atleta via split
+        </h4>
+        <ul style="font-size: 14px; color: var(--muted); line-height: 2">
+          <li>
+            <strong>Valor:</strong> R$3,00 por atleta inscrito (configurável via
+            <code>COMMISSION_PER_ATHLETE</code>)
+          </li>
+          <li>
+            <strong>Mecanismo:</strong> Split de pagamento — AthleteR$120 →
+            R$115 clube + R$3,50 Bubble + taxa gateway
+          </li>
+          <li>
+            <strong>Status split:</strong> AbacatePay em desenvolvimento —
+            ativar quando lançar
+          </li>
+          <li>
+            <strong>Lançamento:</strong> R$0 de comissão ("Grátis durante o
+            lançamento")
+          </li>
+          <li>
+            <strong>Infra pronta:</strong>
+            <code>COMMISSION_PER_ATHLETE=0</code>, model
+            <code>Reconciliation</code>, email de relatório ao clube
+          </li>
+        </ul>
+      </div>
 
       <div class="card-grid grid-3">
         <div class="card" style="border-top: 3px solid var(--amber)">
@@ -1495,39 +1525,44 @@
         <tbody>
           <tr>
             <td>LGPD — Dados pessoais dos atletas</td>
-            <td class="risk-alto">ALTO</td>
-            <td>Coleta nome + email sem política</td>
-            <td>Multa + processo</td>
+            <td style="color: var(--green); font-weight: 700">RESOLVIDO</td>
+            <td>✅ Política publicada em /termos + checkbox de aceite</td>
+            <td>Conformidade LGPD</td>
           </tr>
           <tr>
             <td>Termos de Uso — Clube</td>
-            <td class="risk-alto">ALTO</td>
-            <td>Inexistentes</td>
-            <td>Sem proteção jurídica</td>
+            <td style="color: var(--green); font-weight: 700">RESOLVIDO</td>
+            <td>✅ Publicado em /termos + aceite no cadastro</td>
+            <td>Proteção jurídica ativa</td>
           </tr>
           <tr>
             <td>Termos de Uso — Atleta</td>
-            <td class="risk-alto">ALTO</td>
-            <td>Inexistentes</td>
-            <td>Inscrição sem contrato</td>
+            <td style="color: var(--green); font-weight: 700">RESOLVIDO</td>
+            <td>✅ Publicado em /termos + aceite na inscrição</td>
+            <td>Contrato válido</td>
           </tr>
           <tr>
             <td>Política de Privacidade</td>
-            <td class="risk-alto">ALTO</td>
-            <td>Inexistente</td>
-            <td>Não-conformidade LGPD</td>
+            <td style="color: var(--green); font-weight: 700">RESOLVIDO</td>
+            <td>
+              ✅ Publicada em /termos (aba Privacidade) + /privacidade
+              redireciona
+            </td>
+            <td>Conformidade LGPD</td>
           </tr>
           <tr>
             <td>Pagamento de inscrição</td>
-            <td class="risk-medio">MÉDIO</td>
-            <td>Sem gateway integrado</td>
-            <td>Impossível monetizar</td>
+            <td style="color: var(--green); font-weight: 700">RESOLVIDO</td>
+            <td>✅ AbacatePay PIX integrado (sandbox ativo)</td>
+            <td>Monetização possível</td>
           </tr>
           <tr>
             <td>Política de reembolso</td>
-            <td class="risk-medio">MÉDIO</td>
-            <td>Não definida</td>
-            <td>Chargeback / Procon</td>
+            <td style="color: var(--green); font-weight: 700">RESOLVIDO</td>
+            <td>
+              ✅ Definida e publicada em /termos (responsabilidade do clube)
+            </td>
+            <td>Risco mitigado</td>
           </tr>
           <tr>
             <td>Responsabilidade em lesões</td>
@@ -1548,19 +1583,24 @@
         Documentos Obrigatórios — Checklist
       </h3>
       <ul class="checklist">
-        <li>Termos de Uso para Clubes (criação e gestão de torneios)</li>
-        <li>Termos de Uso para Atletas (inscrição e participação)</li>
+        <li>✅ Termos de Uso para Clubes (criação e gestão de torneios)</li>
+        <li>✅ Termos de Uso para Atletas (inscrição e participação)</li>
         <li>
-          Política de Privacidade (LGPD — dados coletados, finalidade, retenção)
+          ✅ Política de Privacidade (LGPD — dados coletados, finalidade,
+          retenção)
         </li>
-        <li>Política de Cancelamento e Reembolso de inscrição</li>
+        <li>✅ Política de Cancelamento e Reembolso de inscrição</li>
         <li>
-          Cláusula de isenção de responsabilidade por lesões durante o torneio
+          ✅ Cláusula de isenção de responsabilidade por lesões durante o
+          torneio
         </li>
         <li>
-          Consentimento explícito de menor (campo no formulário se < 18 anos)
+          ⏳ Consentimento explícito de menor (campo no formulário se &lt; 18
+          anos) — Sprint 4
         </li>
-        <li>DPA com provedores de email (Resend/SendGrid) e pagamento</li>
+        <li>
+          ⏳ DPA com provedores de email (Resend) e pagamento (AbacatePay)
+        </li>
       </ul>
 
       <div class="quote-row" style="margin-top: 20px">
