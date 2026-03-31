@@ -205,7 +205,7 @@ const EditTournament = () => {
       }
     }
     setLoading(false);
-  }, [id, getTournamentById, tournaments]);
+  }, [id, tournaments]);
 
   const handleFieldChange = (
     field: keyof Tournament,

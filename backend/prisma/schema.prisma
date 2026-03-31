@@ -86,6 +86,7 @@ model Tournament {
   matchDuration          Int              @default(60)
   daySchedules           Json             @default("[]")
   courts                 String[]
+  reminderSentAt         DateTime?
   createdAt              DateTime         @default(now())
   updatedAt              DateTime         @updatedAt
   teams                  Team[]

@@ -34,6 +34,20 @@ interface NovaInscricaoData {
   tournamentId: string;
 }
 
+interface LembreteTorneioData {
+  player1Name: string;
+  player1Email: string;
+  player2Name: string;
+  player2Email: string;
+  tournamentName: string;
+  tournamentDate: string;
+  category: string;
+  tournamentId: string;
+  firstGameTime: string | null;
+  firstGameCourt: string | null;
+  clubSede: string | null;
+}
+
 // ─── FUNÇÃO BASE ──────────────────────────────────────────────────────────────
 
 async function sendEmail(options: EmailOptions): Promise<void> {
@@ -61,7 +75,6 @@ async function sendEmail(options: EmailOptions): Promise<void> {
       (result as any).data?.id ?? JSON.stringify(result),
     );
   } catch (err) {
-    // Falha no email nunca deve bloquear o fluxo principal
     console.error("❌ [EMAIL] Erro:", err);
   }
 }
@@ -273,13 +286,136 @@ function templateNovaInscricaoClube(data: NovaInscricaoData): string {
 </html>`;
 }
 
+function templateLembreteTorneio(data: LembreteTorneioData): string {
+  const url = `${process.env.FRONTEND_URL || "http://localhost:5173"}/tournaments/${data.tournamentId}`;
+
+  const jogoRow = data.firstGameTime
+    ? `<tr>
+        <td style="padding:8px 0;border-bottom:1px solid #e0e8f0;">
+          <span style="color:#4a6580;font-size:14px;">Primeiro jogo</span>
+        </td>
+        <td style="padding:8px 0;border-bottom:1px solid #e0e8f0;text-align:right;">
+          <strong style="color:#0d2037;font-size:14px;">${data.firstGameTime}${data.firstGameCourt ? ` · ${data.firstGameCourt}` : ""}</strong>
+        </td>
+      </tr>`
+    : "";
+
+  const localRow = data.clubSede
+    ? `<tr>
+        <td style="padding:8px 0;border-bottom:1px solid #e0e8f0;">
+          <span style="color:#4a6580;font-size:14px;">Local</span>
+        </td>
+        <td style="padding:8px 0;border-bottom:1px solid #e0e8f0;text-align:right;">
+          <strong style="color:#0d2037;font-size:14px;">${data.clubSede}</strong>
+        </td>
+      </tr>`
+    : "";
+
+  return `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seu torneio é amanhã!</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f7fb;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7fb;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#050f1a;padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#00ff88;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Bubble Padel</h1>
+            <p style="margin:8px 0 0;color:#7a9ab5;font-size:14px;">Gestão de Torneios</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:40px 40px 32px;">
+            <h2 style="margin:0 0 8px;color:#0d2037;font-size:22px;font-weight:700;">🎾 Seu torneio é amanhã!</h2>
+            <p style="margin:0 0 24px;color:#4a6580;font-size:15px;line-height:1.6;">
+              Olá, <strong>${data.player1Name}</strong> e <strong>${data.player2Name}</strong>! Estamos te lembrando que o torneio começa amanhã. Chegue com antecedência e boa sorte! 🏆
+            </p>
+
+            <!-- Info Card -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7fb;border-radius:10px;margin-bottom:24px;">
+              <tr>
+                <td style="padding:24px;">
+                  <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#7a9ab5;text-transform:uppercase;letter-spacing:1px;">Detalhes do torneio</p>
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="padding:8px 0;border-bottom:1px solid #e0e8f0;">
+                        <span style="color:#4a6580;font-size:14px;">Torneio</span>
+                      </td>
+                      <td style="padding:8px 0;border-bottom:1px solid #e0e8f0;text-align:right;">
+                        <strong style="color:#0d2037;font-size:14px;">${data.tournamentName}</strong>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0;border-bottom:1px solid #e0e8f0;">
+                        <span style="color:#4a6580;font-size:14px;">Data</span>
+                      </td>
+                      <td style="padding:8px 0;border-bottom:1px solid #e0e8f0;text-align:right;">
+                        <strong style="color:#0d2037;font-size:14px;">${data.tournamentDate}</strong>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0;border-bottom:1px solid #e0e8f0;">
+                        <span style="color:#4a6580;font-size:14px;">Categoria</span>
+                      </td>
+                      <td style="padding:8px 0;border-bottom:1px solid #e0e8f0;text-align:right;">
+                        <strong style="color:#0d2037;font-size:14px;">${data.category}</strong>
+                      </td>
+                    </tr>
+                    ${localRow}
+                    ${jogoRow}
+                  </table>
+                </td>
+              </tr>
+            </table>
+
+            <!-- CTA -->
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td align="center" style="padding:8px 0 24px;">
+                  <a href="${url}" style="display:inline-block;background:#00ff88;color:#050f1a;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:8px;">
+                    Ver tabela e horários →
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="margin:0;color:#4a6580;font-size:14px;line-height:1.6;">
+              Dúvidas? Entre em contato com o organizador pela página do torneio.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:24px 40px;border-top:1px solid #e0e8f0;text-align:center;">
+            <p style="margin:0;color:#7a9ab5;font-size:12px;">
+              Bubble Padel · <a href="${process.env.FRONTEND_URL || "http://localhost:5173"}/termos" style="color:#7a9ab5;">Termos de Uso</a> · <a href="mailto:privacidade@bubblepadel.com" style="color:#7a9ab5;">privacidade@bubblepadel.com</a>
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 // ─── FUNÇÕES PÚBLICAS ─────────────────────────────────────────────────────────
 
 export async function sendInscricaoConfirmada(
   data: InscricaoConfirmadaData,
 ): Promise<void> {
   const html = templateInscricaoConfirmada(data);
-  // Envia para AMBOS os jogadores da dupla
   await sendEmail({
     to: [data.player1Email, data.player2Email],
     subject: `🎾 Inscrição recebida — ${data.tournamentName}`,
@@ -294,6 +430,17 @@ export async function sendNovaInscricaoParaClube(
   await sendEmail({
     to: data.clubEmail,
     subject: `Nova inscrição: ${data.player1Name} / ${data.player2Name} — ${data.tournamentName}`,
+    html,
+  });
+}
+
+export async function sendLembreteTorneio(
+  data: LembreteTorneioData,
+): Promise<void> {
+  const html = templateLembreteTorneio(data);
+  await sendEmail({
+    to: [data.player1Email, data.player2Email],
+    subject: `🎾 Seu torneio é amanhã — ${data.tournamentName}`,
     html,
   });
 }

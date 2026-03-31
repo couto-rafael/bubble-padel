@@ -13,16 +13,16 @@ import { athleteRoutes, publicAthleteRoutes } from "./routes/athlete";
 import { errorHandler } from "./middlewares/errorHandler";
 import { generalLimiter, registerLimiter } from "./middlewares/rateLimiter";
 import { startStatusSyncJob } from "./jobs/statusSync";
+import { startReminderJob } from "./jobs/reminderJob";
 import { prisma } from "./lib/prisma";
 import { paymentRoutes, webhookRoutes } from "./routes/payments";
 
 // ─── Sentry (task 2.4) ────────────────────────────────────────────────────────
-// Inicializar ANTES de qualquer outro middleware
 if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV || "production",
-    tracesSampleRate: 0.1, // 10% das transações
+    tracesSampleRate: 0.1,
   });
   console.log("🔍 Sentry inicializado");
 } else {
@@ -62,13 +62,12 @@ app.use("/api/public/athletes", publicAthleteRoutes);
 
 // ─── Pagamentos (task 3.1) ───────────────────────────────────────────────────
 app.use("/api/payments", paymentRoutes);
-app.use("/api/pay", paymentRoutes); // rota pública: GET /api/pay/:token
+app.use("/api/pay", paymentRoutes);
 app.use("/api/webhooks", webhookRoutes);
 
 // ─── Health check (task 2.4) ──────────────────────────────────────────────────
 app.get("/api/health", async (_req, res) => {
   try {
-    // Verifica conexão com o banco
     await prisma.$queryRaw`SELECT 1`;
     res.json({
       status: "ok",
@@ -90,6 +89,7 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
   startStatusSyncJob();
+  startReminderJob();
 });
 
 const ALLOWED_ORIGINS = [
