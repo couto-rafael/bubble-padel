@@ -5,6 +5,10 @@ import { z } from "zod";
 import {
   sendInscricaoConfirmada,
   sendNovaInscricaoParaClube,
+  sendEmailCampeao,
+  sendEmailVice,
+  sendEmailEliminadoPlayoffs,
+  sendEmailEliminadoGrupos,
 } from "../services/EmailService";
 
 export const tournamentRoutes = Router();
@@ -41,7 +45,141 @@ const tournamentSchema = z.object({
     .optional(),
 });
 
-// GET /api/tournaments — lista torneios do clube logado
+// ─── HELPER: Dispara emails de resultado quando torneio é COMPLETED ───────────
+
+async function dispatchResultadoFinalEmails(
+  tournamentId: string,
+): Promise<void> {
+  const tournament = await prisma.tournament.findUnique({
+    where: { id: tournamentId },
+    include: {
+      teams: {
+        where: { status: "CONFIRMED" },
+        select: {
+          id: true,
+          player1Name: true,
+          player1Email: true,
+          player2Name: true,
+          player2Email: true,
+          category: true,
+        },
+      },
+      playoffs: {
+        include: {
+          matches: {
+            orderBy: [{ roundSize: "desc" }, { matchIndex: "asc" }],
+          },
+        },
+      },
+    },
+  });
+
+  if (!tournament) return;
+
+  const teamsById = Object.fromEntries(tournament.teams.map((t) => [t.id, t]));
+
+  const baseData = {
+    tournamentName: tournament.name,
+    tournamentId: tournament.id,
+  };
+
+  // Para cada categoria com bracket de playoffs
+  for (const bracket of tournament.playoffs) {
+    const { category, matches } = bracket;
+
+    // Final = roundSize 1, matchIndex 0
+    const finalMatch = matches.find(
+      (m) => m.roundSize === 1 && m.matchIndex === 0,
+    );
+
+    const championId = finalMatch?.winnerId ?? null;
+    const viceId = finalMatch
+      ? finalMatch.team1Id === championId
+        ? finalMatch.team2Id
+        : finalMatch.team1Id
+      : null;
+
+    // Todos os teamIds que aparecem nos playoffs (excluindo BYEs)
+    const playoffTeamIds = new Set<string>();
+    for (const m of matches) {
+      if (m.isBye) continue;
+      if (m.team1Id) playoffTeamIds.add(m.team1Id);
+      if (m.team2Id) playoffTeamIds.add(m.team2Id);
+    }
+
+    // Eliminados nos playoffs = estavam nos playoffs mas não são campeão/vice
+    const playoffEliminatedIds = [...playoffTeamIds].filter(
+      (id) => id !== championId && id !== viceId,
+    );
+
+    // Eliminados na fase de grupos = confirmados na categoria mas não nos playoffs
+    const categoryTeams = tournament.teams.filter(
+      (t) => t.category === category,
+    );
+    const groupEliminatedIds = categoryTeams
+      .filter((t) => !playoffTeamIds.has(t.id))
+      .map((t) => t.id);
+
+    // Dispara emails — todos assíncronos, nunca bloqueiam
+    if (championId && teamsById[championId]) {
+      const t = teamsById[championId];
+      sendEmailCampeao({ ...baseData, ...t, category }).catch((err: unknown) =>
+        console.error("[email] campeão falhou:", err),
+      );
+    }
+
+    if (viceId && teamsById[viceId]) {
+      const t = teamsById[viceId];
+      sendEmailVice({ ...baseData, ...t, category }).catch((err: unknown) =>
+        console.error("[email] vice falhou:", err),
+      );
+    }
+
+    for (const id of playoffEliminatedIds) {
+      const t = teamsById[id];
+      if (!t) continue;
+      sendEmailEliminadoPlayoffs({ ...baseData, ...t, category }).catch(
+        (err: unknown) =>
+          console.error("[email] eliminado playoffs falhou:", err),
+      );
+    }
+
+    for (const id of groupEliminatedIds) {
+      const t = teamsById[id];
+      if (!t) continue;
+      sendEmailEliminadoGrupos({ ...baseData, ...t, category }).catch(
+        (err: unknown) =>
+          console.error("[email] eliminado grupos falhou:", err),
+      );
+    }
+  }
+
+  // Categorias sem playoff — todos recebem email de eliminado grupos
+  const categoriesWithPlayoff = new Set(
+    tournament.playoffs.map((b) => b.category),
+  );
+  const categoriesWithoutPlayoff = [
+    ...new Set(tournament.teams.map((t) => t.category)),
+  ].filter((cat) => !categoriesWithPlayoff.has(cat));
+
+  for (const category of categoriesWithoutPlayoff) {
+    const categoryTeams = tournament.teams.filter(
+      (t) => t.category === category,
+    );
+    for (const t of categoryTeams) {
+      sendEmailEliminadoGrupos({ ...baseData, ...t, category }).catch(
+        (err: unknown) => console.error("[email] sem playoff falhou:", err),
+      );
+    }
+  }
+
+  console.log(
+    `✅ [EMAIL RESULTADO] Emails disparados para torneio "${tournament.name}"`,
+  );
+}
+
+// ─── GET /api/tournaments ─────────────────────────────────────────────────────
+
 tournamentRoutes.get("/", requireAuth, async (req: AuthRequest, res, next) => {
   try {
     const tournaments = await prisma.tournament.findMany({
@@ -55,7 +193,8 @@ tournamentRoutes.get("/", requireAuth, async (req: AuthRequest, res, next) => {
   }
 });
 
-// GET /api/tournaments/:id
+// ─── GET /api/tournaments/:id ─────────────────────────────────────────────────
+
 tournamentRoutes.get(
   "/:id",
   requireAuth,
@@ -74,7 +213,8 @@ tournamentRoutes.get(
   },
 );
 
-// POST /api/tournaments
+// ─── POST /api/tournaments ────────────────────────────────────────────────────
+
 tournamentRoutes.post("/", requireAuth, async (req: AuthRequest, res, next) => {
   try {
     const data = tournamentSchema.parse(req.body);
@@ -92,7 +232,8 @@ tournamentRoutes.post("/", requireAuth, async (req: AuthRequest, res, next) => {
   }
 });
 
-// PATCH /api/tournaments/:id
+// ─── PATCH /api/tournaments/:id ───────────────────────────────────────────────
+
 tournamentRoutes.patch(
   "/:id",
   requireAuth,
@@ -116,7 +257,8 @@ tournamentRoutes.patch(
   },
 );
 
-// DELETE /api/tournaments/:id
+// ─── DELETE /api/tournaments/:id ──────────────────────────────────────────────
+
 tournamentRoutes.delete(
   "/:id",
   requireAuth,
@@ -132,7 +274,8 @@ tournamentRoutes.delete(
   },
 );
 
-// POST /api/tournaments/:id/schedule/bulk — salva schedule de múltiplos jogos de uma vez
+// ─── POST /api/tournaments/:id/schedule/bulk ──────────────────────────────────
+
 tournamentRoutes.post(
   "/:id/schedule/bulk",
   requireAuth,
@@ -151,7 +294,6 @@ tournamentRoutes.post(
         return res.status(400).json({ error: "schedules array é obrigatório" });
       }
 
-      // Upsert em paralelo (cria ou atualiza cada schedule de jogo)
       await Promise.all(
         schedules.map((s) =>
           prisma.schedule.upsert({
@@ -159,12 +301,12 @@ tournamentRoutes.post(
             create: {
               matchId: s.matchId,
               court: s.court,
-              date: new Date(s.date), // ← era: date: s.date
+              date: new Date(s.date),
               time: s.time,
             },
             update: {
               court: s.court,
-              date: new Date(s.date), // ← era: date: s.date
+              date: new Date(s.date),
               time: s.time,
             },
           }),
@@ -178,9 +320,8 @@ tournamentRoutes.post(
   },
 );
 
-// POST /api/tournaments/:id/sync-status — atualiza status automaticamente
-// ONGOING: quando primeiro placar de grupo for salvo
-// COMPLETED: quando todos os jogos de playoff (não-bye) estiverem jogados
+// ─── POST /api/tournaments/:id/sync-status ────────────────────────────────────
+
 tournamentRoutes.post(
   "/:id/sync-status",
   requireAuth,
@@ -198,16 +339,13 @@ tournamentRoutes.post(
 
       const currentStatus = tournament.status as string;
 
-      // Já finalizado — não mexe
       if (currentStatus === "COMPLETED")
         return res.json({ data: { status: currentStatus } });
 
-      // Verifica se algum jogo de grupo foi jogado → ONGOING
       const anyGroupPlayed = (tournament as any).groups.some((g: any) =>
         g.matches.some((m: any) => m.played),
       );
 
-      // Verifica se todos os jogos de playoff (não-bye) foram jogados → COMPLETED
       const allPlayoffMatches = (tournament as any).playoffs.flatMap((b: any) =>
         b.matches.filter((m: any) => !m.isBye),
       );
@@ -232,6 +370,13 @@ tournamentRoutes.post(
           where: { id: req.params.id },
           data: { status: newStatus as any },
         });
+
+        // Dispara emails de resultado quando torneio é concluído
+        if (newStatus === "COMPLETED") {
+          dispatchResultadoFinalEmails(req.params.id).catch((err: unknown) =>
+            console.error("[email] resultado final falhou:", err),
+          );
+        }
       }
 
       return res.json({ data: { status: newStatus } });
@@ -241,7 +386,8 @@ tournamentRoutes.post(
   },
 );
 
-// GET /api/tournaments/:id/financial — resumo financeiro do torneio
+// ─── GET /api/tournaments/:id/financial ───────────────────────────────────────
+
 tournamentRoutes.get(
   "/:id/financial",
   requireAuth,
@@ -269,17 +415,14 @@ tournamentRoutes.get(
         registrationDate: t.registrationDate,
       }));
 
-      // Receita recebida = soma de pagamentos PAID (por jogador)
       const grossRevenue = teams.reduce((acc, t) => {
         const p1 = t.player1PaymentStatus === "PAID" ? t.amount / 2 : 0;
         const p2 = t.player2PaymentStatus === "PAID" ? t.amount / 2 : 0;
         return acc + p1 + p2;
       }, 0);
 
-      // Receita esperada = soma de todas as inscrições (torneio gratuito = 0)
       const expectedRevenue = teams.reduce((acc, t) => acc + t.amount, 0);
 
-      // Dupla paga = ambos os jogadores pagaram
       const paidTeams = teams.filter(
         (t) =>
           t.player1PaymentStatus === "PAID" &&
@@ -303,7 +446,7 @@ tournamentRoutes.get(
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ROTAS PÚBLICAS (sem autenticação)
+// ROTAS PÚBLICAS
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const publicTournamentRoutes = Router();
@@ -316,7 +459,8 @@ const registerSchema = z.object({
   category: z.string(),
 });
 
-// GET /api/public/tournaments — lista torneios publicados/abertos
+// ─── GET /api/public/tournaments ─────────────────────────────────────────────
+
 publicTournamentRoutes.get("/", async (req, res, next) => {
   try {
     const tournaments = await prisma.tournament.findMany({
@@ -343,7 +487,8 @@ publicTournamentRoutes.get("/", async (req, res, next) => {
   }
 });
 
-// GET /api/public/tournaments/:id
+// ─── GET /api/public/tournaments/:id ─────────────────────────────────────────
+
 publicTournamentRoutes.get("/:id", async (req, res, next) => {
   try {
     const tournament = await prisma.tournament.findFirst({
@@ -377,9 +522,7 @@ publicTournamentRoutes.get("/:id", async (req, res, next) => {
         groups: {
           include: {
             teams: { include: { team: true } },
-            matches: {
-              orderBy: { createdAt: "asc" },
-            },
+            matches: { orderBy: { createdAt: "asc" } },
           },
           orderBy: [{ category: "asc" }, { name: "asc" }],
         },
@@ -395,7 +538,6 @@ publicTournamentRoutes.get("/:id", async (req, res, next) => {
     if (!tournament)
       return res.status(404).json({ error: "Torneio não encontrado" });
 
-    // Buscar schedules dos jogos de grupo separadamente (Schedule não tem @relation no schema)
     const allMatchIds = tournament.groups.flatMap((g: any) =>
       g.matches.map((m: any) => m.id),
     );
@@ -409,7 +551,6 @@ publicTournamentRoutes.get("/:id", async (req, res, next) => {
       schedules.map((s: any) => [s.matchId, s]),
     );
 
-    // Injectar schedules nos matches
     const groupsWithSchedule = tournament.groups.map((g: any) => ({
       ...g,
       matches: g.matches.map((m: any) => ({
@@ -430,7 +571,8 @@ publicTournamentRoutes.get("/:id", async (req, res, next) => {
   }
 });
 
-// POST /api/public/tournaments/:id/register — inscrição pública
+// ─── POST /api/public/tournaments/:id/register ────────────────────────────────
+
 publicTournamentRoutes.post("/:id/register", async (req, res, next) => {
   try {
     const tournamentId = req.params.id;
@@ -465,13 +607,11 @@ publicTournamentRoutes.post("/:id/register", async (req, res, next) => {
       },
     });
 
-    // ── Emails assíncronos — não bloqueiam a resposta ao atleta ──────────────
     const tournamentDate = new Date(tournament.startDate).toLocaleDateString(
       "pt-BR",
       { day: "2-digit", month: "long", year: "numeric" },
     );
 
-    // Task 1.2 — email de confirmação para os dois atletas da dupla
     sendInscricaoConfirmada({
       player1Name: data.player1Name,
       player2Name: data.player2Name,
@@ -481,19 +621,14 @@ publicTournamentRoutes.post("/:id/register", async (req, res, next) => {
       tournamentDate,
       category: data.category,
       tournamentId,
-    }).catch((err) => console.error("[email] atleta falhou:", err));
+    }).catch((err: unknown) => console.error("[email] atleta falhou:", err));
 
-    // Task 1.3 — notificação ao clube
     prisma.club
       .findFirst({
         where: { tournaments: { some: { id: tournamentId } } },
         include: { user: { select: { email: true } } },
       })
       .then((club) => {
-        console.log(
-          "[email] clube encontrado:",
-          club?.user?.email ?? "NÃO ENCONTRADO",
-        );
         if (club?.user?.email) {
           sendNovaInscricaoParaClube({
             clubEmail: club.user.email,
@@ -502,10 +637,14 @@ publicTournamentRoutes.post("/:id/register", async (req, res, next) => {
             category: data.category,
             tournamentName: tournament.name,
             tournamentId,
-          }).catch((err) => console.error("[email] clube falhou:", err));
+          }).catch((err: unknown) =>
+            console.error("[email] clube falhou:", err),
+          );
         }
       })
-      .catch((err) => console.error("[email] busca clube falhou:", err));
+      .catch((err: unknown) =>
+        console.error("[email] busca clube falhou:", err),
+      );
 
     return res.status(201).json({ data: team });
   } catch (err) {
