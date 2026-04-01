@@ -139,6 +139,9 @@ const TournamentProfile = () => {
   const [tournament, setTournament] = useState<PublicTournament | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  // Task 4.4 — live scoring polling
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Auth
   const currentUser = AuthService.getCurrentUser();
@@ -199,6 +202,23 @@ const TournamentProfile = () => {
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
   }, [id, searchParams]);
+
+  // Task 4.4 — polling 30s quando torneio está ONGOING
+  useEffect(() => {
+    if (!id || tournament?.status?.toLowerCase() !== "ongoing") return;
+    setLastUpdated(new Date());
+    const interval = setInterval(() => {
+      setIsRefreshing(true);
+      PublicTournamentService.get(id)
+        .then((t) => {
+          setTournament(t);
+          setLastUpdated(new Date());
+        })
+        .catch(console.error)
+        .finally(() => setIsRefreshing(false));
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [id, tournament?.status]);
 
   const handleRegister = async () => {
     if (
@@ -2157,31 +2177,154 @@ const TournamentProfile = () => {
           {/* LIVE TAB */}
           {activeTab === "live" && (
             <div>
-              <div className="mb-8 text-center">
-                <h2 className="text-3xl font-bold mb-2">Ao Vivo</h2>
-                <p className="text-gray-400">Jogos em andamento agora</p>
+              <div className="mb-8 flex items-center justify-between">
+                <div>
+                  <h2 className="text-3xl font-bold mb-1">Ao Vivo</h2>
+                  <p className="text-gray-400 text-sm">
+                    Jogos em andamento agora
+                  </p>
+                </div>
+                {tournament?.status?.toLowerCase() === "ongoing" && (
+                  <div className="flex items-center gap-2 text-sm text-gray-400">
+                    {isRefreshing ? (
+                      <div className="w-4 h-4 border-2 border-[#00ff88] border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <span className="w-2 h-2 rounded-full bg-[#00ff88] animate-pulse inline-block" />
+                    )}
+                    <span>
+                      {isRefreshing
+                        ? "Atualizando..."
+                        : lastUpdated
+                          ? `Atualizado às ${lastUpdated.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`
+                          : "Ao vivo"}
+                    </span>
+                    <span className="text-gray-600">· atualiza a cada 30s</span>
+                  </div>
+                )}
               </div>
-              <div className="text-center py-20 text-gray-400">
-                <svg
-                  className="w-16 h-16 mx-auto mb-4 opacity-30"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-                <h3 className="text-xl font-bold mb-2">
-                  Nenhuma partida ao vivo no momento
-                </h3>
-                <p className="text-gray-500">
-                  Volte durante o torneio para acompanhar em tempo real
-                </p>
-              </div>
+
+              {tournament?.status?.toLowerCase() !== "ongoing" ? (
+                <div className="text-center py-20 text-gray-400">
+                  <svg
+                    className="w-16 h-16 mx-auto mb-4 opacity-30"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <h3 className="text-xl font-bold mb-2">
+                    Torneio não está em andamento
+                  </h3>
+                  <p className="text-gray-500">
+                    A aba Ao Vivo ficará disponível durante o torneio
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  {(tournament.groups ?? [])
+                    .map((group) => {
+                      const today = new Date().toDateString();
+                      const todayMatches = group.matches.filter((m) => {
+                        const schedDate = m.schedule?.date
+                          ? new Date(m.schedule.date).toDateString()
+                          : null;
+                        return schedDate === today || (!m.played && !schedDate);
+                      });
+                      if (todayMatches.length === 0) return null;
+
+                      const teamsById = Object.fromEntries(
+                        (group.teams ?? []).map((gt: any) => [
+                          gt.team.id,
+                          gt.team,
+                        ]),
+                      );
+
+                      return (
+                        <div key={group.id}>
+                          <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-[#00ff88]" />
+                            {group.name} — {group.category}
+                          </h3>
+                          <div className="space-y-3">
+                            {todayMatches.map((match) => {
+                              const t1 = teamsById[match.team1Id ?? ""];
+                              const t2 = teamsById[match.team2Id ?? ""];
+                              const isPlayed = match.played;
+                              return (
+                                <div
+                                  key={match.id}
+                                  className={`rounded-xl p-4 border ${isPlayed ? "bg-white/5 border-white/10" : "bg-[#00ff88]/5 border-[#00ff88]/20"}`}
+                                >
+                                  <div className="flex items-center justify-between gap-4">
+                                    <div className="flex-1 text-right">
+                                      <p className="font-bold text-white text-sm">
+                                        {t1
+                                          ? `${t1.player1Name} / ${t1.player2Name}`
+                                          : "A definir"}
+                                      </p>
+                                    </div>
+                                    <div className="flex items-center gap-3 flex-shrink-0">
+                                      {isPlayed ? (
+                                        <span className="text-2xl font-black text-white tabular-nums">
+                                          {match.score1} — {match.score2}
+                                        </span>
+                                      ) : (
+                                        <span className="text-sm font-bold text-[#00ff88] px-3 py-1 bg-[#00ff88]/10 rounded-full">
+                                          {match.schedule?.time ?? "—"}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className="font-bold text-white text-sm">
+                                        {t2
+                                          ? `${t2.player1Name} / ${t2.player2Name}`
+                                          : "A definir"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {match.schedule?.court && (
+                                    <p className="text-center text-xs text-gray-500 mt-2">
+                                      📍 {match.schedule.court}
+                                    </p>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })
+                    .filter(Boolean)}
+
+                  {(tournament.groups ?? []).every(
+                    (g) =>
+                      g.matches.filter((m) => {
+                        const schedDate = m.schedule?.date
+                          ? new Date(m.schedule.date).toDateString()
+                          : null;
+                        return (
+                          schedDate === new Date().toDateString() ||
+                          (!m.played && !schedDate)
+                        );
+                      }).length === 0,
+                  ) && (
+                    <div className="text-center py-20 text-gray-400">
+                      <p className="text-xl font-bold mb-2">
+                        Nenhuma partida hoje
+                      </p>
+                      <p className="text-gray-500 text-sm">
+                        Os jogos de hoje aparecerão aqui quando começarem
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
