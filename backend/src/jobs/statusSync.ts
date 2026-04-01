@@ -1,9 +1,11 @@
 import cron from "node-cron";
 import { prisma } from "../lib/prisma";
+import { processCompletedTournament } from "../services/GamificationService";
 
 /**
  * Task 1.5 — ONGOING automático por data/hora
  * Task 4.6 — COMPLETED automático quando todos os playoffs foram jogados
+ * Sprint 5 — Gamificação processada automaticamente ao COMPLETED
  *
  * Roda a cada 15 minutos.
  */
@@ -116,6 +118,15 @@ export async function syncTournamentStatuses(): Promise<void> {
 
       console.log(
         `[cron] Torneio "${tournament.name}" → COMPLETED automático (último jogo: ${lastUpdatedAt.toISOString()})`,
+      );
+
+      // ── Sprint 5: dispara gamificação em background ───────────────────────
+      // Não bloqueia o cron — erro de gamificação não afeta o status do torneio
+      processCompletedTournament(tournament.id).catch((err) =>
+        console.error(
+          `❌ [GAMIFICATION] Falha ao processar torneio ${tournament.id}:`,
+          err,
+        ),
       );
     } catch (err) {
       console.error(`[cron] Erro ao completar torneio ${tournament.id}:`, err);
