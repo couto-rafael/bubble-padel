@@ -473,6 +473,115 @@ tournamentRoutes.get(
   },
 );
 
+// ─── GET /api/tournaments/:id/results — dados para PDF de resultados ──────────
+// Público: acessível sem auth para facilitar geração do PDF no frontend
+
+tournamentRoutes.get(
+  "/:id/results",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const tournament = await prisma.tournament.findFirst({
+        where: { id: req.params.id, clubId: req.clubId! },
+        include: {
+          club: { select: { name: true, city: true } },
+          playoffs: {
+            include: {
+              matches: {
+                orderBy: [{ roundSize: "desc" }, { matchIndex: "asc" }],
+              },
+            },
+          },
+        },
+      });
+
+      if (!tournament)
+        return res.status(404).json({ error: "Torneio não encontrado" });
+
+      // Busca todos os times confirmados com nomes
+      const teams = await prisma.team.findMany({
+        where: { tournamentId: req.params.id, status: "CONFIRMED" },
+        select: {
+          id: true,
+          player1Name: true,
+          player2Name: true,
+          category: true,
+        },
+      });
+
+      const teamsById = Object.fromEntries(teams.map((t) => [t.id, t]));
+
+      // Para cada categoria com playoff, determina classificação final
+      const results = tournament.playoffs.map((bracket) => {
+        const { category, matches } = bracket;
+
+        const finalMatch = matches.find(
+          (m) => m.roundSize === 1 && m.matchIndex === 0,
+        );
+
+        const champion = finalMatch?.winnerId
+          ? teamsById[finalMatch.winnerId]
+          : null;
+
+        const viceId = finalMatch
+          ? finalMatch.team1Id === finalMatch.winnerId
+            ? finalMatch.team2Id
+            : finalMatch.team1Id
+          : null;
+        const vice = viceId ? teamsById[viceId] : null;
+
+        // Semi-finalistas (roundSize === 2)
+        const semiFinals = matches.filter(
+          (m) => m.roundSize === 2 && !m.isBye && m.played,
+        );
+        const semiFinalistIds = new Set<string>();
+        semiFinals.forEach((m) => {
+          // Quem perdeu na semi é o semi-finalista (não chegou à final)
+          const loserId = m.winnerId === m.team1Id ? m.team2Id : m.team1Id;
+          if (loserId) semiFinalistIds.add(loserId);
+        });
+        const semiFinalists = [...semiFinalistIds]
+          .map((id) => teamsById[id])
+          .filter(Boolean);
+
+        return {
+          category,
+          champion: champion
+            ? {
+                player1Name: champion.player1Name,
+                player2Name: champion.player2Name,
+              }
+            : null,
+          vice: vice
+            ? { player1Name: vice.player1Name, player2Name: vice.player2Name }
+            : null,
+          semiFinalists: semiFinalists.map((t) => ({
+            player1Name: t!.player1Name,
+            player2Name: t!.player2Name,
+          })),
+        };
+      });
+
+      return res.json({
+        data: {
+          tournament: {
+            name: tournament.name,
+            sport: tournament.sport,
+            startDate: tournament.startDate,
+            endDate: tournament.endDate,
+            clubSede: tournament.clubSede,
+            club: tournament.club,
+          },
+          results,
+          generatedAt: new Date().toISOString(),
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // ROTAS PÚBLICAS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -604,11 +713,9 @@ publicTournamentRoutes.post("/:id/register", async (req, res, next) => {
       include: { _count: { select: { teams: true } } },
     });
     if (!tournament)
-      return res
-        .status(404)
-        .json({
-          error: "Torneio não encontrado ou inscrições não estão abertas",
-        });
+      return res.status(404).json({
+        error: "Torneio não encontrado ou inscrições não estão abertas",
+      });
     if (tournament._count.teams >= tournament.maxTeams)
       return res.status(400).json({ error: "Torneio lotado" });
 

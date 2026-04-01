@@ -562,7 +562,7 @@
     <header class="hero">
       <h1>BubblePadel — Backlog Técnico Detalhado</h1>
       <p class="subtitle">
-        72 tasks · 9 sprints · ~530h estimadas · 8 agentes IA especializados
+        89 tasks · 10 sprints · ~612h estimadas · 8 agentes IA especializados
       </p>
       <div class="hero-badges">
         <div class="hero-badge">
@@ -579,6 +579,9 @@
         </div>
         <div class="hero-badge">
           <span>Sprint 5:</span> 8 tasks · Gamificação
+        </div>
+        <div class="hero-badge">
+          <span>Sprint 5.5:</span> 9 tasks · Ligas + Etapas
         </div>
         <div class="hero-badge">
           <span>Sprint 6:</span> 8 tasks · Design System + UI Audit
@@ -606,6 +609,7 @@
         <li><a href="#sprint3">Sprint 3 ✅</a></li>
         <li><a href="#sprint4">Sprint 4</a></li>
         <li><a href="#sprint5">Sprint 5</a></li>
+        <li><a href="#sprint55">Sprint 5.5</a></li>
         <li><a href="#sprint6">Sprint 6</a></li>
         <li><a href="#sprint7">Sprint 7</a></li>
         <li><a href="#sprint8">Sprint 8</a></li>
@@ -3101,6 +3105,267 @@
       </section>
 
       <!-- ========================================================== -->
+      <!-- SPRINT 5.5 — LIGAS -->
+      <!-- ========================================================== -->
+      <section id="sprint55">
+        <div class="sprint-header">
+          <h2>🏅 Sprint 5.5 — Ligas + Etapas + Ranking Acumulado</h2>
+          <p class="sprint-theme">
+            Q3 2026 · Plataforma de liga esportiva — múltiplas etapas, pontuação
+            acumulada, ranking da temporada
+          </p>
+          <div class="sprint-meta">
+            <div class="sprint-meta-item"><strong>9</strong> tasks</div>
+            <div class="sprint-meta-item"><strong>~72h</strong> estimadas</div>
+            <div class="sprint-meta-item"><strong>2</strong> P0 blockers</div>
+            <div class="sprint-meta-item">
+              <strong>Diferencial competitivo</strong>
+            </div>
+          </div>
+          <div
+            style="
+              background: rgba(0, 204, 255, 0.06);
+              border: 1px solid rgba(0, 204, 255, 0.2);
+              border-radius: 8px;
+              padding: 12px 16px;
+              margin-top: 12px;
+              font-size: 13px;
+              color: var(--muted);
+            "
+          >
+            ⚡ <strong style="color: var(--blue)">Objetivo:</strong> Clube cria
+            uma Liga (ex: "Liga Joinvilense de Padel 2026"), adiciona etapas
+            (torneios), define pontuação por resultado. Atletas acumulam pontos
+            ao longo da temporada. Feature sem equivalente direto no Brasil.
+          </div>
+        </div>
+
+        <div class="task-card">
+          <div class="task-header">
+            <span class="task-id">5.5.T1</span>
+            <span class="task-title"
+              >Spec de Ligas — Regras, Fluxo e Modelo de Dados</span
+            >
+            <span class="badge badge-p0">P0</span>
+            <span class="badge badge-negocio">NEGÓCIO</span>
+            <span class="badge badge-hours">5h</span>
+          </div>
+          <div class="task-deps">
+            <strong>Dependências:</strong> Sprint 5 concluída
+          </div>
+          <div class="task-objective">
+            Definir: o que é uma Liga, o que é uma Etapa, como os pontos
+            acumulam, quem pode criar liga (clube), quem pode ver (público),
+            desempate, como ligas diferentes do mesmo clube funcionam. Consultar
+            agentes Product Strategy + Gamification.
+          </div>
+        </div>
+
+        <div class="task-card">
+          <div class="task-header">
+            <span class="task-id">5.5.1</span>
+            <span class="task-title"
+              >Schema — League, LeagueEdition, LeagueTournament,
+              LeagueStanding</span
+            >
+            <span class="badge badge-p0">P0</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">6h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> 5.5.T1</div>
+          <div class="task-objective">
+            Criar models no Prisma: League (nome, clube, esporte, temporada),
+            LeagueEdition (edição anual), LeagueTournament (torneio vinculado à
+            liga + multiplicador de pontos), LeagueStanding (atleta, pontos,
+            posição, por edição). Rodar db push.
+          </div>
+          <div class="task-files">
+            <h5>Arquivos afetados</h5>
+            <ul>
+              <li class="file-modify">
+                backend: prisma/schema.prisma (MODIFY)
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="task-card">
+          <div class="task-header">
+            <span class="task-id">5.5.2</span>
+            <span class="task-title">Backend — CRUD de Ligas e Etapas</span>
+            <span class="badge badge-p1">P1</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">10h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> 5.5.1</div>
+          <div class="task-objective">
+            Endpoints: POST /leagues (criar), GET /leagues/:id (detalhes), PATCH
+            /leagues/:id (editar), POST /leagues/:id/tournaments (vincular
+            torneio + pontuação configurável por resultado), DELETE
+            /leagues/:id/tournaments/:tid (desvincular). Calcular standings
+            automaticamente quando torneio é COMPLETED.
+          </div>
+          <div class="task-files">
+            <h5>Arquivos afetados</h5>
+            <ul>
+              <li class="file-create">backend: routes/leagues.ts (CREATE)</li>
+              <li class="file-create">
+                backend: services/LeagueService.ts (CREATE)
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="task-card">
+          <div class="task-header">
+            <span class="task-id">5.5.3</span>
+            <span class="task-title">Pontuação Configurável por Resultado</span>
+            <span class="badge badge-p1">P1</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">8h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> 5.5.2</div>
+          <div class="task-objective">
+            Clube define pontos por resultado ao vincular torneio à liga:
+            campeão, vice, semifinalista, quartas, fase de grupos. Pode definir
+            multiplicador por etapa (etapa final = 2x pontos). LeagueService
+            recalcula standings ao completar torneio. Pontos acumulam por email
+            do atleta.
+          </div>
+        </div>
+
+        <div class="task-card">
+          <div class="task-header">
+            <span class="task-id">5.5.4</span>
+            <span class="task-title"
+              >Frontend — Criação e Gestão de Liga (Clube)</span
+            >
+            <span class="badge badge-p1">P1</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">12h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> 5.5.2</div>
+          <div class="task-objective">
+            Painel no ClubDashboard: criar liga, definir nome/esporte/temporada,
+            vincular torneios existentes, configurar pontuação por resultado por
+            etapa. Visualizar standings da liga em tempo real. Opção de tornar
+            liga pública ou privada.
+          </div>
+          <div class="task-files">
+            <h5>Arquivos afetados</h5>
+            <ul>
+              <li class="file-create">
+                frontend: pages/LeagueManagement.tsx (CREATE)
+              </li>
+              <li class="file-modify">
+                frontend: pages/ClubDashboard.tsx (MODIFY — link para ligas)
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="task-card">
+          <div class="task-header">
+            <span class="task-id">5.5.5</span>
+            <span class="task-title">Frontend — Página Pública da Liga</span>
+            <span class="badge badge-p1">P1</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">10h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> 5.5.4</div>
+          <div class="task-objective">
+            Página pública /leagues/:id: nome da liga, temporada, ranking geral
+            com posição/atleta/pontos/etapas disputadas, lista de etapas
+            (torneios) com resultados, filtro por categoria. Visualmente
+            impactante — é o cartão de visita da liga.
+          </div>
+          <div class="task-files">
+            <h5>Arquivos afetados</h5>
+            <ul>
+              <li class="file-create">
+                frontend: pages/LeagueProfile.tsx (CREATE)
+              </li>
+              <li class="file-modify">
+                frontend: App.tsx (MODIFY — rota /leagues/:id)
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="task-card">
+          <div class="task-header">
+            <span class="task-id">5.5.6</span>
+            <span class="task-title">Integração no Perfil do Atleta</span>
+            <span class="badge badge-p2">P2</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">6h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> 5.5.5</div>
+          <div class="task-objective">
+            Atleta vê no seu perfil: ligas em que participa, posição atual em
+            cada liga, pontos acumulados por etapa. Badge "Líder da Liga" se
+            estiver em 1° lugar. Link para página pública da liga.
+          </div>
+        </div>
+
+        <div class="task-card">
+          <div class="task-header">
+            <span class="task-id">5.5.7</span>
+            <span class="task-title">Compartilhamento da Liga</span>
+            <span class="badge badge-p2">P2</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">4h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> 5.5.5</div>
+          <div class="task-objective">
+            Botão "Compartilhar liga" na página pública. Web Share API com
+            texto: "🏅 Liga X — {N} atletas, {N} etapas. Veja o ranking
+            completo: {url}". OG tags para preview rico no WhatsApp.
+          </div>
+        </div>
+
+        <div class="task-card">
+          <div class="task-header">
+            <span class="task-id">5.5.T2</span>
+            <span class="task-title">Estratégia de Marketing das Ligas</span>
+            <span class="badge badge-p3">P3</span>
+            <span class="badge badge-negocio">NEGÓCIO</span>
+            <span class="badge badge-hours">3h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> 5.5.5</div>
+          <div class="task-objective">
+            Como usar Ligas como diferencial de vendas para novos clubes. Script
+            de abordagem: "Com o Bubble você pode criar uma liga anual com
+            ranking acumulado — nenhum outro sistema oferece isso". Materiais
+            para Instagram e WhatsApp.
+          </div>
+        </div>
+
+        <div class="sprint-summary">
+          <div>
+            <div class="stat-value">9</div>
+            <div class="stat-label">Tasks</div>
+          </div>
+          <div>
+            <div class="stat-value">2</div>
+            <div class="stat-label">P0 Blockers</div>
+          </div>
+          <div>
+            <div class="stat-value">~56h</div>
+            <div class="stat-label">Horas DEV</div>
+          </div>
+          <div>
+            <div class="stat-value">~16h</div>
+            <div class="stat-label">Horas Negócio</div>
+          </div>
+          <div>
+            <div class="stat-value">~72h</div>
+            <div class="stat-label">Total</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
       <!-- SPRINT 6 — DESIGN SYSTEM + UI AUDIT -->
       <!-- ========================================================== -->
       <section id="sprint6">
@@ -4705,6 +4970,17 @@
                 <td>~54h</td>
               </tr>
               <tr>
+                <td>Sprint 5.5 — Ligas + Etapas</td>
+                <td>9</td>
+                <td>2</td>
+                <td>4</td>
+                <td>2</td>
+                <td>1</td>
+                <td>~56h</td>
+                <td>~16h</td>
+                <td>~72h</td>
+              </tr>
+              <tr>
                 <td>Sprint 6 — Design System + UI Audit</td>
                 <td>8</td>
                 <td>2</td>
@@ -4750,14 +5026,14 @@
               </tr>
               <tr>
                 <td><strong>TOTAL</strong></td>
-                <td><strong>80</strong></td>
-                <td><strong>13</strong></td>
-                <td><strong>32</strong></td>
-                <td><strong>19</strong></td>
-                <td><strong>10</strong></td>
-                <td><strong>~391h</strong></td>
-                <td><strong>~143h</strong></td>
-                <td><strong>~540h</strong></td>
+                <td><strong>89</strong></td>
+                <td><strong>15</strong></td>
+                <td><strong>36</strong></td>
+                <td><strong>21</strong></td>
+                <td><strong>11</strong></td>
+                <td><strong>~447h</strong></td>
+                <td><strong>~159h</strong></td>
+                <td><strong>~612h</strong></td>
               </tr>
             </tbody>
           </table>
@@ -4765,27 +5041,27 @@
 
         <div class="key-stats">
           <div class="key-stat">
-            <div class="val">80</div>
+            <div class="val">89</div>
             <div class="lbl">Total Tasks</div>
           </div>
           <div class="key-stat">
-            <div class="val" style="color: var(--red)">13</div>
+            <div class="val" style="color: var(--red)">15</div>
             <div class="lbl">P0 Blockers</div>
           </div>
           <div class="key-stat">
-            <div class="val">~391h</div>
+            <div class="val">~447h</div>
             <div class="lbl">Horas DEV</div>
           </div>
           <div class="key-stat">
-            <div class="val">~143h</div>
+            <div class="val">~159h</div>
             <div class="lbl">Horas Negócio</div>
           </div>
           <div class="key-stat">
-            <div class="val" style="color: var(--green)">~540h</div>
+            <div class="val" style="color: var(--green)">~612h</div>
             <div class="lbl">Total Estimado</div>
           </div>
           <div class="key-stat">
-            <div class="val">9</div>
+            <div class="val">10</div>
             <div class="lbl">Sprints</div>
           </div>
           <div class="key-stat">
