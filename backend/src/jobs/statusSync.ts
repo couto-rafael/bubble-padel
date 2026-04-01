@@ -3,10 +3,9 @@ import { prisma } from "../lib/prisma";
 
 /**
  * Task 1.5 — ONGOING automático por data/hora
+ * Task 4.6 — COMPLETED automático quando todos os playoffs foram jogados
  *
  * Roda a cada 15 minutos.
- * Se a hora do primeiro jogo agendado chegou e o torneio ainda está
- * CLOSED ou PUBLISHED, muda para ONGOING automaticamente.
  */
 export function startStatusSyncJob(): void {
   cron.schedule("*/15 * * * *", async () => {
@@ -23,23 +22,15 @@ export function startStatusSyncJob(): void {
 export async function syncTournamentStatuses(): Promise<void> {
   const now = new Date();
 
-  // Busca torneios que podem virar ONGOING
-  const candidates = await prisma.tournament.findMany({
-    where: {
-      status: { in: ["CLOSED", "PUBLISHED"] },
-    },
-    select: {
-      id: true,
-      name: true,
-      status: true,
-    },
+  // ── Task 1.5: CLOSED/PUBLISHED → ONGOING ─────────────────────────────────
+
+  const ongoingCandidates = await prisma.tournament.findMany({
+    where: { status: { in: ["CLOSED", "PUBLISHED"] } },
+    select: { id: true, name: true, status: true },
   });
 
-  if (candidates.length === 0) return;
-
-  for (const tournament of candidates) {
+  for (const tournament of ongoingCandidates) {
     try {
-      // Busca os matchIds dos grupos do torneio
       const groups = await prisma.group.findMany({
         where: { tournamentId: tournament.id },
         include: { matches: { select: { id: true } } },
@@ -47,7 +38,6 @@ export async function syncTournamentStatuses(): Promise<void> {
       const matchIds = groups.flatMap((g) => g.matches.map((m) => m.id));
       if (matchIds.length === 0) continue;
 
-      // Busca o schedule mais antigo deste torneio
       const earliestSchedule = await prisma.schedule.findFirst({
         where: { matchId: { in: matchIds } },
         orderBy: [{ date: "asc" }, { time: "asc" }],
@@ -56,7 +46,6 @@ export async function syncTournamentStatuses(): Promise<void> {
 
       if (!earliestSchedule) continue;
 
-      // Combina data + hora do primeiro jogo
       const dateStr =
         earliestSchedule.date instanceof Date
           ? earliestSchedule.date.toISOString().slice(0, 10)
@@ -66,7 +55,6 @@ export async function syncTournamentStatuses(): Promise<void> {
         `${dateStr}T${earliestSchedule.time}:00`,
       );
 
-      // Se a hora do primeiro jogo já passou → ONGOING
       if (now >= firstMatchDateTime) {
         await prisma.tournament.update({
           where: { id: tournament.id },
@@ -78,6 +66,59 @@ export async function syncTournamentStatuses(): Promise<void> {
       }
     } catch (err) {
       console.error(`[cron] Erro ao processar torneio ${tournament.id}:`, err);
+    }
+  }
+
+  // ── Task 4.6: ONGOING → COMPLETED automático ─────────────────────────────
+  // Condição: todos os playoffs não-bye foram jogados E
+  // o último jogo foi há mais de 6 horas (evita completar antes de encerrar)
+
+  const completedCandidates = await prisma.tournament.findMany({
+    where: { status: "ONGOING" },
+    include: {
+      playoffs: {
+        include: { matches: true },
+      },
+    },
+  });
+
+  for (const tournament of completedCandidates) {
+    try {
+      // Sem playoffs — não auto-completa (clube finaliza manualmente)
+      if (tournament.playoffs.length === 0) continue;
+
+      const allMatches = tournament.playoffs.flatMap((b) =>
+        b.matches.filter((m) => !m.isBye),
+      );
+
+      // Sem jogos não-bye — skip
+      if (allMatches.length === 0) continue;
+
+      // Todos os jogos precisam estar played
+      const allPlayed = allMatches.every((m) => m.played);
+      if (!allPlayed) continue;
+
+      // Verifica quando foi o último jogo atualizado
+      const lastUpdatedAt = allMatches.reduce((latest, m) => {
+        return m.updatedAt > latest ? m.updatedAt : latest;
+      }, new Date(0));
+
+      const hoursElapsed =
+        (now.getTime() - lastUpdatedAt.getTime()) / (1000 * 60 * 60);
+
+      // Só auto-completa se o último jogo foi há mais de 6 horas
+      if (hoursElapsed < 6) continue;
+
+      await prisma.tournament.update({
+        where: { id: tournament.id },
+        data: { status: "COMPLETED" },
+      });
+
+      console.log(
+        `[cron] Torneio "${tournament.name}" → COMPLETED automático (último jogo: ${lastUpdatedAt.toISOString()})`,
+      );
+    } catch (err) {
+      console.error(`[cron] Erro ao completar torneio ${tournament.id}:`, err);
     }
   }
 }
