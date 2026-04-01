@@ -7,92 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String
-  type         UserType
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  club         Club?
-  athlete      Athlete?
-  @@map("users")
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────────────────────
 
 enum UserType {
   CLUB
   ATHLETE
-}
-
-model Club {
-  id                String       @id @default(cuid())
-  userId            String       @unique
-  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name              String
-  cnpj              String?
-  city              String       @default("")
-  state             String       @default("")
-  phone             String?
-  logoUrl           String?
-  // ─── campos de estrutura para torneios ───
-  courts            String[]     @default([])
-  matchDuration     Int          @default(60)
-  defaultStartTime  String       @default("08:00")
-  defaultEndTime    String       @default("20:00")
-  // ─────────────────────────────────────────
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  tournaments       Tournament[]
-  @@map("clubs")
-}
-
-model Athlete {
-  id        String    @id @default(cuid())
-  userId    String    @unique
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fullName  String
-  cpf       String?
-  phone     String?
-  birthDate DateTime?
-  city      String?
-  state     String?
-  avatarUrl String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  @@map("athletes")
-}
-
-model Tournament {
-  id                     String           @id @default(cuid())
-  clubId                 String
-  club                   Club             @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  name                   String
-  sport                  Sport            @default(PADEL)
-  tournamentType         String           @default("Grupos + Playoffs")
-  startDate              DateTime
-  endDate                DateTime
-  registrationStartDate  DateTime?
-  registrationEndDate    DateTime?
-  description            String           @default("")
-  status                 TournamentStatus @default(DRAFT)
-  maxTeams               Int              @default(32)
-  priceFirstCategory     Float            @default(0)
-  hasSecondCategoryPrice Boolean          @default(false)
-  priceSecondCategory    Float            @default(0)
-  pixKey                 String           @default("")
-  clubSede               String           @default("")
-  categories             String[]
-  matchDuration          Int              @default(60)
-  daySchedules           Json             @default("[]")
-  courts                 String[]
-  reminderSentAt         DateTime?
-  createdAt              DateTime         @default(now())
-  updatedAt              DateTime         @updatedAt
-  teams                  Team[]
-  groups                 Group[]
-  playoffs               PlayoffBracket[]
-  @@map("tournaments")
 }
 
 enum Sport {
@@ -111,30 +32,6 @@ enum TournamentStatus {
   COMPLETED
 }
 
-model Team {
-  id                    String        @id @default(cuid())
-  tournamentId          String
-  tournament            Tournament    @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
-  player1Name           String
-  player1Email          String
-  player2Name           String
-  player2Email          String
-  category              String
-  status                TeamStatus    @default(PENDING)
-  player1PaymentStatus  ChargeStatus  @default(PENDING)
-  player2PaymentStatus  ChargeStatus  @default(PENDING)
-  player1ChargeId       String?
-  player2ChargeId       String?
-  amount                Float         @default(0)
-  registrationDate      DateTime      @default(now())
-  hasRestriction        Boolean       @default(false)
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
-  groupTeams            GroupTeam[]
-  payments              Payment[]
-  @@map("teams")
-}
-
 enum TeamStatus {
   CONFIRMED
   PENDING
@@ -147,27 +44,191 @@ enum ChargeStatus {
   REFUNDED
 }
 
+// Sprint 5 — novos enums
+
+enum LeagueMemberStatus {
+  INVITED
+  ACTIVE
+}
+
+enum TrophyPlacement {
+  CHAMPION
+  RUNNER_UP
+}
+
+// Tiers de achievement (Strava-inspired)
+enum AchievementTier {
+  BRONZE
+  SILVER
+  GOLD
+  DIAMOND
+  LEGEND
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// USERS & PROFILES
+// ─────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  type         UserType
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  club         Club?
+  athlete      Athlete?
+
+  @@map("users")
+}
+
+model Club {
+  id               String       @id @default(cuid())
+  userId           String       @unique
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name             String
+  cnpj             String?
+  city             String       @default("")
+  state            String       @default("")
+  phone            String?
+  logoUrl          String?
+  courts           String[]     @default([])
+  matchDuration    Int          @default(60)
+  defaultStartTime String       @default("08:00")
+  defaultEndTime   String       @default("20:00")
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  // relações existentes
+  tournaments      Tournament[]
+
+  // Sprint 5 — ligas
+  leaguesCreated   League[]       @relation("LeaguesCreated")
+  leagueMemberships LeagueMember[]
+
+  @@map("clubs")
+}
+
+model Athlete {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName  String
+  cpf       String?
+  phone     String?
+  birthDate DateTime?
+  city      String?
+  state     String?
+  avatarUrl String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Sprint 5 — gamificação
+  trophies     AthleteTrophy[]
+  achievements AthleteAchievement[]
+  leaguePoints LeaguePoints[]
+
+  @@map("athletes")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOURNAMENTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Tournament {
+  id                    String           @id @default(cuid())
+  clubId                String
+  club                  Club             @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  name                  String
+  sport                 Sport            @default(PADEL)
+  tournamentType        String           @default("Grupos + Playoffs")
+  startDate             DateTime
+  endDate               DateTime
+  registrationStartDate DateTime?
+  registrationEndDate   DateTime?
+  description           String           @default("")
+  status                TournamentStatus @default(DRAFT)
+  maxTeams              Int              @default(32)
+  priceFirstCategory    Float            @default(0)
+  hasSecondCategoryPrice Boolean         @default(false)
+  priceSecondCategory   Float            @default(0)
+  pixKey                String           @default("")
+  clubSede              String           @default("")
+  categories            String[]
+  matchDuration         Int              @default(60)
+  daySchedules          Json             @default("[]")
+  courts                String[]
+  reminderSentAt        DateTime?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  // relações existentes
+  teams    Team[]
+  groups   Group[]
+  playoffs PlayoffBracket[]
+
+  // Sprint 5 — liga (opcional — null = torneio avulso)
+  league   LeagueTournament?
+
+  @@map("tournaments")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TEAMS & PAYMENTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Team {
+  id                   String       @id @default(cuid())
+  tournamentId         String
+  tournament           Tournament   @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  player1Name          String
+  player1Email         String
+  player2Name          String
+  player2Email         String
+  category             String
+  status               TeamStatus   @default(PENDING)
+  player1PaymentStatus ChargeStatus @default(PENDING)
+  player2PaymentStatus ChargeStatus @default(PENDING)
+  player1ChargeId      String?
+  player2ChargeId      String?
+  amount               Float        @default(0)
+  registrationDate     DateTime     @default(now())
+  hasRestriction       Boolean      @default(false)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  groupTeams           GroupTeam[]
+  payments             Payment[]
+
+  @@map("teams")
+}
+
 model Payment {
-  id             String       @id @default(cuid())
-  teamId         String
-  team           Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  tournamentId   String
-  playerNumber   Int
-  playerEmail    String
-  amount         Float
-  status         ChargeStatus @default(PENDING)
-  externalId     String?
-  pixCode        String?
-  pixQrCode      String?
-  paymentToken   String?      @unique
-  emailSentAt    DateTime?
-  paidAt         DateTime?
-  expiresAt      DateTime?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id           String       @id @default(cuid())
+  teamId       String
+  team         Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  tournamentId String
+  playerNumber Int
+  playerEmail  String
+  amount       Float
+  status       ChargeStatus @default(PENDING)
+  externalId   String?
+  pixCode      String?
+  pixQrCode    String?
+  paymentToken String?      @unique
+  emailSentAt  DateTime?
+  paidAt       DateTime?
+  expiresAt    DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
   @@unique([teamId, playerNumber])
   @@map("payments")
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GROUPS, MATCHES, SCHEDULE, PLAYOFFS
+// ─────────────────────────────────────────────────────────────────────────────
 
 model Group {
   id           String      @id @default(cuid())
@@ -179,6 +240,7 @@ model Group {
   updatedAt    DateTime    @updatedAt
   teams        GroupTeam[]
   matches      Match[]
+
   @@map("groups")
 }
 
@@ -196,23 +258,25 @@ model GroupTeam {
   saldo         Int     @default(0)
   gamesPlayed   Int     @default(0)
   qualified     Boolean @default(false)
+
   @@unique([groupId, teamId])
   @@map("group_teams")
 }
 
 model Match {
-  id        String    @id @default(cuid())
+  id        String   @id @default(cuid())
   groupId   String
-  group     Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
   team1Id   String
   team2Id   String
   score1    Int?
   score2    Int?
-  played    Boolean   @default(false)
+  played    Boolean  @default(false)
   wo        Int?
   sets      Json?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@map("matches")
 }
 
@@ -224,6 +288,7 @@ model Schedule {
   time      String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
   @@map("schedules")
 }
 
@@ -259,15 +324,169 @@ model PlayoffMatch {
 }
 
 model Reconciliation {
+  id           String   @id @default(cuid())
+  tournamentId String   @unique
+  totalBruto   Float
+  comissao     Float
+  valorRepasse Float
+  totalAtletas Int
+  status       String   @default("PENDENTE")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("reconciliations")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SPRINT 5 — LIGAS
+// ─────────────────────────────────────────────────────────────────────────────
+
+model League {
   id              String   @id @default(cuid())
-  tournamentId    String   @unique
-  totalBruto      Float
-  comissao        Float
-  valorRepasse    Float
-  totalAtletas    Int
-  status          String   @default("PENDENTE")
+  name            String
+  description     String   @default("")
+  sport           Sport?
+  // Clube que criou a liga
+  createdByClubId String
+  createdByClub   Club     @relation("LeaguesCreated", fields: [createdByClubId], references: [id], onDelete: Cascade)
+  // Pontos padrão por posição (clube define ao criar a liga)
+  pointsChampion  Int      @default(100)
+  pointsRunnerUp  Int      @default(70)
+  pointsSemi      Int      @default(45)
+  pointsQuarter   Int      @default(25)
+  pointsGroup     Int      @default(10)
+  // ACTIVE | ARCHIVED
+  status          String   @default("ACTIVE")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  @@map("reconciliations")
+  members     LeagueMember[]
+  tournaments LeagueTournament[]
+  points      LeaguePoints[]
+
+  @@map("leagues")
+}
+
+// Clubes membros da liga (criador é membro implícito ACTIVE)
+model LeagueMember {
+  id        String             @id @default(cuid())
+  leagueId  String
+  league    League             @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  clubId    String
+  club      Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  status    LeagueMemberStatus @default(INVITED)
+  invitedAt DateTime           @default(now())
+  joinedAt  DateTime?
+
+  @@unique([leagueId, clubId])
+  @@map("league_members")
+}
+
+// Torneio vinculado a uma liga (opcional — null = torneio avulso)
+// Permite override dos pontos padrão da liga por torneio
+model LeagueTournament {
+  id             String     @id @default(cuid())
+  leagueId       String
+  league         League     @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  tournamentId   String     @unique
+  tournament     Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  // Override de pontos (null = usa padrão da liga)
+  pointsChampion Int?
+  pointsRunnerUp Int?
+  pointsSemi     Int?
+  pointsQuarter  Int?
+  pointsGroup    Int?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@map("league_tournaments")
+}
+
+// Pontos acumulados por atleta em uma liga
+model LeaguePoints {
+  id           String   @id @default(cuid())
+  leagueId     String
+  league       League   @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  athleteId    String
+  athlete      Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  tournamentId String
+  category     String
+  // champion | runner_up | semi | quarter | group
+  placement    String
+  points       Int
+  earnedAt     DateTime @default(now())
+
+  // Um atleta só pode ter um resultado por torneio por categoria por liga
+  @@unique([leagueId, athleteId, tournamentId, category])
+  @@map("league_points")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SPRINT 5 — TROFÉUS (automático via playoffs)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AthleteTrophy {
+  id           String          @id @default(cuid())
+  athleteId    String
+  athlete      Athlete         @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  tournamentId String
+  // Nome do torneio denormalizado (evita join toda hora no perfil)
+  tournamentName String
+  category     String
+  placement    TrophyPlacement // CHAMPION | RUNNER_UP
+  sport        Sport           @default(PADEL)
+  earnedAt     DateTime        @default(now())
+
+  // Um atleta só pode ter um troféu por torneio por categoria
+  @@unique([athleteId, tournamentId, category])
+  @@map("athlete_trophies")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SPRINT 5 — ACHIEVEMENTS (gamificação)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Catálogo de achievements possíveis:
+//
+// PARTICIPAÇÃO (com progresso):
+//   regular_player   → 3(B) / 5(S) / 10(G) / 25(D) / 50(L) torneios concluídos
+//   monthly_player   → 3(B) / 6(S) / 12(G) meses distintos c/ torneio
+//   first_tournament → binário (1 torneio inscrito) — sem tier, só BRONZE
+//
+// PERFORMANCE (binário ou tiered):
+//   first_title      → binário BRONZE
+//   champion         → 1(B) / 3(S) / 5(G) / 10(D) títulos
+//   finalist         → 1(B) / 3(S) / 5(G) finais disputadas
+//   podium_streak    → 2(B) / 3(S) / 5(G) pódios consecutivos
+//   undefeated_group → binário BRONZE (passou de grupos sem perder uma vez)
+//
+// SOCIAL (com progresso):
+//   loyal_partner    → 3(B) / 5(S) / 10(G) torneios c/ mesmo parceiro
+//   explorer         → 2(B) / 3(S) / 5(G) cidades diferentes
+//   versatile        → 2(B) / 3(S) categorias diferentes
+//   road_warrior     → 3(B) / 5(S) clubes diferentes
+//
+// PLATAFORMA (binário):
+//   profile_complete → binário BRONZE
+//   early_adopter    → binário BRONZE (primeiros 500 atletas)
+//   league_debut     → binário BRONZE (1º torneio de liga)
+
+model AthleteAchievement {
+  id         String           @id @default(cuid())
+  athleteId  String
+  athlete    Athlete          @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  // chave única do achievement (ex: "regular_player", "champion")
+  key        String
+  // tier atual desbloqueado
+  tier       AchievementTier
+  // progresso numérico atual (ex: 7 torneios — ajuda a renderizar barra)
+  progress   Int              @default(0)
+  // null = ainda não desbloqueado (só tem progresso parcial)
+  unlockedAt DateTime?
+  updatedAt  DateTime         @updatedAt
+
+  // Um atleta tem no máximo um registro por achievement key
+  // (updatamos o tier e progress conforme avança)
+  @@unique([athleteId, key])
+  @@map("athlete_achievements")
 }
