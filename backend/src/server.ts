@@ -83,6 +83,116 @@ app.get("/api/health", async (_req, res) => {
   }
 });
 
+// ─── SEO — OG tags dinâmicas (task 4.5) ──────────────────────────────────────
+// Bots de redes sociais recebem HTML com meta tags dinâmicas
+// Usuários normais são redirecionados para o React app
+
+const BOT_AGENTS = [
+  "whatsapp",
+  "facebookexternalhit",
+  "twitterbot",
+  "linkedinbot",
+  "telegrambot",
+  "slackbot",
+  "discordbot",
+  "googlebot",
+  "bingbot",
+];
+
+function isBot(userAgent: string): boolean {
+  const ua = userAgent.toLowerCase();
+  return BOT_AGENTS.some((bot) => ua.includes(bot));
+}
+
+function normalizeSport(s: string): string {
+  switch (s?.toUpperCase()) {
+    case "PADEL":
+      return "Padel";
+    case "BEACH_TENNIS":
+      return "Beach Tennis";
+    case "TENIS":
+      return "Tênis";
+    default:
+      return s ?? "";
+  }
+}
+
+// GET /og/tournaments/:id — serve HTML com OG tags para bots
+app.get("/og/tournaments/:id", async (req, res) => {
+  try {
+    const tournament = await prisma.tournament.findFirst({
+      where: {
+        id: req.params.id,
+        status: { in: ["PUBLISHED", "OPEN", "CLOSED", "ONGOING", "COMPLETED"] },
+      },
+      include: {
+        club: { select: { name: true, city: true, state: true } },
+        _count: { select: { teams: true } },
+      },
+    });
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const canonicalUrl = `${frontendUrl}/tournaments/${req.params.id}`;
+    const ogImage = `${frontendUrl}/og-image.png`;
+
+    if (!tournament) {
+      return res.redirect(302, canonicalUrl);
+    }
+
+    const sport = normalizeSport(tournament.sport as string);
+    const city = tournament.club?.city ?? "";
+    const startDate = new Date(tournament.startDate).toLocaleDateString(
+      "pt-BR",
+      {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      },
+    );
+    const teamsCount = (tournament as any)._count?.teams ?? 0;
+
+    const title = `${tournament.name} — Bubble Padel`;
+    const description = `${sport} · ${city} · ${startDate} · ${teamsCount} duplas inscritas. Inscreva-se pelo Bubble Padel!`;
+
+    return res.send(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>${title}</title>
+  <meta name="description" content="${description}">
+  <meta property="og:title" content="${title}">
+  <meta property="og:description" content="${description}">
+  <meta property="og:image" content="${ogImage}">
+  <meta property="og:url" content="${canonicalUrl}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Bubble Padel">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${title}">
+  <meta name="twitter:description" content="${description}">
+  <meta name="twitter:image" content="${ogImage}">
+  <link rel="canonical" href="${canonicalUrl}">
+  <meta http-equiv="refresh" content="0; url=${canonicalUrl}">
+</head>
+<body>
+  <p>Redirecionando para <a href="${canonicalUrl}">${title}</a>...</p>
+</body>
+</html>`);
+  } catch (err) {
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    return res.redirect(302, `${frontendUrl}/tournaments/${req.params.id}`);
+  }
+});
+
+// Middleware de detecção de bot — intercepta /tournaments/:id ANTES do React
+// Redireciona bots para /og/tournaments/:id, usuários seguem normalmente
+app.get("/tournaments/:id", (req, res, next) => {
+  const ua = req.headers["user-agent"] ?? "";
+  if (isBot(ua)) {
+    return res.redirect(301, `/og/tournaments/${req.params.id}`);
+  }
+  next();
+});
+
 // ─── Error handler (sempre por último) ───────────────────────────────────────
 app.use(errorHandler);
 

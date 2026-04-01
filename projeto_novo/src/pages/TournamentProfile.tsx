@@ -220,6 +220,16 @@ const TournamentProfile = () => {
     return () => clearInterval(interval);
   }, [id, tournament?.status]);
 
+  // Task 4.5 — título dinâmico da aba
+  useEffect(() => {
+    if (tournament?.name) {
+      document.title = `${tournament.name} — Bubble Padel`;
+    }
+    return () => {
+      document.title = "Bubble Padel";
+    };
+  }, [tournament?.name]);
+
   const handleRegister = async () => {
     if (
       !id ||
