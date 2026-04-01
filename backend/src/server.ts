@@ -16,6 +16,7 @@ import { startStatusSyncJob } from "./jobs/statusSync";
 import { startReminderJob } from "./jobs/reminderJob";
 import { prisma } from "./lib/prisma";
 import { paymentRoutes, webhookRoutes } from "./routes/payments";
+import { leagueRoutes } from "./routes/leagues";
 
 // ─── Sentry (task 2.4) ────────────────────────────────────────────────────────
 if (process.env.SENTRY_DSN) {
@@ -63,6 +64,7 @@ app.use("/api/public/athletes", publicAthleteRoutes);
 // ─── Pagamentos (task 3.1) ───────────────────────────────────────────────────
 app.use("/api/payments", paymentRoutes);
 app.use("/api/pay", paymentRoutes);
+app.use("/api/leagues", leagueRoutes);
 app.use("/api/webhooks", webhookRoutes);
 
 // ─── Health check (task 2.4) ──────────────────────────────────────────────────
