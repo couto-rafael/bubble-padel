@@ -2877,23 +2877,24 @@
       <!-- ========================================================== -->
       <section id="sprint5">
         <div class="sprint-header">
-          <h2>🏆 Sprint 5 — Gamificação + Engajamento do Atleta</h2>
+          <h2>✅ Sprint 5 — Gamificação + Ligas + Engajamento do Atleta <span style="font-size:14px;color:var(--green);font-weight:600;">[CONCLUÍDA — Abril 2026]</span></h2>
           <p class="sprint-theme">
-            Q3 2026 · Sistema de badges, ranking por categoria/cidade, trophy
-            room no perfil do atleta
+            Q2 2026 · Ligas com pontuação configurável, achievements com tiers (Strava-inspired),
+            trophy room real via playoffs, AthleteProfile refatorado com dados reais.
+            Sprint 5 + Sprint 5.5 foram executadas juntas.
           </p>
           <div class="sprint-meta">
-            <div class="sprint-meta-item"><strong>8</strong> tasks</div>
-            <div class="sprint-meta-item"><strong>~54h</strong> estimadas</div>
-            <div class="sprint-meta-item"><strong>0</strong> P0 blockers</div>
+            <div class="sprint-meta-item"><strong>7</strong> tasks entregues</div>
+            <div class="sprint-meta-item"><strong>✅ CONCLUÍDA</strong></div>
+            <div class="sprint-meta-item"><strong>Gate 6 aprovado</strong></div>
             <div class="sprint-meta-item">
-              <strong>Agente: Gamification</strong>
+              <strong>Agentes: Gamification + UI Specialist</strong>
             </div>
           </div>
           <div
             style="
-              background: rgba(0, 204, 255, 0.06);
-              border: 1px solid rgba(0, 204, 255, 0.2);
+              background: rgba(0, 255, 136, 0.06);
+              border: 1px solid rgba(0, 255, 136, 0.3);
               border-radius: 8px;
               padding: 12px 16px;
               margin-top: 12px;
@@ -2901,9 +2902,15 @@
               color: var(--muted);
             "
           >
-            ⚡ <strong style="color: var(--blue)">Objetivo:</strong> Tornar a
-            participação em torneios mais motivante e recorrente. Atleta acumula
-            badges, sobe no ranking e compartilha conquistas.
+            ✅ <strong style="color: var(--green)">Entregue:</strong>
+            Schema (League, LeagueTournament, LeaguePoints, AthleteTrophy, AthleteAchievement) ·
+            Backend Ligas (CRUD + convites + vínculo torneio + ranking) ·
+            GamificationService (troféus automáticos via playoffs + 14 achievements + pontos de liga) ·
+            GET /athlete/stats · LeaguesDashboard · EditTournament campo Liga ·
+            AthleteProfile com trophy room + achievements reais + aba Ligas.<br><br>
+            📌 <strong style="color: var(--amber)">Backlog Sprint 6 gerado:</strong>
+            Ranking sempre por categoria · Oitavas/16avos no sistema de pontos ·
+            Fluxo convite liga por email (3 cenários) · UX/UI pass.
           </div>
         </div>
 
@@ -3109,23 +3116,19 @@
       <!-- ========================================================== -->
       <section id="sprint55">
         <div class="sprint-header">
-          <h2>🏅 Sprint 5.5 — Ligas + Etapas + Ranking Acumulado</h2>
+          <h2>✅ Sprint 5.5 — Ligas + Etapas + Ranking Acumulado <span style="font-size:14px;color:var(--green);font-weight:600;">[CONCLUÍDA — executada junto com Sprint 5]</span></h2>
           <p class="sprint-theme">
-            Q3 2026 · Plataforma de liga esportiva — múltiplas etapas, pontuação
-            acumulada, ranking da temporada
+            Q2 2026 · Integrada na Sprint 5 — Ligas multi-clube, pontuação configurável por posição,
+            override por torneio, ranking por categoria, convites por email.
           </p>
           <div class="sprint-meta">
-            <div class="sprint-meta-item"><strong>9</strong> tasks</div>
-            <div class="sprint-meta-item"><strong>~72h</strong> estimadas</div>
-            <div class="sprint-meta-item"><strong>2</strong> P0 blockers</div>
-            <div class="sprint-meta-item">
-              <strong>Diferencial competitivo</strong>
-            </div>
+            <div class="sprint-meta-item"><strong>✅ CONCLUÍDA</strong></div>
+            <div class="sprint-meta-item"><strong>Merged com Sprint 5</strong></div>
           </div>
           <div
             style="
-              background: rgba(0, 204, 255, 0.06);
-              border: 1px solid rgba(0, 204, 255, 0.2);
+              background: rgba(0, 255, 136, 0.06);
+              border: 1px solid rgba(0, 255, 136, 0.3);
               border-radius: 8px;
               padding: 12px 16px;
               margin-top: 12px;
@@ -3133,10 +3136,15 @@
               color: var(--muted);
             "
           >
-            ⚡ <strong style="color: var(--blue)">Objetivo:</strong> Clube cria
-            uma Liga (ex: "Liga Joinvilense de Padel 2026"), adiciona etapas
-            (torneios), define pontuação por resultado. Atletas acumulam pontos
-            ao longo da temporada. Feature sem equivalente direto no Brasil.
+            ✅ <strong style="color: var(--green)">Entregue na Sprint 5:</strong>
+            Qualquer clube pode criar liga e convidar outros clubes ·
+            Pontos configuráveis na liga (padrão) com override por torneio ·
+            Torneio vinculável à liga até status OPEN ·
+            Ranking de atletas por liga (por categoria — decisão de produto) ·
+            LeaguesDashboard com gestão completa · GET /api/leagues/:id/ranking.<br><br>
+            📌 <strong style="color: var(--amber)">Pendente Sprint 6:</strong>
+            Página pública /leagues/:id · Fluxo convite por email (3 cenários) ·
+            Ranking sempre por categoria (fix backend) · Oitavas/16avos no sistema de pontos.
           </div>
         </div>
 
@@ -3370,14 +3378,14 @@
       <!-- ========================================================== -->
       <section id="sprint6">
         <div class="sprint-header">
-          <h2>🎨 Sprint 6 — Design System + UI Audit</h2>
+          <h2>🎨 Sprint 6 — Design System + UI Audit + Fixes de Liga</h2>
           <p class="sprint-theme">
-            Q3 2026 · Definir paleta, tipografia, componentes base e mapear
-            todas as páginas para redesign
+            Q3 2026 · Definir paleta, tipografia, componentes base, mapear todas as páginas para redesign.
+            + Fixes e melhorias gerados pela Sprint 5: ranking por categoria, convites de liga, oitavas/16avos.
           </p>
           <div class="sprint-meta">
-            <div class="sprint-meta-item"><strong>8</strong> tasks</div>
-            <div class="sprint-meta-item"><strong>~58h</strong> estimadas</div>
+            <div class="sprint-meta-item"><strong>8+4</strong> tasks</div>
+            <div class="sprint-meta-item"><strong>~70h</strong> estimadas</div>
             <div class="sprint-meta-item"><strong>2</strong> P0 blockers</div>
             <div class="sprint-meta-item">
               <strong>Agente: UI Specialist</strong>
@@ -3397,7 +3405,113 @@
             ⚡ <strong style="color: var(--blue)">Objetivo:</strong> Criar o
             alicerce visual do produto. Tudo que for construído nas Sprints 7 e
             8 usa este design system como fonte de verdade.
+            + Corrigir e completar features de liga geradas na Sprint 5.
           </div>
+        </div>
+
+        <!-- Tasks geradas pela Sprint 5 (adicionadas ao início da Sprint 6) -->
+        <div class="task-card" style="border-left: 3px solid var(--amber);">
+          <div class="task-header">
+            <span class="task-id">6.L1</span>
+            <span class="task-title">Ranking de Liga SEMPRE por Categoria</span>
+            <span class="badge badge-p0">P0</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">3h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> Sprint 5 concluída</div>
+          <div class="task-objective">
+            GET /api/leagues/:id/ranking deve retornar agrupado por categoria por padrão (nunca ranking geral).
+            LeaguesDashboard exibe ranking separado por categoria com seletor.
+            AthleteProfile aba Ligas mostra pontos separados por categoria.
+            Decisão de produto: ranking geral não existe — é sempre por categoria.
+          </div>
+          <div class="task-files">
+            <h5>Arquivos afetados</h5>
+            <ul>
+              <li class="file-modify">backend: routes/leagues.ts (MODIFY — groupBy category obrigatório)</li>
+              <li class="file-modify">frontend: LeaguesDashboard.tsx (MODIFY — ranking por categoria)</li>
+              <li class="file-modify">frontend: AthleteProfile.tsx (MODIFY — pontos por categoria)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="task-card" style="border-left: 3px solid var(--amber);">
+          <div class="task-header">
+            <span class="task-id">6.L2</span>
+            <span class="task-title">Fluxo de Convite de Liga por Email</span>
+            <span class="badge badge-p1">P1</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">6h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> Sprint 5 concluída</div>
+          <div class="task-objective">
+            3 cenários: (1) Email encontrado tipo CLUB → envia email de convite com link de aceite;
+            (2) Email encontrado tipo ATHLETE → retorna erro "apenas clubes podem participar de ligas";
+            (3) Email não encontrado → envia email externo convidando para criar conta + tabela
+            PendingInvite(email, leagueId) para resgatar no cadastro.
+            Prioridade: cenários 1+2 antes do 3.
+          </div>
+          <div class="task-files">
+            <h5>Arquivos afetados</h5>
+            <ul>
+              <li class="file-modify">backend: routes/leagues.ts (MODIFY — lógica de invite)</li>
+              <li class="file-modify">backend: services/EmailService.ts (MODIFY — 2 novos templates)</li>
+              <li class="file-create">backend: prisma/schema.prisma (MODIFY — PendingInvite model, cenário 3)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="task-card" style="border-left: 3px solid var(--amber);">
+          <div class="task-header">
+            <span class="task-id">6.L3</span>
+            <span class="task-title">Oitavas e 16avos no Sistema de Pontos de Liga</span>
+            <span class="badge badge-p2">P2</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">4h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> Sprint 5 concluída</div>
+          <div class="task-objective">
+            Adicionar campos pointsRound16 (oitavas, roundSize=8) e pointsRound32 (16avos, roundSize=16)
+            como nullable em League e LeagueTournament. GamificationService detecta roundSize=8/16
+            nos losers e distribui pontos. LeaguesDashboard modal de criação com seção
+            "Etapas Avançadas" colapsável. leagues.ts Zod schema atualizado.
+          </div>
+          <div class="task-files">
+            <h5>Arquivos afetados</h5>
+            <ul>
+              <li class="file-modify">backend: prisma/schema.prisma (MODIFY — +pointsRound16, +pointsRound32)</li>
+              <li class="file-modify">backend: services/GamificationService.ts (MODIFY)</li>
+              <li class="file-modify">backend: routes/leagues.ts (MODIFY — Zod schema)</li>
+              <li class="file-modify">frontend: LeaguesDashboard.tsx (MODIFY — seção avançada)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="task-card" style="border-left: 3px solid var(--amber);">
+          <div class="task-header">
+            <span class="task-id">6.L4</span>
+            <span class="task-title">Página Pública da Liga (/leagues/:id)</span>
+            <span class="badge badge-p2">P2</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">8h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> 6.L1</div>
+          <div class="task-objective">
+            Página pública /leagues/:id: nome da liga, ranking por categoria,
+            lista de torneios vinculados com resultados, filtro por categoria.
+            Rota pública (sem auth). OG tags para compartilhamento no WhatsApp.
+          </div>
+          <div class="task-files">
+            <h5>Arquivos afetados</h5>
+            <ul>
+              <li class="file-create">frontend: pages/LeagueProfile.tsx (CREATE)</li>
+              <li class="file-modify">frontend: App.tsx (MODIFY — rota /leagues/:id)</li>
+              <li class="file-modify">backend: routes/leagues.ts (MODIFY — rota pública)</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tasks originais da Sprint 6 — Design System -->
         </div>
 
         <div class="task-card">

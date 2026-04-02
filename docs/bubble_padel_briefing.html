@@ -621,10 +621,10 @@
         <span class="badge">10 Especialistas</span>
         <span class="badge">72+ Recomendações</span>
         <span class="badge">12 Debates</span>
-        <span class="badge amber">Score Atual 6.5/10</span>
+        <span class="badge amber">Score Atual 7.2/10</span>
         <span class="badge green">Meta Launch 7.5/10</span>
       </div>
-      <p class="date">Março 2026</p>
+      <p class="date">Atualizado: Abril 2026 — Sprint 5 concluída</p>
     </header>
 
     <!-- ============================================================ -->
@@ -663,7 +663,7 @@
           <div class="name">Fullstack Tech Lead</div>
           <div class="role">React + TypeScript + Node.js</div>
           <div class="score" style="color: var(--blue)">
-            6.5<span style="font-size: 14px; color: var(--muted)">/10</span>
+            7.2<span style="font-size: 14px; color: var(--muted)">/10</span>
           </div>
           <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
             Arquitetura de hooks sólida (useGroups, useTeams, useSchedule,
@@ -750,7 +750,7 @@
           <div class="name">GTM / Launch</div>
           <div class="role">Go-to-Market Strategy</div>
           <div class="score" style="color: var(--blue)">
-            6.5<span style="font-size: 14px; color: var(--muted)">/10</span>
+            7.2<span style="font-size: 14px; color: var(--muted)">/10</span>
           </div>
           <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
             ✅ <strong>Sprint 2:</strong> Modelo de monetização definido (PIX
@@ -993,13 +993,12 @@
           <div class="ba-label">✅ Prioridade atual</div>
           <ul>
             <li>
-              <strong>Sprint 4:</strong> Área do atleta + ranking + PDF + live
-              scoring
+              <s><strong>Sprint 4:</strong> Área do atleta + ranking + PDF + live scoring</s> ✅
             </li>
             <li>
-              <strong>Sprint 5:</strong> Gamificação (badges, trophy room)
+              <s><strong>Sprint 5:</strong> Gamificação + Ligas (badges, trophy room, achievements, LeaguesDashboard)</s> ✅
             </li>
-            <li><strong>Sprint 6:</strong> Design System + UI Audit</li>
+            <li><strong>Sprint 6:</strong> Design System + UI Audit + Fixes Liga (ranking por categoria, convites, oitavas)</li>
             <li>
               <strong>Sprint 7:</strong> UI Redesign Desktop (todas as páginas)
             </li>
@@ -1322,11 +1321,10 @@
           </ul>
           <ul class="bad-list" style="margin-top: 8px">
             <li>
-              Sem área pessoal do atleta (meus torneios) — Sprint 4 ✅ parcial
-              (dashboard real, perfil completo Sprint 7)
+
             </li>
-            <li>Sem notificação quando grupos são gerados — Sprint 5</li>
-            <li>Sem ranking ou gamificação — Sprint 5</li>
+            <li><s>Sem notificação quando grupos são gerados — Sprint 5</s> ✅</li>
+            <li><s>Sem ranking ou gamificação — Sprint 5</s> ✅ (achievements, trophy room, ligas, pontos)</li>
           </ul>
         </div>
       </div>
@@ -1343,9 +1341,9 @@
             <li>✅ Pagamento PIX com QR Code e polling de confirmação</li>
             <li>✅ Dashboard com torneios reais, stats e parceiro</li>
             <li>✅ Live scoring público durante torneio (polling 30s)</li>
-            <li>Grupos gerados → email/WhatsApp com tabela (Sprint 5)</li>
+            <li><s>Grupos gerados → email/WhatsApp com tabela (Sprint 5)</s> ✅</li>
             <li>
-              Área pessoal completa com histórico e conquistas (Sprint 5 + 7)
+              <s>Área pessoal completa com histórico e conquistas (Sprint 5 + 7)</s> ✅ Sprint 5
             </li>
           </ul>
         </div>
@@ -2339,47 +2337,73 @@
         </div>
 
         <div class="timeline-item">
-          <div class="period">Sprint 5 — Q3 2026</div>
-          <h4>Gamificação + Engajamento do Atleta</h4>
-          <div class="card" style="margin-top: 8px">
+          <div class="period">Sprint 5 ✅ — Concluída (Abril 2026)</div>
+          <h4>Gamificação + Ligas + Engajamento do Atleta</h4>
+          <div
+            class="card"
+            style="margin-top: 8px; border-left: 3px solid var(--green)"
+          >
             <ul style="list-style: none; padding: 0">
               <li style="padding: 4px 0; font-size: 14px">
-                ✦ Sistema de badges e conquistas (15+ tipos)
+                ✅ Schema: League, LeagueTournament, LeaguePoints, AthleteTrophy, AthleteAchievement
               </li>
               <li style="padding: 4px 0; font-size: 14px">
-                ✦ Ranking com pontuação por resultado e tamanho do torneio
+                ✅ Sistema de Ligas — qualquer clube cria e convida outros clubes
               </li>
               <li style="padding: 4px 0; font-size: 14px">
-                ✦ Trophy room no perfil do atleta
+                ✅ Pontos configuráveis por posição (padrão na liga + override por torneio)
               </li>
               <li style="padding: 4px 0; font-size: 14px">
-                ✦ Compartilhamento de conquistas (WhatsApp/Instagram)
+                ✅ GamificationService — troféus automáticos via playoffs + 14 achievements com tiers
               </li>
               <li style="padding: 4px 0; font-size: 14px">
-                ✦ Certificados digitais de participação
+                ✅ Trophy Room real — apenas campeão/vice via playoffs (não inflado)
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✅ Achievements: 4 categorias (Participação, Performance, Social, Plataforma) com barras de progresso
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✅ AthleteProfile refatorado — dados reais, 4 abas, aba Ligas com standings
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✅ LeaguesDashboard — criar/gerenciar ligas, convidar clubes, vincular torneios, ranking
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✅ EditTournament — campo Liga (vincular/desvincular até OPEN)
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ➡️ Pendente Sprint 6: ranking por categoria obrigatório, convites por email, oitavas/16avos, página pública da liga
               </li>
             </ul>
           </div>
         </div>
 
         <div class="timeline-item">
-          <div class="period">Sprints 6-7 — Q3-Q4 2026</div>
-          <h4>Design System + UI Redesign Desktop</h4>
+          <div class="period">Sprint 6 — Q3 2026</div>
+          <h4>Design System + UI Audit + Fixes de Liga</h4>
           <div class="card" style="margin-top: 8px">
             <ul style="list-style: none; padding: 0">
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Ranking de liga sempre por categoria (fix decisão de produto)
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Fluxo de convite de liga por email (3 cenários: CLUB/ATHLETE/externo)
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Oitavas e 16avos no sistema de pontos de liga
+              </li>
+              <li style="padding: 4px 0; font-size: 14px">
+                ✦ Página pública da liga (/leagues/:id)
+              </li>
               <li style="padding: 4px 0; font-size: 14px">
                 ✦ Design system oficial (paleta, tipografia, componentes)
               </li>
               <li style="padding: 4px 0; font-size: 14px">
                 ✦ UI audit de todas as 15 páginas
               </li>
-              <li style="padding: 4px 0; font-size: 14px">
-                ✦ Redesign completo: ClubDashboard, EditTournament,
-                AthleteProfile
-              </li>
-              <li style="padding: 4px 0; font-size: 14px">
-                ✦ QR Code PIX inline no PaymentModal
-              </li>
+            </ul>
+          </div>
+        </div>
               <li style="padding: 4px 0; font-size: 14px">
                 ✦ Landing page final com depoimentos reais
               </li>
@@ -2562,11 +2586,11 @@
         <p style="font-size: 14px; color: var(--muted); margin-bottom: 16px">
           Score de Prontidão para Lançamento Comercial
         </p>
-        <span class="big" style="color: var(--amber)">6.5</span>
+        <span class="big" style="color: var(--amber)">7.2</span>
         <span class="arrow">→</span>
         <span class="big" style="color: var(--green)">7.5</span>
         <p style="font-size: 14px; color: var(--muted); margin-top: 16px">
-          Com as implementações das Sprints 1-3
+          Sprints 1–5 concluídas. Meta de lançamento: Sprint 6 + UI pass.
         </p>
         <p
           style="
@@ -2578,10 +2602,9 @@
             margin-right: auto;
           "
         >
-          Score atual de 5.2 reflete um core de produto excepcionalmente sólido
-          (grupos, schedule, playoffs = 8.5/10) mas zerado em monetização, legal
-          e comunicação com atleta. O gap é fechável em 6-8 semanas com foco nos
-          4 bloqueadores.
+          Score 7.2 reflete core de produto sólido (grupos, schedule, playoffs, pagamentos, emails, gamificação, ligas).
+          Gap para 7.5: UI/UX pass (Sprint 6–7), ranking por categoria corrigido, página pública da liga.
+          Funcionalidades core estão acima da média para um sistema em pré-lançamento.
         </p>
       </div>
 
