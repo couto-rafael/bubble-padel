@@ -40,7 +40,7 @@ const NOTIFICATIONS = [
 ];
 
 interface DashboardHeaderProps {
-  activePage?: "dashboard" | "tournaments" | "marketplace";
+  activePage?: "dashboard" | "tournaments" | "leagues" | "marketplace";
 }
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({
@@ -248,6 +248,18 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                   </div>
                 )}
               </div>
+
+              {/* ── Ligas (link simples) ── */}
+              <Link
+                to="/dashboard/leagues"
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  activePage === "leagues"
+                    ? "bg-white/8 text-white"
+                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                Ligas
+              </Link>
 
               {/* ── Marketplace (link simples) ── */}
               <Link
