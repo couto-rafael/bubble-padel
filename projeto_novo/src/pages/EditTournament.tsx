@@ -171,6 +171,16 @@ const EditTournament = () => {
   >([]);
   const [estruturaSaving, setEstruturaSaving] = useState(false);
 
+  // Liga
+  const [myLeagues, setMyLeagues] = useState<
+    Array<{ id: string; name: string }>
+  >([]);
+  const [linkedLeague, setLinkedLeague] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [leagueLinking, setLeagueLinking] = useState(false);
+
   // Estados do modal de confirmação
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -206,6 +216,89 @@ const EditTournament = () => {
     }
     setLoading(false);
   }, [id, tournaments]);
+
+  // Carrega ligas do clube + vínculo atual do torneio
+  useEffect(() => {
+    if (!id) return;
+    const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
+    const token = localStorage.getItem("auth_token") ?? "";
+    const h = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    };
+
+    fetch(`${API_URL}/leagues`, { headers: h })
+      .then((r) => r.json())
+      .then(async (j) => {
+        const all: Array<{ id: string; name: string }> = [
+          ...(j.data?.created ?? []),
+          ...(j.data?.member ?? []),
+        ];
+        setMyLeagues(all);
+        // Detecta vínculo atual
+        for (const league of all) {
+          const detail = await fetch(`${API_URL}/leagues/${league.id}`, {
+            headers: h,
+          }).then((r) => r.json());
+          const linked = (detail.data?.tournaments ?? []).find(
+            (lt: any) => lt.tournamentId === id,
+          );
+          if (linked) {
+            setLinkedLeague({ id: league.id, name: league.name });
+            break;
+          }
+        }
+      })
+      .catch(console.error);
+  }, [id]);
+
+  const handleLinkLeague = async (leagueId: string) => {
+    if (!id) return;
+    const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
+    const token = localStorage.getItem("auth_token") ?? "";
+    setLeagueLinking(true);
+    try {
+      const res = await fetch(`${API_URL}/leagues/${leagueId}/tournaments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ tournamentId: id }),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error ?? "Erro ao vincular");
+      const league = myLeagues.find((l) => l.id === leagueId);
+      if (league) setLinkedLeague({ id: league.id, name: league.name });
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setLeagueLinking(false);
+    }
+  };
+
+  const handleUnlinkLeague = async () => {
+    if (!id || !linkedLeague) return;
+    const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
+    const token = localStorage.getItem("auth_token") ?? "";
+    setLeagueLinking(true);
+    try {
+      const res = await fetch(
+        `${API_URL}/leagues/${linkedLeague.id}/tournaments/${id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error ?? "Erro ao desvincular");
+      setLinkedLeague(null);
+    } catch (e: any) {
+      alert(e.message);
+    } finally {
+      setLeagueLinking(false);
+    }
+  };
 
   const handleFieldChange = (
     field: keyof Tournament,
@@ -841,6 +934,101 @@ const EditTournament = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Liga */}
+                {tournament &&
+                  ["draft", "published"].includes(
+                    tournament.status?.toLowerCase() ?? "",
+                  ) && (
+                    <div className="bg-white border border-gray-200 rounded-xl p-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-base font-bold text-gray-900">
+                          Liga
+                        </h3>
+                        {linkedLeague && (
+                          <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full">
+                            Vinculada
+                          </span>
+                        )}
+                      </div>
+                      {linkedLeague ? (
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <span className="text-lg">🏆</span>
+                            <span className="text-sm font-semibold text-blue-800 flex-1 truncate">
+                              {linkedLeague.name}
+                            </span>
+                          </div>
+                          <button
+                            onClick={handleUnlinkLeague}
+                            disabled={leagueLinking}
+                            className="w-full px-3 py-2 border border-gray-300 text-gray-600 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                          >
+                            {leagueLinking
+                              ? "Removendo..."
+                              : "Desvincular liga"}
+                          </button>
+                        </div>
+                      ) : myLeagues.length === 0 ? (
+                        <div className="text-center py-2">
+                          <p className="text-xs text-gray-400 mb-2">
+                            Você não participa de nenhuma liga ainda.
+                          </p>
+                          <a
+                            href="/dashboard/leagues"
+                            className="text-xs text-blue-600 hover:underline font-semibold"
+                          >
+                            Criar ou entrar em uma liga →
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <p className="text-xs text-gray-500 mb-2">
+                            Torneio avulso. Vincule a uma liga para distribuir
+                            pontos.
+                          </p>
+                          <select
+                            defaultValue=""
+                            onChange={(e) => {
+                              if (e.target.value)
+                                handleLinkLeague(e.target.value);
+                            }}
+                            disabled={leagueLinking}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 disabled:opacity-50 transition-colors"
+                          >
+                            <option value="">Selecionar liga...</option>
+                            {myLeagues.map((l) => (
+                              <option key={l.id} value={l.id}>
+                                {l.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                {/* Liga — read-only após OPEN */}
+                {tournament &&
+                  !["draft", "published"].includes(
+                    tournament.status?.toLowerCase() ?? "",
+                  ) &&
+                  linkedLeague && (
+                    <div className="bg-white border border-gray-200 rounded-xl p-6">
+                      <h3 className="text-base font-bold text-gray-900 mb-3">
+                        Liga
+                      </h3>
+                      <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <span className="text-lg">🏆</span>
+                        <span className="text-sm font-semibold text-blue-800 flex-1 truncate">
+                          {linkedLeague.name}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-2">
+                        Liga não pode ser alterada após as inscrições abrirem.
+                      </p>
+                    </div>
+                  )}
               </div>
             </div>
           )}
