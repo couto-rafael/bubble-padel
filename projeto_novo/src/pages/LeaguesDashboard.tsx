@@ -403,7 +403,7 @@ const InviteModal = ({
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
 
   const handleSubmit = async () => {
     if (!email.trim()) {
@@ -412,13 +412,30 @@ const InviteModal = ({
     }
     setLoading(true);
     setError("");
+    setSuccessMsg("");
     try {
-      await api.inviteClub(leagueId, email.trim());
-      setSuccess(true);
-      setTimeout(() => {
-        onInvited();
-        onClose();
-      }, 1200);
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL ?? "http://localhost:3001/api"}/leagues/${leagueId}/invite`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("auth_token") ?? ""}`,
+          },
+          body: JSON.stringify({ email: email.trim() }),
+        },
+      );
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error ?? "Erro ao convidar.");
+      // Cenário 1 (clube encontrado) ou Cenário 3 (externo) — ambos chegam aqui
+      setSuccessMsg(j.message ?? "Convite enviado!");
+      if (j.data) {
+        // Cenário 1 — clube foi adicionado, recarrega lista
+        setTimeout(() => {
+          onInvited();
+          onClose();
+        }, 1800);
+      }
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -450,22 +467,29 @@ const InviteModal = ({
             </svg>
           </button>
         </div>
-        {success ? (
+        {successMsg ? (
           <div className="text-center py-6">
-            <span className="text-4xl">✅</span>
-            <p className="mt-3 font-semibold text-gray-800">Convite enviado!</p>
+            <span className="text-4xl block mb-3">✅</span>
+            <p className="font-semibold text-gray-800">{successMsg}</p>
+            <button
+              onClick={onClose}
+              className="mt-4 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              Fechar
+            </button>
           </div>
         ) : (
           <>
             <p className="text-sm text-gray-500 mb-4">
-              Informe o email de cadastro do clube que deseja convidar para a
-              liga.
+              Informe o email de cadastro do clube. Se o email não estiver
+              cadastrado, enviaremos um convite para criar uma conta.
             </p>
             <input
               type="email"
               placeholder="email@clube.com.br"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-colors mb-3"
             />
             {error && (

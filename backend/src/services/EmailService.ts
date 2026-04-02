@@ -454,3 +454,112 @@ export async function sendPixParaParceiro(
     html,
   });
 }
+
+// ─── TEMPLATES DE LIGA ────────────────────────────────────────────────────────
+
+// Cenário 1: email encontrado, tipo CLUB — convite com link de aceite
+
+interface ConviteLigaData {
+  clubName: string; // nome do clube convidado
+  clubEmail: string; // email do clube convidado
+  inviterClubName: string; // nome do clube que convidou
+  leagueName: string;
+  leagueId: string;
+}
+
+function templateConviteLiga(data: ConviteLigaData): string {
+  const acceptUrl = `${FRONTEND()}/dashboard/leagues`;
+  return `${emailHeader()}
+        <tr><td style="padding:0;">
+          <div style="background:linear-gradient(135deg,#050f1a 0%,#0d2037 100%);padding:40px;text-align:center;">
+            <p style="margin:0 0 8px;font-size:48px;">🏆</p>
+            <h2 style="margin:0 0 8px;color:#00ff88;font-size:24px;font-weight:800;">Convite para Liga</h2>
+            <p style="margin:0;color:#7a9ab5;font-size:15px;">${data.leagueName}</p>
+          </div>
+        </td></tr>
+        <tr><td style="padding:40px 40px 32px;">
+          <p style="margin:0 0 16px;color:#4a6580;font-size:15px;line-height:1.6;">
+            Olá, <strong>${data.clubName}</strong>!
+          </p>
+          <p style="margin:0 0 24px;color:#4a6580;font-size:15px;line-height:1.6;">
+            <strong>${data.inviterClubName}</strong> convidou o seu clube para participar da liga
+            <strong style="color:#0d2037;">${data.leagueName}</strong> no Bubble Padel.
+          </p>
+          <p style="margin:0 0 24px;color:#4a6580;font-size:14px;line-height:1.6;">
+            Na liga, os seus torneios acumulam pontos para os atletas e geram um ranking por categoria ao longo da temporada.
+          </p>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td align="center" style="padding:8px 0 24px;">
+              <a href="${acceptUrl}" style="display:inline-block;background:#00ff88;color:#050f1a;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:8px;">
+                Ver convite e aceitar →
+              </a>
+            </td></tr>
+          </table>
+          <p style="margin:0;color:#7a9ab5;font-size:13px;line-height:1.6;">
+            Acesse o Bubble Padel, vá em <strong>Ligas</strong> e você verá o convite pendente.
+            Se não reconhece este email, pode ignorá-lo.
+          </p>
+        </td></tr>
+        ${emailFooter(FRONTEND())}`;
+}
+
+export async function sendConviteLiga(data: ConviteLigaData): Promise<void> {
+  await sendEmail({
+    to: data.clubEmail,
+    subject: `🏆 ${data.inviterClubName} te convidou para a ${data.leagueName}`,
+    html: templateConviteLiga(data),
+  });
+}
+
+// Cenário 3: email não encontrado — convite externo para criar conta
+
+interface ConviteLigaExternoData {
+  email: string; // email externo (sem conta)
+  inviterClubName: string;
+  leagueName: string;
+  leagueId: string;
+}
+
+function templateConviteLigaExterno(data: ConviteLigaExternoData): string {
+  const signupUrl = `${FRONTEND()}/`;
+  return `${emailHeader()}
+        <tr><td style="padding:0;">
+          <div style="background:linear-gradient(135deg,#050f1a 0%,#0d2037 100%);padding:40px;text-align:center;">
+            <p style="margin:0 0 8px;font-size:48px;">🏆</p>
+            <h2 style="margin:0 0 8px;color:#00ff88;font-size:24px;font-weight:800;">Você foi convidado!</h2>
+            <p style="margin:0;color:#7a9ab5;font-size:15px;">${data.leagueName}</p>
+          </div>
+        </td></tr>
+        <tr><td style="padding:40px 40px 32px;">
+          <p style="margin:0 0 24px;color:#4a6580;font-size:15px;line-height:1.6;">
+            <strong>${data.inviterClubName}</strong> convidou o seu clube para participar da liga
+            <strong style="color:#0d2037;">${data.leagueName}</strong> no Bubble Padel.
+          </p>
+          <p style="margin:0 0 24px;color:#4a6580;font-size:14px;line-height:1.6;">
+            O Bubble Padel é uma plataforma gratuita para organizar torneios de padel e beach tennis.
+            Com as ligas, os seus torneios geram um ranking acumulado para os atletas ao longo da temporada.
+          </p>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td align="center" style="padding:8px 0 24px;">
+              <a href="${signupUrl}" style="display:inline-block;background:#00ff88;color:#050f1a;text-decoration:none;font-weight:700;font-size:15px;padding:14px 32px;border-radius:8px;">
+                Criar conta grátis →
+              </a>
+            </td></tr>
+          </table>
+          <p style="margin:0;color:#7a9ab5;font-size:13px;line-height:1.6;">
+            Após criar sua conta de clube, entre em contato com <strong>${data.inviterClubName}</strong>
+            para ser adicionado à liga. Se não reconhece este email, pode ignorá-lo.
+          </p>
+        </td></tr>
+        ${emailFooter(FRONTEND())}`;
+}
+
+export async function sendConviteLigaExterno(
+  data: ConviteLigaExternoData,
+): Promise<void> {
+  await sendEmail({
+    to: data.email,
+    subject: `🏆 ${data.inviterClubName} te convidou para a ${data.leagueName} no Bubble Padel`,
+    html: templateConviteLigaExterno(data),
+  });
+}

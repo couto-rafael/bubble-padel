@@ -251,7 +251,10 @@ leagueRoutes.patch("/:id", requireAuth, async (req: AuthRequest, res, next) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// POST /api/leagues/:id/invite — convidar clube por email ou clubId
+// POST /api/leagues/:id/invite — convidar clube por email
+// Cenário 1: email encontrado, tipo CLUB  → cria convite + envia email
+// Cenário 2: email encontrado, tipo ATHLETE → erro claro
+// Cenário 3: email não encontrado → envia email externo (sem criar conta)
 // ─────────────────────────────────────────────────────────────────────────────
 
 leagueRoutes.post(
@@ -265,7 +268,7 @@ leagueRoutes.post(
 
       const league = await prisma.league.findUnique({
         where: { id: req.params.id },
-        select: { id: true, createdByClubId: true, name: true },
+        include: { createdByClub: { select: { name: true } } },
       });
       if (!league)
         return res.status(404).json({ error: "Liga não encontrada." });
@@ -274,48 +277,95 @@ leagueRoutes.post(
           .status(403)
           .json({ error: "Apenas o criador pode convidar clubes." });
 
-      // Aceita clubId direto ou email do clube
-      const { clubId, email } = req.body as {
-        clubId?: string;
-        email?: string;
-      };
+      const { email } = req.body as { email: string };
+      if (!email?.trim())
+        return res.status(400).json({ error: "Informe o email do clube." });
 
-      let targetClubId = clubId;
-
-      if (!targetClubId && email) {
-        const user = await prisma.user.findUnique({
-          where: { email },
-          include: { club: { select: { id: true } } },
-        });
-        if (!user?.club)
-          return res
-            .status(404)
-            .json({ error: "Clube com esse email não encontrado." });
-        targetClubId = user.club.id;
-      }
-
-      if (!targetClubId)
-        return res
-          .status(400)
-          .json({ error: "Informe clubId ou email do clube." });
-
-      if (targetClubId === creatorClubId)
-        return res.status(400).json({ error: "Você já é membro desta liga." });
-
-      // Upsert — se já foi convidado, não duplica
-      const member = await prisma.leagueMember.upsert({
-        where: {
-          leagueId_clubId: { leagueId: league.id, clubId: targetClubId },
+      // Busca o usuário pelo email
+      const user = await prisma.user.findUnique({
+        where: { email: email.trim().toLowerCase() },
+        include: {
+          club: { select: { id: true, name: true } },
         },
-        create: {
-          leagueId: league.id,
-          clubId: targetClubId,
-          status: "INVITED",
-        },
-        update: {}, // não sobrescreve se já ACTIVE
       });
 
-      return res.status(201).json({ data: member });
+      // ── Cenário 2: email existe mas é Atleta ─────────────────────────────
+      if (user && user.type === "ATHLETE") {
+        return res.status(400).json({
+          error:
+            "Este email pertence a uma conta de atleta. Apenas clubes podem participar de ligas.",
+        });
+      }
+
+      // ── Cenário 1: email existe e é Clube ────────────────────────────────
+      if (user && user.club) {
+        const targetClubId = user.club.id;
+
+        if (targetClubId === creatorClubId)
+          return res
+            .status(400)
+            .json({ error: "Você já é membro desta liga." });
+
+        // Verifica se já está convidado ou é membro
+        const existing = await prisma.leagueMember.findUnique({
+          where: {
+            leagueId_clubId: { leagueId: league.id, clubId: targetClubId },
+          },
+        });
+        if (existing?.status === "ACTIVE")
+          return res
+            .status(400)
+            .json({ error: "Este clube já é membro da liga." });
+
+        // Cria ou mantém convite
+        const member = await prisma.leagueMember.upsert({
+          where: {
+            leagueId_clubId: { leagueId: league.id, clubId: targetClubId },
+          },
+          create: {
+            leagueId: league.id,
+            clubId: targetClubId,
+            status: "INVITED",
+          },
+          update: {},
+        });
+
+        // Envia email de convite (fire-and-forget)
+        import("../services/EmailService").then(({ sendConviteLiga }) => {
+          sendConviteLiga({
+            clubName: user.club!.name,
+            clubEmail: email.trim(),
+            inviterClubName: league.createdByClub.name,
+            leagueName: league.name,
+            leagueId: league.id,
+          }).catch((err: unknown) =>
+            console.error("[league invite] email falhou:", err),
+          );
+        });
+
+        return res.status(201).json({
+          data: member,
+          message: `Convite enviado para ${user.club.name}.`,
+        });
+      }
+
+      // ── Cenário 3: email não existe na plataforma ────────────────────────
+      import("../services/EmailService").then(({ sendConviteLigaExterno }) => {
+        sendConviteLigaExterno({
+          email: email.trim(),
+          inviterClubName: league.createdByClub.name,
+          leagueName: league.name,
+          leagueId: league.id,
+        }).catch((err: unknown) =>
+          console.error("[league invite externo] email falhou:", err),
+        );
+      });
+
+      return res.status(200).json({
+        data: null,
+        message:
+          "Email não cadastrado. Enviamos um convite para criar uma conta no Bubble Padel.",
+      });
     } catch (err) {
       next(err);
     }
