@@ -576,12 +576,12 @@ leagueRoutes.get(
           .status(403)
           .json({ error: "Acesso restrito a membros da liga." });
 
-      // Filtro opcional por categoria
+      // Filtro opcional por categoria (para exibir só uma categoria específica)
       const { category } = req.query as { category?: string };
 
-      // Agrega pontos por atleta (e categoria se filtrado)
+      // SEMPRE agrega por atleta + categoria — ranking nunca é geral
       const grouped = await prisma.leaguePoints.groupBy({
-        by: category ? ["athleteId", "category"] : ["athleteId"],
+        by: ["athleteId", "category"],
         where: {
           leagueId: req.params.id,
           ...(category ? { category } : {}),
@@ -591,7 +591,7 @@ leagueRoutes.get(
       });
 
       // Carrega os dados dos atletas
-      const athleteIds = grouped.map((g) => g.athleteId);
+      const athleteIds = [...new Set(grouped.map((g) => g.athleteId))];
       const athletes = await prisma.athlete.findMany({
         where: { id: { in: athleteIds } },
         select: {
@@ -604,18 +604,37 @@ leagueRoutes.get(
       });
       const athleteMap = new Map(athletes.map((a) => [a.id, a]));
 
-      const ranking = grouped.map((g, index) => ({
-        position: index + 1,
-        athlete: athleteMap.get(g.athleteId) ?? { id: g.athleteId },
-        points: g._sum.points ?? 0,
-        ...(category ? { category: (g as any).category } : {}),
-      }));
+      // Agrupa por categoria, posição calculada dentro de cada categoria
+      const byCategory: Record<
+        string,
+        Array<{
+          position: number;
+          athlete: (typeof athletes)[0] | { id: string };
+          points: number;
+        }>
+      > = {};
+
+      for (const g of grouped) {
+        const cat = g.category;
+        if (!byCategory[cat]) byCategory[cat] = [];
+        byCategory[cat].push({
+          position: byCategory[cat].length + 1,
+          athlete: athleteMap.get(g.athleteId) ?? { id: g.athleteId },
+          points: g._sum.points ?? 0,
+        });
+      }
+
+      // Lista de categorias disponíveis ordenada
+      const categories = Object.keys(byCategory).sort();
 
       return res.json({
         data: {
           league: { id: league.id, name: league.name },
-          category: category ?? null,
-          ranking,
+          // Se filtro de categoria passado, retorna só ela; senão retorna todas
+          categories: category
+            ? { [category]: byCategory[category] ?? [] }
+            : byCategory,
+          availableCategories: categories,
         },
       });
     } catch (err) {

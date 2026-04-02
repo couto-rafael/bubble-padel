@@ -938,92 +938,97 @@ const AthleteProfile: React.FC = () => {
                   </p>
                 </div>
               ) : (
-                leagueStandings.map((standing) => (
-                  <div
-                    key={standing.league.id}
-                    className="bg-white border border-gray-200 rounded-xl p-6"
-                  >
-                    <div className="flex items-start justify-between gap-4 mb-4">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-lg">🏆</span>
-                          <h3 className="font-bold text-gray-900">
-                            {standing.league.name}
-                          </h3>
-                          {standing.league.sport && (
-                            <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">
-                              {normalizeSport(standing.league.sport)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <div className="text-2xl font-black text-gray-900">
-                          {standing.totalPoints}
-                        </div>
-                        <div className="text-xs text-gray-400">pontos</div>
-                      </div>
-                    </div>
+                leagueStandings.map((standing) => {
+                  // Agrupa entries por categoria
+                  const byCategory = standing.entries.reduce(
+                    (acc, e) => {
+                      if (!acc[e.category])
+                        acc[e.category] = { points: 0, entries: [] };
+                      acc[e.category].points += e.points;
+                      acc[e.category].entries.push(e);
+                      return acc;
+                    },
+                    {} as Record<
+                      string,
+                      { points: number; entries: typeof standing.entries }
+                    >,
+                  );
+                  const categories = Object.keys(byCategory).sort();
 
-                    {standing.rankPosition && (
-                      <div
-                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg mb-4 ${
-                          standing.rankPosition === 1
-                            ? "bg-yellow-50 border border-yellow-200"
-                            : standing.rankPosition <= 3
-                              ? "bg-gray-50 border border-gray-200"
-                              : "bg-gray-50 border border-gray-100"
-                        }`}
-                      >
-                        <span className="text-lg">
-                          {standing.rankPosition === 1
-                            ? "🥇"
-                            : standing.rankPosition === 2
-                              ? "🥈"
-                              : standing.rankPosition === 3
-                                ? "🥉"
-                                : ""}
-                        </span>
-                        <span className="text-sm font-bold text-gray-700">
-                          {standing.rankPosition}º lugar no ranking
-                        </span>
+                  return (
+                    <div
+                      key={standing.league.id}
+                      className="bg-white border border-gray-200 rounded-xl p-6"
+                    >
+                      {/* Header da liga */}
+                      <div className="flex items-center gap-2 mb-5">
+                        <span className="text-lg">🏆</span>
+                        <h3 className="font-bold text-gray-900">
+                          {standing.league.name}
+                        </h3>
+                        {standing.league.sport && (
+                          <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">
+                            {normalizeSport(standing.league.sport)}
+                          </span>
+                        )}
                       </div>
-                    )}
 
-                    {/* Histórico de pontos nesta liga */}
-                    <div className="border-t border-gray-100 pt-4">
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                        Pontos por torneio
-                      </p>
-                      <div className="space-y-2">
-                        {standing.entries.map((entry, i) => (
-                          <div
-                            key={i}
-                            className="flex items-center justify-between text-sm"
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="text-base">
-                                {entry.placement === "champion"
-                                  ? "🥇"
-                                  : entry.placement === "runner_up"
-                                    ? "🥈"
-                                    : entry.placement === "semi"
-                                      ? "🥉"
-                                      : "▸"}
-                              </span>
-                              <span className="text-gray-600">
-                                {entry.category}
-                              </span>
+                      {/* Pontos por categoria — sempre separado */}
+                      <div className="space-y-4">
+                        {categories.map((cat) => {
+                          const catData = byCategory[cat];
+                          return (
+                            <div
+                              key={cat}
+                              className="bg-gray-50 rounded-xl p-4 border border-gray-100"
+                            >
+                              <div className="flex items-center justify-between mb-3">
+                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                                  {cat}
+                                </p>
+                                <div className="text-right">
+                                  <span className="text-xl font-black text-gray-900">
+                                    {catData.points}
+                                  </span>
+                                  <span className="text-xs text-gray-400 ml-1">
+                                    pts
+                                  </span>
+                                </div>
+                              </div>
+                              {/* Detalhes por torneio nesta categoria */}
+                              <div className="space-y-1.5">
+                                {catData.entries.map((entry, i) => (
+                                  <div
+                                    key={i}
+                                    className="flex items-center justify-between text-sm"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-base">
+                                        {entry.placement === "champion"
+                                          ? "🥇"
+                                          : entry.placement === "runner_up"
+                                            ? "🥈"
+                                            : entry.placement === "semi"
+                                              ? "🥉"
+                                              : "▸"}
+                                      </span>
+                                      <span className="text-gray-500 text-xs capitalize">
+                                        {entry.placement.replace("_", " ")}
+                                      </span>
+                                    </div>
+                                    <span className="font-semibold text-gray-700">
+                                      +{entry.points} pts
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                            <span className="font-bold text-gray-900">
-                              +{entry.points} pts
-                            </span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           )}

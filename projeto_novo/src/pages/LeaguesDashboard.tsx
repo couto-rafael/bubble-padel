@@ -172,14 +172,17 @@ const api = {
     if (!res.ok) throw new Error(j.error ?? "Erro ao desvincular");
     return j.data;
   },
-  getRanking: async (leagueId: string, category?: string) => {
-    const qs = category ? `?category=${encodeURIComponent(category)}` : "";
-    const res = await fetch(`${API_URL}/leagues/${leagueId}/ranking${qs}`, {
+  getRanking: async (leagueId: string) => {
+    const res = await fetch(`${API_URL}/leagues/${leagueId}/ranking`, {
       headers: headers(),
     });
     const j = await res.json();
     if (!res.ok) throw new Error(j.error ?? "Erro ao carregar ranking");
-    return j.data as { league: { name: string }; ranking: RankingEntry[] };
+    return j.data as {
+      league: { name: string };
+      categories: Record<string, RankingEntry[]>;
+      availableCategories: string[];
+    };
   },
   getMyTournaments: async () => {
     const res = await fetch(`${API_URL}/tournaments`, { headers: headers() });
@@ -711,8 +714,12 @@ const LeagueDetail = ({
   >("overview");
   const [showInvite, setShowInvite] = useState(false);
   const [showLinkTournament, setShowLinkTournament] = useState(false);
-  const [ranking, setRanking] = useState<RankingEntry[]>([]);
+  const [rankingData, setRankingData] = useState<{
+    categories: Record<string, RankingEntry[]>;
+    availableCategories: string[];
+  } | null>(null);
   const [rankingLoading, setRankingLoading] = useState(false);
+  const [rankingCategory, setRankingCategory] = useState<string>("");
 
   const isCreator = league?.createdByClub.id === myClubId;
 
@@ -736,7 +743,13 @@ const LeagueDetail = ({
     setRankingLoading(true);
     api
       .getRanking(leagueId)
-      .then((r) => setRanking(r.ranking))
+      .then((r) => {
+        setRankingData(r);
+        // Seleciona a primeira categoria disponível por padrão
+        if (r.availableCategories.length > 0 && !rankingCategory) {
+          setRankingCategory(r.availableCategories[0]);
+        }
+      })
       .catch(console.error)
       .finally(() => setRankingLoading(false));
   }, [activeTab, leagueId, league]);
@@ -1063,87 +1076,120 @@ const LeagueDetail = ({
         </div>
       )}
 
-      {/* Tab: Ranking */}
+      {/* Tab: Ranking — sempre por categoria */}
       {activeTab === "ranking" && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="space-y-4">
           {rankingLoading ? (
-            <div className="py-12 flex justify-center">
+            <div className="bg-white rounded-xl border border-gray-200 py-12 flex justify-center">
               <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
             </div>
-          ) : ranking.length === 0 ? (
-            <div className="px-5 py-10 text-center text-gray-400 text-sm">
+          ) : !rankingData || rankingData.availableCategories.length === 0 ? (
+            <div className="bg-white rounded-xl border border-gray-200 px-5 py-10 text-center text-gray-400 text-sm">
               Nenhum ponto distribuído ainda. O ranking aparece após o primeiro
               torneio ser concluído.
             </div>
           ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50 text-left">
-                  <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-12">
-                    #
-                  </th>
-                  <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                    Atleta
-                  </th>
-                  <th className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide text-right">
-                    Pontos
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {ranking.map((r) => (
-                  <tr
-                    key={r.position}
-                    className={`${r.position <= 3 ? "bg-amber-50/40" : ""}`}
+            <>
+              {/* Seletor de categoria */}
+              <div className="flex gap-2 flex-wrap">
+                {rankingData.availableCategories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setRankingCategory(cat)}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                      rankingCategory === cat
+                        ? "bg-blue-600 text-white"
+                        : "bg-white border border-gray-200 text-gray-600 hover:border-blue-300"
+                    }`}
                   >
-                    <td className="px-5 py-3">
-                      <span
-                        className={`text-sm font-bold ${
-                          r.position === 1
-                            ? "text-amber-500"
-                            : r.position === 2
-                              ? "text-gray-500"
-                              : r.position === 3
-                                ? "text-amber-700"
-                                : "text-gray-400"
-                        }`}
-                      >
-                        {r.position === 1
-                          ? "🥇"
-                          : r.position === 2
-                            ? "🥈"
-                            : r.position === 3
-                              ? "🥉"
-                              : r.position}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-gray-600">
-                          {getInitials((r.athlete as any).fullName ?? "?")}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">
-                            {(r.athlete as any).fullName ?? "—"}
-                          </p>
-                          {(r.athlete as any).city && (
-                            <p className="text-xs text-gray-400">
-                              {(r.athlete as any).city}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3 text-right">
-                      <span className="font-bold text-gray-900">
-                        {r.points}
-                      </span>
-                      <span className="text-xs text-gray-400 ml-1">pts</span>
-                    </td>
-                  </tr>
+                    {cat}
+                  </button>
                 ))}
-              </tbody>
-            </table>
+              </div>
+
+              {/* Tabela da categoria selecionada */}
+              {rankingCategory && rankingData.categories[rankingCategory] && (
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                      {rankingCategory}
+                    </p>
+                  </div>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-100 text-left">
+                        <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide w-12">
+                          #
+                        </th>
+                        <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                          Atleta
+                        </th>
+                        <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide text-right">
+                          Pontos
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {rankingData.categories[rankingCategory].map((r) => (
+                        <tr
+                          key={r.position}
+                          className={r.position <= 3 ? "bg-amber-50/40" : ""}
+                        >
+                          <td className="px-5 py-3">
+                            <span
+                              className={`text-sm font-bold ${
+                                r.position === 1
+                                  ? "text-amber-500"
+                                  : r.position === 2
+                                    ? "text-gray-400"
+                                    : r.position === 3
+                                      ? "text-amber-700"
+                                      : "text-gray-300"
+                              }`}
+                            >
+                              {r.position === 1
+                                ? "🥇"
+                                : r.position === 2
+                                  ? "🥈"
+                                  : r.position === 3
+                                    ? "🥉"
+                                    : r.position}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-gray-600">
+                                {getInitials(
+                                  (r.athlete as any).fullName ?? "?",
+                                )}
+                              </div>
+                              <div>
+                                <p className="font-semibold text-gray-900">
+                                  {(r.athlete as any).fullName ?? "—"}
+                                </p>
+                                {(r.athlete as any).city && (
+                                  <p className="text-xs text-gray-400">
+                                    {(r.athlete as any).city}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3 text-right">
+                            <span className="font-bold text-gray-900">
+                              {r.points}
+                            </span>
+                            <span className="text-xs text-gray-400 ml-1">
+                              pts
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
