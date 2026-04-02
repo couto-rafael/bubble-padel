@@ -260,9 +260,9 @@ const TrophyCard = ({ trophy }: { trophy: AthleteTrophy }) => (
       {trophy.placement === "CHAMPION" ? "🥇" : "🥈"}
     </span>
     <p
-      className="text-xs font-bold uppercase tracking-wide mb-1 ${
-      trophy.placement === 'CHAMPION' ? 'text-yellow-600' : 'text-gray-400'
-    }"
+      className={`text-xs font-bold uppercase tracking-wide mb-1 ${
+        trophy.placement === "CHAMPION" ? "text-yellow-600" : "text-gray-400"
+      }`}
     >
       {trophy.placement === "CHAMPION" ? "Campeão" : "Vice-campeão"}
     </p>

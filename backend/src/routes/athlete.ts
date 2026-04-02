@@ -195,6 +195,9 @@ const ACHIEVEMENT_META: Record<
   },
 };
 
+// ─── Constante auxiliar compartilhada ────────────────────────────────────────
+const tierOrder = ["BRONZE", "SILVER", "GOLD", "DIAMOND", "LEGEND"] as const;
+
 // ─── GET /api/athlete/profile ─────────────────────────────────────────────────
 
 athleteRoutes.get(
@@ -415,14 +418,17 @@ athleteRoutes.get(
       }
 
       // Calcula posição no ranking de cada liga
+      // Busca soma de pontos de todos os atletas da liga e compara
       for (const [leagueId, data] of leagueMap.entries()) {
-        const pointsAbove = await prisma.leaguePoints.groupBy({
+        const allAthletePoints = await prisma.leaguePoints.groupBy({
           by: ["athleteId"],
           where: { leagueId },
           _sum: { points: true },
-          having: { points: { _sum: { gt: data.totalPoints } } },
         });
-        data.rankPosition = pointsAbove.length + 1;
+        const countAbove = allAthletePoints.filter(
+          (row) => (row._sum.points ?? 0) > data.totalPoints,
+        ).length;
+        data.rankPosition = countAbove + 1;
       }
 
       const leagueStandings = Array.from(leagueMap.values()).sort(
@@ -454,10 +460,6 @@ athleteRoutes.get(
     }
   },
 );
-
-// ─── Constante auxiliar (usada dentro do endpoint) ────────────────────────────
-
-const tierOrder = ["BRONZE", "SILVER", "GOLD", "DIAMOND", "LEGEND"] as const;
 
 // ─── Rotas públicas ───────────────────────────────────────────────────────────
 
