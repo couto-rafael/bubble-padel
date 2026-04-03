@@ -240,9 +240,12 @@ const CreateLeagueModal = ({ onClose, onCreated }: CreateLeagueModalProps) => {
     pointsSemi: 45,
     pointsQuarter: 25,
     pointsGroup: 10,
+    pointsRound16: null as number | null,
+    pointsRound32: null as number | null,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleSubmit = async () => {
     if (!form.name.trim()) {
@@ -332,6 +335,7 @@ const CreateLeagueModal = ({ onClose, onCreated }: CreateLeagueModalProps) => {
             </select>
           </div>
 
+          {/* Pontos padrão */}
           <div className="border-t border-gray-100 pt-4">
             <p className="text-xs font-bold text-gray-700 mb-3 uppercase tracking-wide">
               Pontos por Posição (padrão)
@@ -358,6 +362,78 @@ const CreateLeagueModal = ({ onClose, onCreated }: CreateLeagueModalProps) => {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Etapas Avançadas — colapsável */}
+          <div className="border-t border-gray-100 pt-4">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced((v) => !v)}
+              className="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-gray-700 uppercase tracking-wide transition-colors w-full"
+            >
+              <svg
+                className={`w-4 h-4 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+              Etapas Avançadas (Oitavas / 16avos)
+              <span className="ml-auto text-gray-400 font-normal normal-case tracking-normal">
+                opcional
+              </span>
+            </button>
+
+            {showAdvanced && (
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>Oitavas de Final</label>
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="ex: 15"
+                    className={inputCls}
+                    value={form.pointsRound16 ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        pointsRound16:
+                          e.target.value === "" ? null : Number(e.target.value),
+                      }))
+                    }
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Vazio = sem pontos
+                  </p>
+                </div>
+                <div>
+                  <label className={labelCls}>16avos de Final</label>
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="ex: 5"
+                    className={inputCls}
+                    value={form.pointsRound32 ?? ""}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        pointsRound32:
+                          e.target.value === "" ? null : Number(e.target.value),
+                      }))
+                    }
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Vazio = sem pontos
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {error && (

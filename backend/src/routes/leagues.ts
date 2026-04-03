@@ -19,6 +19,8 @@ const createLeagueSchema = z.object({
   pointsSemi: z.number().int().min(0).default(45),
   pointsQuarter: z.number().int().min(0).default(25),
   pointsGroup: z.number().int().min(0).default(10),
+  pointsRound16: z.number().int().min(0).nullable().optional(),
+  pointsRound32: z.number().int().min(0).nullable().optional(),
 });
 
 const updateLeagueSchema = createLeagueSchema.partial();
@@ -31,6 +33,8 @@ const linkTournamentSchema = z.object({
   pointsSemi: z.number().int().min(0).nullable().optional(),
   pointsQuarter: z.number().int().min(0).nullable().optional(),
   pointsGroup: z.number().int().min(0).nullable().optional(),
+  pointsRound16: z.number().int().min(0).nullable().optional(),
+  pointsRound32: z.number().int().min(0).nullable().optional(),
 });
 
 const updateLinkSchema = z.object({
@@ -39,6 +43,8 @@ const updateLinkSchema = z.object({
   pointsSemi: z.number().int().min(0).nullable().optional(),
   pointsQuarter: z.number().int().min(0).nullable().optional(),
   pointsGroup: z.number().int().min(0).nullable().optional(),
+  pointsRound16: z.number().int().min(0).nullable().optional(),
+  pointsRound32: z.number().int().min(0).nullable().optional(),
 });
 
 // ─── Helper: resolve o clubId a partir do userId logado ──────────────────────
@@ -498,6 +504,8 @@ leagueRoutes.post(
           pointsSemi: pointsOverride.pointsSemi ?? null,
           pointsQuarter: pointsOverride.pointsQuarter ?? null,
           pointsGroup: pointsOverride.pointsGroup ?? null,
+          pointsRound16: pointsOverride.pointsRound16 ?? null,
+          pointsRound32: pointsOverride.pointsRound32 ?? null,
         },
         include: {
           league: { select: { name: true } },

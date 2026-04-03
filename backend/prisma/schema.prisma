@@ -355,6 +355,9 @@ model League {
   pointsSemi      Int      @default(45)
   pointsQuarter   Int      @default(25)
   pointsGroup     Int      @default(10)
+  // Fases avançadas (opcionais — null = não distribui pontos)
+  pointsRound16   Int?     // Oitavas de final (roundSize=8)
+  pointsRound32   Int?     // 16avos de final (roundSize=16)
   // ACTIVE | ARCHIVED
   status          String   @default("ACTIVE")
   createdAt       DateTime @default(now())
@@ -396,6 +399,9 @@ model LeagueTournament {
   pointsSemi     Int?
   pointsQuarter  Int?
   pointsGroup    Int?
+  // Fases avançadas (null = usa padrão da liga ou não distribui)
+  pointsRound16  Int?
+  pointsRound32  Int?
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 

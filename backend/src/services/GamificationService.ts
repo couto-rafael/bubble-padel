@@ -16,7 +16,14 @@ import { prisma } from "../lib/prisma";
 // TIPOS INTERNOS
 // ─────────────────────────────────────────────────────────────────────────────
 
-type Placement = "champion" | "runner_up" | "semi" | "quarter" | "group";
+type Placement =
+  | "champion"
+  | "runner_up"
+  | "semi"
+  | "quarter"
+  | "round16"
+  | "round32"
+  | "group";
 
 interface PlayerPlacement {
   email: string;
@@ -74,12 +81,16 @@ function resolvePoints(
     pointsSemi: number | null;
     pointsQuarter: number | null;
     pointsGroup: number | null;
+    pointsRound16: number | null;
+    pointsRound32: number | null;
     league: {
       pointsChampion: number;
       pointsRunnerUp: number;
       pointsSemi: number;
       pointsQuarter: number;
       pointsGroup: number;
+      pointsRound16: number | null;
+      pointsRound32: number | null;
     };
   },
 ): number {
@@ -92,6 +103,10 @@ function resolvePoints(
       return link.pointsSemi ?? link.league.pointsSemi;
     case "quarter":
       return link.pointsQuarter ?? link.league.pointsQuarter;
+    case "round16":
+      return link.pointsRound16 ?? link.league.pointsRound16 ?? 0;
+    case "round32":
+      return link.pointsRound32 ?? link.league.pointsRound32 ?? 0;
     case "group":
       return link.pointsGroup ?? link.league.pointsGroup;
   }
@@ -221,7 +236,51 @@ async function awardTrophies(
         }
       }
     }
-  }
+
+    // ── Oitavas-de-final (roundSize = 8) ─────────────────────────────────────
+    const round16matches = matches.filter(
+      (m) => m.roundSize === 8 && m.played && !m.isBye,
+    );
+    for (const match of round16matches) {
+      if (!match.winnerId || !match.team1Id || !match.team2Id) continue;
+      const loserTeamId =
+        match.team1Id === match.winnerId ? match.team2Id : match.team1Id;
+
+      const emails = await getTeamEmails(loserTeamId);
+      if (emails) {
+        for (const email of emails) {
+          allPlacements.push({
+            email,
+            teamId: loserTeamId,
+            category,
+            placement: "round16",
+          });
+        }
+      }
+    }
+
+    // ── 16avos-de-final (roundSize = 16) ─────────────────────────────────────
+    const round32matches = matches.filter(
+      (m) => m.roundSize === 16 && m.played && !m.isBye,
+    );
+    for (const match of round32matches) {
+      if (!match.winnerId || !match.team1Id || !match.team2Id) continue;
+      const loserTeamId =
+        match.team1Id === match.winnerId ? match.team2Id : match.team1Id;
+
+      const emails = await getTeamEmails(loserTeamId);
+      if (emails) {
+        for (const email of emails) {
+          allPlacements.push({
+            email,
+            teamId: loserTeamId,
+            category,
+            placement: "round32",
+          });
+        }
+      }
+    }
+  } // fim do loop de brackets
 
   // ── Fase de grupos (todos os confirmados sem placement melhor) ────────────
   const confirmedTeams = await prisma.team.findMany({
@@ -272,6 +331,8 @@ async function awardLeaguePoints(
           pointsSemi: true,
           pointsQuarter: true,
           pointsGroup: true,
+          pointsRound16: true,
+          pointsRound32: true,
         },
       },
     },
@@ -289,6 +350,8 @@ async function awardLeaguePoints(
       pointsSemi: link.pointsSemi,
       pointsQuarter: link.pointsQuarter,
       pointsGroup: link.pointsGroup,
+      pointsRound16: link.pointsRound16,
+      pointsRound32: link.pointsRound32,
       league: link.league,
     });
 
