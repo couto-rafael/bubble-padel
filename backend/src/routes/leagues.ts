@@ -2,6 +2,10 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { requireAuth, AuthRequest } from "../middlewares/auth";
 import { z } from "zod";
+import {
+  sendConviteLiga,
+  sendConviteLigaExterno,
+} from "../services/EmailService";
 
 export const leagueRoutes = Router();
 
@@ -337,17 +341,15 @@ leagueRoutes.post(
         });
 
         // Envia email de convite (fire-and-forget)
-        import("../services/EmailService").then(({ sendConviteLiga }) => {
-          sendConviteLiga({
-            clubName: user.club!.name,
-            clubEmail: email.trim(),
-            inviterClubName: league.createdByClub.name,
-            leagueName: league.name,
-            leagueId: league.id,
-          }).catch((err: unknown) =>
-            console.error("[league invite] email falhou:", err),
-          );
-        });
+        sendConviteLiga({
+          clubName: user.club!.name,
+          clubEmail: email.trim(),
+          inviterClubName: league.createdByClub.name,
+          leagueName: league.name,
+          leagueId: league.id,
+        }).catch((err: unknown) =>
+          console.error("[league invite] email falhou:", err),
+        );
 
         return res.status(201).json({
           data: member,
@@ -356,16 +358,14 @@ leagueRoutes.post(
       }
 
       // ── Cenário 3: email não existe na plataforma ────────────────────────
-      import("../services/EmailService").then(({ sendConviteLigaExterno }) => {
-        sendConviteLigaExterno({
-          email: email.trim(),
-          inviterClubName: league.createdByClub.name,
-          leagueName: league.name,
-          leagueId: league.id,
-        }).catch((err: unknown) =>
-          console.error("[league invite externo] email falhou:", err),
-        );
-      });
+      sendConviteLigaExterno({
+        email: email.trim(),
+        inviterClubName: league.createdByClub.name,
+        leagueName: league.name,
+        leagueId: league.id,
+      }).catch((err: unknown) =>
+        console.error("[league invite externo] email falhou:", err),
+      );
 
       return res.status(200).json({
         data: null,

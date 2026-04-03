@@ -383,7 +383,7 @@ const LeagueProfile: React.FC = () => {
                                 className={
                                   r.position <= 3
                                     ? "bg-[#00ff88]/5"
-                                    : "hover:bg-white/3"
+                                    : "hover:bg-white/5"
                                 }
                               >
                                 <td className="px-5 py-3.5">
