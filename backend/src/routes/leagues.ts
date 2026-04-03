@@ -700,3 +700,106 @@ leagueRoutes.get(
     }
   },
 );
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROTAS PÚBLICAS (sem auth)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const publicLeagueRoutes = Router();
+
+// GET /api/public/leagues/:id — página pública da liga
+publicLeagueRoutes.get("/:id", async (req, res, next) => {
+  try {
+    const league = await prisma.league.findUnique({
+      where: { id: req.params.id },
+      include: {
+        createdByClub: {
+          select: { id: true, name: true, city: true, state: true },
+        },
+        tournaments: {
+          include: {
+            tournament: {
+              select: {
+                id: true,
+                name: true,
+                sport: true,
+                status: true,
+                startDate: true,
+                endDate: true,
+                categories: true,
+                club: { select: { name: true, city: true } },
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+
+    if (!league) return res.status(404).json({ error: "Liga não encontrada." });
+
+    // Ranking agrupado por categoria
+    const grouped = await prisma.leaguePoints.groupBy({
+      by: ["athleteId", "category"],
+      where: { leagueId: req.params.id },
+      _sum: { points: true },
+      orderBy: { _sum: { points: "desc" } },
+    });
+
+    const athleteIds = [...new Set(grouped.map((g) => g.athleteId))];
+    const athletes = await prisma.athlete.findMany({
+      where: { id: { in: athleteIds } },
+      select: { id: true, fullName: true, city: true, avatarUrl: true },
+    });
+    const athleteMap = new Map(athletes.map((a) => [a.id, a]));
+
+    const byCategory: Record<
+      string,
+      Array<{
+        position: number;
+        athleteId: string;
+        fullName: string;
+        city: string | null;
+        points: number;
+      }>
+    > = {};
+
+    for (const g of grouped) {
+      const cat = g.category;
+      if (!byCategory[cat]) byCategory[cat] = [];
+      const athlete = athleteMap.get(g.athleteId);
+      byCategory[cat].push({
+        position: byCategory[cat].length + 1,
+        athleteId: g.athleteId,
+        fullName: (athlete as any)?.fullName ?? "—",
+        city: (athlete as any)?.city ?? null,
+        points: g._sum.points ?? 0,
+      });
+    }
+
+    return res.json({
+      data: {
+        id: league.id,
+        name: league.name,
+        description: league.description,
+        sport: league.sport,
+        status: league.status,
+        createdByClub: league.createdByClub,
+        pointsChampion: league.pointsChampion,
+        pointsRunnerUp: league.pointsRunnerUp,
+        pointsSemi: league.pointsSemi,
+        pointsQuarter: league.pointsQuarter,
+        pointsGroup: league.pointsGroup,
+        pointsRound16: league.pointsRound16,
+        pointsRound32: league.pointsRound32,
+        tournaments: league.tournaments,
+        ranking: {
+          categories: byCategory,
+          availableCategories: Object.keys(byCategory).sort(),
+        },
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});

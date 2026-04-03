@@ -24,7 +24,8 @@ import AthleteProfile from "./pages/AthleteProfile";
 import TermsPage from "./pages/TermsPage";
 import PaymentPage from "./pages/PaymentPage";
 import TournamentResultsPDF from "./pages/TournamentResultsPDF";
-import LeaguesDashboard from "./pages/LeaguesDashboard";
+import LeagueProfile from "./pages/LeagueProfile";
+
 import { ToastProvider } from "./components/Toast";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
@@ -90,10 +91,7 @@ const App = () => {
                   path="/dashboard/tournaments/:id/results"
                   element={<TournamentResultsPDF />}
                 />
-                <Route
-                  path="/dashboard/leagues"
-                  element={<LeaguesDashboard />}
-                />
+                <Route path="/leagues/:id" element={<LeagueProfile />} />
               </Routes>
             </Router>
           </AuthProvider>
