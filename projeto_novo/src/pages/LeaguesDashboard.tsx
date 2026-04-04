@@ -245,7 +245,6 @@ const CreateLeagueModal = ({ onClose, onCreated }: CreateLeagueModalProps) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleSubmit = async () => {
     if (!form.name.trim()) {
@@ -335,18 +334,26 @@ const CreateLeagueModal = ({ onClose, onCreated }: CreateLeagueModalProps) => {
             </select>
           </div>
 
-          {/* Pontos padrão */}
+          {/* Pontos por posição — ordem natural da competição */}
           <div className="border-t border-gray-100 pt-4">
             <p className="text-xs font-bold text-gray-700 mb-3 uppercase tracking-wide">
               Pontos por Posição (padrão)
             </p>
             <div className="grid grid-cols-2 gap-3">
+              {/* Campos obrigatórios */}
               {[
-                { key: "pointsChampion", label: "🥇 Campeão" },
-                { key: "pointsRunnerUp", label: "🥈 Vice-campeão" },
-                { key: "pointsSemi", label: "🥉 Semifinal" },
-                { key: "pointsQuarter", label: "Quartas" },
-                { key: "pointsGroup", label: "Fase de Grupos" },
+                { key: "pointsChampion", label: "🥇 Campeão", required: true },
+                {
+                  key: "pointsRunnerUp",
+                  label: "🥈 Vice-campeão",
+                  required: true,
+                },
+                { key: "pointsSemi", label: "🥉 Semifinal", required: true },
+                {
+                  key: "pointsQuarter",
+                  label: "Quartas de Final",
+                  required: true,
+                },
               ].map(({ key, label }) => (
                 <div key={key}>
                   <label className={labelCls}>{label}</label>
@@ -361,79 +368,71 @@ const CreateLeagueModal = ({ onClose, onCreated }: CreateLeagueModalProps) => {
                   />
                 </div>
               ))}
-            </div>
-          </div>
 
-          {/* Etapas Avançadas — colapsável */}
-          <div className="border-t border-gray-100 pt-4">
-            <button
-              type="button"
-              onClick={() => setShowAdvanced((v) => !v)}
-              className="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-gray-700 uppercase tracking-wide transition-colors w-full"
-            >
-              <svg
-                className={`w-4 h-4 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19 9l-7 7-7-7"
+              {/* Oitavas — opcional */}
+              <div>
+                <label className={labelCls}>
+                  Oitavas de Final{" "}
+                  <span className="text-gray-400 font-normal">(opcional)</span>
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  placeholder="ex: 15"
+                  className={inputCls}
+                  value={form.pointsRound16 ?? ""}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      pointsRound16:
+                        e.target.value === "" ? null : Number(e.target.value),
+                    }))
+                  }
                 />
-              </svg>
-              Etapas Avançadas (Oitavas / 16avos)
-              <span className="ml-auto text-gray-400 font-normal normal-case tracking-normal">
-                opcional
-              </span>
-            </button>
-
-            {showAdvanced && (
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                <div>
-                  <label className={labelCls}>Oitavas de Final</label>
-                  <input
-                    type="number"
-                    min={0}
-                    placeholder="ex: 15"
-                    className={inputCls}
-                    value={form.pointsRound16 ?? ""}
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        pointsRound16:
-                          e.target.value === "" ? null : Number(e.target.value),
-                      }))
-                    }
-                  />
-                  <p className="text-xs text-gray-400 mt-1">
-                    Vazio = sem pontos
-                  </p>
-                </div>
-                <div>
-                  <label className={labelCls}>16avos de Final</label>
-                  <input
-                    type="number"
-                    min={0}
-                    placeholder="ex: 5"
-                    className={inputCls}
-                    value={form.pointsRound32 ?? ""}
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        pointsRound32:
-                          e.target.value === "" ? null : Number(e.target.value),
-                      }))
-                    }
-                  />
-                  <p className="text-xs text-gray-400 mt-1">
-                    Vazio = sem pontos
-                  </p>
-                </div>
               </div>
-            )}
+
+              {/* 16avos — opcional */}
+              <div>
+                <label className={labelCls}>
+                  16avos de Final{" "}
+                  <span className="text-gray-400 font-normal">(opcional)</span>
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  placeholder="ex: 5"
+                  className={inputCls}
+                  value={form.pointsRound32 ?? ""}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      pointsRound32:
+                        e.target.value === "" ? null : Number(e.target.value),
+                    }))
+                  }
+                />
+              </div>
+
+              {/* Grupos */}
+              <div className="col-span-2">
+                <label className={labelCls}>Fase de Grupos</label>
+                <input
+                  type="number"
+                  min={0}
+                  className={inputCls}
+                  value={form.pointsGroup}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      pointsGroup: Number(e.target.value),
+                    }))
+                  }
+                />
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 mt-2">
+              Oitavas e 16avos: deixe vazio se o torneio não tiver essa fase.
+            </p>
           </div>
 
           {error && (

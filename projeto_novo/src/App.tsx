@@ -25,6 +25,7 @@ import TermsPage from "./pages/TermsPage";
 import PaymentPage from "./pages/PaymentPage";
 import TournamentResultsPDF from "./pages/TournamentResultsPDF";
 import LeagueProfile from "./pages/LeagueProfile";
+import LeaguesDashboard from "./pages/LeaguesDashboard";
 
 import { ToastProvider } from "./components/Toast";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -87,6 +88,10 @@ const App = () => {
                   element={<Navigate to="/termos" replace />}
                 />
                 <Route path="/pay/:token" element={<PaymentPage />} />
+                <Route
+                  path="/dashboard/leagues"
+                  element={<LeaguesDashboard />}
+                />
                 <Route
                   path="/dashboard/tournaments/:id/results"
                   element={<TournamentResultsPDF />}
