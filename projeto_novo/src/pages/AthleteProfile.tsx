@@ -789,13 +789,6 @@ const AthleteProfile: React.FC = () => {
               )}
             </div>
 
-            {/* Membro desde — centralizado */}
-            <div className="text-center py-4">
-              <p className="text-[12px] text-gray-400 font-normal">
-                📅 Membro desde {memberSince}
-              </p>
-            </div>
-
             {/* Patrocinadores — placeholder Sprint 8 */}
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
               <div className="flex items-center justify-between mb-3">
@@ -852,6 +845,12 @@ const AthleteProfile: React.FC = () => {
                 </div>
               </div>
             )}
+            {/* Membro desde — sempre o último item */}
+            <div className="text-center py-6">
+              <p className="text-[12px] text-gray-400 font-normal">
+                📅 Membro desde {memberSince}
+              </p>
+            </div>
           </div>
         )}
 
