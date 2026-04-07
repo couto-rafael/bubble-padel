@@ -1,44 +1,289 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
+/* ─────────────────────────────────────────────────────────────────────────────
+   Bubble Padel — Global Styles
+   Design System v2 · Plus Jakarta Sans · Dark Seletivo
+   Sprint 6.4 — Abril 2026
+───────────────────────────────────────────────────────────────────────────── */
+
+/* Fonte carregada via index.html — sem import aqui */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ─── CSS TOKENS — Design System v2 ─────────────────────────────────────── */
+
+:root {
+  /* ── Dark Theme Surfaces ──────────────────────────────── */
+  --dark-bg: #0a0e1a;
+  --dark-card: #141824;
+  --dark-elevated: #1e2538;
+  --dark-border: rgba(255, 255, 255, 0.08);
+  --dark-text: #f0f4ff;
+  --dark-muted: #6b7a99;
+
+  /* ── Light Theme Surfaces ─────────────────────────────── */
+  --light-bg: #f8f9fc;
+  --light-card: #ffffff;
+  --light-elevated: #f0f3f9;
+  --light-border: #e2e8f0;
+  --light-text: #0f172a;
+  --light-muted: #64748b;
+
+  /* ── Brand Accents (compartilhados) ───────────────────── */
+  --brand-green: #00e87a;
+  --brand-green-dk: #00b85f;
+  --brand-cyan: #00c8ff;
+  --brand-orange: #ff6b35;
+  --brand-blue: #2563eb;
+  --brand-blue-dk: #1d4ed8;
+  --brand-danger: #ff4757;
+  --brand-amber: #f59e0b;
+  --brand-purple: #8b5cf6;
+
+  /* ── Gold / Pódio ─────────────────────────────────────── */
+  --gold: #fbbf24;
+  --silver: #94a3b8;
+  --bronze: #cd7c4a;
+
+  /* ── Border Radius ────────────────────────────────────── */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-2xl: 24px;
+  --r-full: 9999px;
+
+  /* ── Typography ───────────────────────────────────────── */
+  --font: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+
+  /* ── Shadows ──────────────────────────────────────────── */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.16);
+  --shadow-dark-lg: 0 24px 48px rgba(0, 0, 0, 0.5);
+  --shadow-green: 0 0 20px rgba(0, 232, 122, 0.25);
+  --shadow-blue: 0 4px 12px rgba(37, 99, 235, 0.3);
+
+  /* ── Transitions ──────────────────────────────────────── */
+  --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── BASE ───────────────────────────────────────────────────────────────── */
+
 @layer base {
   html,
   body {
-    @apply bg-[#0a0e27] text-white;
-    font-family: "Inter", sans-serif;
+    font-family: var(--font);
     overflow-x: hidden;
+    /* IMPORTANTE: sem background global forçado.
+       Cada página define seu próprio tema (dark ou light)
+       conforme Design System v2 — decisão de dark seletivo. */
+  }
+
+  /* Scrollbar dark — só em contextos dark */
+  .theme-dark ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .theme-dark ::-webkit-scrollbar-track {
+    background: var(--dark-card);
+  }
+  .theme-dark ::-webkit-scrollbar-thumb {
+    background: var(--dark-elevated);
+    border-radius: var(--r-full);
+  }
+  .theme-dark ::-webkit-scrollbar-thumb:hover {
+    background: var(--dark-muted);
   }
 }
 
+/* ─── UTILITY CLASSES ────────────────────────────────────────────────────── */
+
 @layer utilities {
+  /* ── Tema: aplicar nas divs/pages root ─────────────────── */
+  .theme-dark {
+    background-color: var(--dark-bg);
+    color: var(--dark-text);
+  }
+  .theme-light {
+    background-color: var(--light-bg);
+    color: var(--light-text);
+  }
+
+  /* ── Tipografia de display ─────────────────────────────── */
+  .text-display {
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+  }
+  .text-heading-1 {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1.2;
+  }
+  .text-heading-2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .text-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ── Superfícies Dark ──────────────────────────────────── */
+  .surface-dark {
+    background-color: var(--dark-bg);
+  }
+  .surface-dark-card {
+    background-color: var(--dark-card);
+    border: 1px solid var(--dark-border);
+  }
+  .surface-dark-elevated {
+    background-color: var(--dark-elevated);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* ── Superfícies Light ─────────────────────────────────── */
+  .surface-light {
+    background-color: var(--light-bg);
+  }
+  .surface-light-card {
+    background-color: var(--light-card);
+    border: 1px solid var(--light-border);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ── Accent Glow ───────────────────────────────────────── */
+  .glow-green {
+    box-shadow: var(--shadow-green);
+  }
+  .glow-blue {
+    box-shadow: var(--shadow-blue);
+  }
+
+  /* ── Safe area (mobile) ────────────────────────────────── */
+  .pb-safe {
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+  .pt-safe {
+    padding-top: max(0px, env(safe-area-inset-top));
+  }
+
+  /* ── Animações ─────────────────────────────────────────── */
   .animate-fade-in {
-    animation: fadeIn 0.6s ease-out;
+    animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
-
   .animate-slide-in {
-    animation: slideIn 0.3s ease-out;
+    animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .animate-slide-up {
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .animate-scale-in {
+    animation: scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  /* ── Progress bar gradiente ────────────────────────────── */
+  .progress-brand {
+    background: linear-gradient(90deg, var(--brand-green), var(--brand-cyan));
   }
 
-  @keyframes slideIn {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
+  /* ── Gradientes de fundo ───────────────────────────────── */
+  .gradient-dark-hero {
+    background: linear-gradient(
+      135deg,
+      var(--dark-bg) 0%,
+      var(--dark-card) 50%,
+      var(--dark-bg) 100%
+    );
   }
+  .gradient-dark-card {
+    background: linear-gradient(
+      135deg,
+      var(--dark-elevated) 0%,
+      var(--dark-card) 100%
+    );
+  }
+  .gradient-green-glow {
+    background: radial-gradient(
+      circle at top right,
+      rgba(0, 232, 122, 0.12) 0%,
+      transparent 60%
+    );
+  }
+
+  /* ── Bordas com tokens ─────────────────────────────────── */
+  .border-dark {
+    border-color: var(--dark-border);
+  }
+  .border-light {
+    border-color: var(--light-border);
+  }
+}
+
+/* ─── KEYFRAMES ──────────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-green {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 232, 122, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(0, 232, 122, 0);
+  }
+}
+
+/* ── Badge "Ao Vivo" pulsante ──────────────────────────── */
+.pulse-live {
+  animation: pulse-green 2s ease-in-out infinite;
 }
