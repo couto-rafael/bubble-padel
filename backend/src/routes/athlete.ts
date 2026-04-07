@@ -455,7 +455,7 @@ publicAthleteRoutes.get("/:id", async (req, res, next) => {
         state: true,
         avatarUrl: true,
         sports: true,
-        racket: true,
+        rackets: true,
         instagramUrl: true,
         twitterUrl: true,
         createdAt: true,
