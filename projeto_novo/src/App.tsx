@@ -21,6 +21,7 @@ import CreateTournament from "./pages/CreateTournament";
 import EditTournament from "./pages/EditTournament";
 import AthleteDashboard from "./pages/AthleteDashboard";
 import AthleteProfile from "./pages/AthleteProfile";
+import AthleteSettings from "./pages/AthleteSettings";
 import TermsPage from "./pages/TermsPage";
 import PaymentPage from "./pages/PaymentPage";
 import TournamentResultsPDF from "./pages/TournamentResultsPDF";
@@ -56,6 +57,7 @@ const App = () => {
                 />
                 <Route path="/contact" element={<Contact />} />
 
+                {/* Clube */}
                 <Route path="/dashboard" element={<ClubDashboard />} />
                 <Route
                   path="/dashboard/profile"
@@ -74,29 +76,32 @@ const App = () => {
                   path="/dashboard/tournaments/:id/edit"
                   element={<EditTournament />}
                 />
+                <Route
+                  path="/dashboard/tournaments/:id/results"
+                  element={<TournamentResultsPDF />}
+                />
+                <Route
+                  path="/dashboard/leagues"
+                  element={<LeaguesDashboard />}
+                />
                 <Route path="/clubs/:id" element={<ClubProfile />} />
 
+                {/* Atleta */}
                 <Route
                   path="/athlete/dashboard"
                   element={<AthleteDashboard />}
                 />
                 <Route path="/athlete/profile" element={<AthleteProfile />} />
+                <Route path="/athlete/settings" element={<AthleteSettings />} />
 
+                {/* Público */}
+                <Route path="/leagues/:id" element={<LeagueProfile />} />
                 <Route path="/termos" element={<TermsPage />} />
                 <Route
                   path="/privacidade"
                   element={<Navigate to="/termos" replace />}
                 />
                 <Route path="/pay/:token" element={<PaymentPage />} />
-                <Route
-                  path="/dashboard/leagues"
-                  element={<LeaguesDashboard />}
-                />
-                <Route
-                  path="/dashboard/tournaments/:id/results"
-                  element={<TournamentResultsPDF />}
-                />
-                <Route path="/leagues/:id" element={<LeagueProfile />} />
               </Routes>
             </Router>
           </AuthProvider>

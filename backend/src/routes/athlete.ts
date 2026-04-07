@@ -5,6 +5,8 @@ import { z } from "zod";
 
 export const athleteRoutes = Router();
 
+// ─── Schemas de validação ─────────────────────────────────────────────────────
+
 const updateSchema = z.object({
   fullName: z.string().min(2).optional(),
   phone: z.string().optional(),
@@ -12,10 +14,17 @@ const updateSchema = z.object({
   state: z.string().optional(),
   avatarUrl: z.string().optional(),
   birthDate: z.string().optional(),
+  // Sprint 7 — perfil Strava
+  nickname: z.string().max(30).optional().nullable(),
+  sports: z
+    .array(z.enum(["PADEL", "BEACH_TENNIS", "TENIS", "PICKLEBALL"]))
+    .optional(),
+  racket: z.string().max(60).optional().nullable(),
+  instagramUrl: z.string().max(100).optional().nullable(),
+  twitterUrl: z.string().max(100).optional().nullable(),
 });
 
-// ─── Catálogo de achievements (metadados para o frontend) ─────────────────────
-// Mantido aqui para o endpoint poder enriquecer os dados com nome/descrição/ícone
+// ─── Catálogo de achievements ─────────────────────────────────────────────────
 
 const ACHIEVEMENT_META: Record<
   string,
@@ -32,7 +41,6 @@ const ACHIEVEMENT_META: Record<
     }>;
   }
 > = {
-  // ── Participação ────────────────────────────────────────────────────────────
   first_tournament: {
     name: "Primeira Bola",
     description: "Inscreveu-se no primeiro torneio",
@@ -67,7 +75,6 @@ const ACHIEVEMENT_META: Record<
       { tier: "GOLD", threshold: 12, label: "12 meses" },
     ],
   },
-  // ── Performance ─────────────────────────────────────────────────────────────
   first_title: {
     name: "Primeiro Título",
     description: "Venceu o primeiro torneio",
@@ -121,7 +128,6 @@ const ACHIEVEMENT_META: Record<
     hasProgress: false,
     tiers: [{ tier: "BRONZE", threshold: 1, label: "Desbloqueado" }],
   },
-  // ── Social ───────────────────────────────────────────────────────────────────
   loyal_partner: {
     name: "Parceiro Fiel",
     description: "Torneios com o mesmo parceiro",
@@ -168,7 +174,6 @@ const ACHIEVEMENT_META: Record<
       { tier: "SILVER", threshold: 5, label: "5 clubes" },
     ],
   },
-  // ── Plataforma ───────────────────────────────────────────────────────────────
   profile_complete: {
     name: "Perfil Completo",
     description: "Preencheu foto, cidade e telefone",
@@ -195,7 +200,6 @@ const ACHIEVEMENT_META: Record<
   },
 };
 
-// ─── Constante auxiliar compartilhada ────────────────────────────────────────
 const tierOrder = ["BRONZE", "SILVER", "GOLD", "DIAMOND", "LEGEND"] as const;
 
 // ─── GET /api/athlete/profile ─────────────────────────────────────────────────
@@ -207,11 +211,8 @@ athleteRoutes.get(
     try {
       const athlete = await prisma.athlete.findUnique({
         where: { userId: req.userId },
-        include: {
-          user: { select: { email: true } },
-        },
+        include: { user: { select: { email: true } } },
       });
-
       if (!athlete)
         return res.status(404).json({ error: "Atleta não encontrado" });
       return res.json({ data: athlete });
@@ -291,7 +292,6 @@ athleteRoutes.get(
 );
 
 // ─── GET /api/athlete/stats ───────────────────────────────────────────────────
-// Retorna: troféus, achievements (com progresso e meta), standings por liga
 
 athleteRoutes.get(
   "/stats",
@@ -307,32 +307,26 @@ athleteRoutes.get(
 
       const { id: athleteId } = athlete;
 
-      // ── 1. Troféus ────────────────────────────────────────────────────────────
       const trophies = await prisma.athleteTrophy.findMany({
         where: { athleteId },
         orderBy: { earnedAt: "desc" },
       });
 
-      // ── 2. Achievements ───────────────────────────────────────────────────────
       const rawAchievements = await prisma.athleteAchievement.findMany({
         where: { athleteId },
       });
 
-      // Constrói lista completa: desbloqueados + locked (todos do catálogo)
       const achievementsAll = Object.entries(ACHIEVEMENT_META).map(
         ([key, meta]) => {
           const saved = rawAchievements.find((a) => a.key === key);
           const progress = saved?.progress ?? 0;
           const unlockedAt = saved?.unlockedAt ?? null;
           const currentTier = saved?.unlockedAt ? saved.tier : null;
-
-          // Próximo tier ainda não desbloqueado
           const nextTier = meta.tiers.find(
             (t) =>
               !currentTier ||
               tierOrder.indexOf(t.tier) > tierOrder.indexOf(currentTier),
           );
-
           return {
             key,
             name: meta.name,
@@ -341,19 +335,16 @@ athleteRoutes.get(
             category: meta.category,
             hasProgress: meta.hasProgress,
             tiers: meta.tiers,
-            // Estado atual
             currentTier,
             progress,
             unlockedAt,
             isUnlocked: !!unlockedAt,
-            // Para barra de progresso
             nextThreshold: nextTier?.threshold ?? null,
             nextTierLabel: nextTier?.label ?? null,
           };
         },
       );
 
-      // Separa desbloqueados × em progresso × locked
       const achievements = {
         unlocked: achievementsAll.filter((a) => a.isUnlocked),
         inProgress: achievementsAll.filter(
@@ -364,17 +355,12 @@ athleteRoutes.get(
         ),
       };
 
-      // ── 3. League standings ───────────────────────────────────────────────────
-      // Todos os pontos do atleta agrupados por liga
       const leaguePointsRaw = await prisma.leaguePoints.findMany({
         where: { athleteId },
-        include: {
-          league: { select: { id: true, name: true, sport: true } },
-        },
+        include: { league: { select: { id: true, name: true, sport: true } } },
         orderBy: { earnedAt: "desc" },
       });
 
-      // Agrupa por liga: soma total de pontos + lista de torneios
       const leagueMap = new Map<
         string,
         {
@@ -392,7 +378,6 @@ athleteRoutes.get(
       >();
 
       for (const lp of leaguePointsRaw) {
-        const existing = leagueMap.get(lp.leagueId);
         const entry = {
           tournamentId: lp.tournamentId,
           category: lp.category,
@@ -400,6 +385,7 @@ athleteRoutes.get(
           points: lp.points,
           earnedAt: lp.earnedAt,
         };
+        const existing = leagueMap.get(lp.leagueId);
         if (existing) {
           existing.totalPoints += lp.points;
           existing.entries.push(entry);
@@ -417,30 +403,21 @@ athleteRoutes.get(
         }
       }
 
-      // Calcula posição no ranking de cada liga
-      // Busca soma de pontos de todos os atletas da liga e compara
       for (const [leagueId, data] of leagueMap.entries()) {
         const allAthletePoints = await prisma.leaguePoints.groupBy({
           by: ["athleteId"],
           where: { leagueId },
           _sum: { points: true },
         });
-        const countAbove = allAthletePoints.filter(
-          (row) => (row._sum.points ?? 0) > data.totalPoints,
-        ).length;
-        data.rankPosition = countAbove + 1;
+        data.rankPosition =
+          allAthletePoints.filter(
+            (row) => (row._sum.points ?? 0) > data.totalPoints,
+          ).length + 1;
       }
 
       const leagueStandings = Array.from(leagueMap.values()).sort(
         (a, b) => (a.rankPosition ?? 999) - (b.rankPosition ?? 999),
       );
-
-      // ── 4. Estatísticas resumidas ─────────────────────────────────────────────
-      const totalTrophies = trophies.length;
-      const totalTitles = trophies.filter(
-        (t) => t.placement === "CHAMPION",
-      ).length;
-      const totalUnlocked = achievements.unlocked.length;
 
       return res.json({
         data: {
@@ -448,9 +425,10 @@ athleteRoutes.get(
           achievements,
           leagueStandings,
           summary: {
-            totalTrophies,
-            totalTitles,
-            totalAchievementsUnlocked: totalUnlocked,
+            totalTrophies: trophies.length,
+            totalTitles: trophies.filter((t) => t.placement === "CHAMPION")
+              .length,
+            totalAchievementsUnlocked: achievements.unlocked.length,
             totalAchievementsAvailable: Object.keys(ACHIEVEMENT_META).length,
           },
         },
@@ -465,7 +443,6 @@ athleteRoutes.get(
 
 export const publicAthleteRoutes = Router();
 
-// GET /api/public/athletes/:id
 publicAthleteRoutes.get("/:id", async (req, res, next) => {
   try {
     const athlete = await prisma.athlete.findUnique({
@@ -473,9 +450,14 @@ publicAthleteRoutes.get("/:id", async (req, res, next) => {
       select: {
         id: true,
         fullName: true,
+        nickname: true,
         city: true,
         state: true,
         avatarUrl: true,
+        sports: true,
+        racket: true,
+        instagramUrl: true,
+        twitterUrl: true,
         createdAt: true,
       },
     });
