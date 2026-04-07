@@ -2,9 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import AthleteHeader from "../components/AthleteHeader";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TYPES
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── TIPOS ────────────────────────────────────────────────────────────────────
 
 interface AthleteData {
   id: string;
@@ -99,9 +97,7 @@ interface AthleteStats {
   };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// API
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── API ──────────────────────────────────────────────────────────────────────
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
 const token = () => localStorage.getItem("auth_token") ?? "";
@@ -132,9 +128,7 @@ async function getStats(): Promise<AthleteStats | null> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── HELPERS (preservados) ────────────────────────────────────────────────────
 
 function normalizeSport(s: string) {
   switch (s?.toUpperCase()) {
@@ -200,10 +194,10 @@ function generateHeatmap(entries: TournamentEntry[]) {
 
 const INTENSITY_COLORS = [
   "bg-gray-100",
-  "bg-green-200",
-  "bg-green-400",
-  "bg-green-500",
-  "bg-green-600",
+  "bg-[#00e87a]/20",
+  "bg-[#00e87a]/40",
+  "bg-[#00e87a]/70",
+  "bg-[#00e87a]",
 ];
 
 const TIER_CONFIG: Record<
@@ -244,36 +238,39 @@ const CATEGORY_LABELS: Record<string, string> = {
   plataforma: "Plataforma",
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SUB-COMPONENTS
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── SUB-COMPONENTES ──────────────────────────────────────────────────────────
 
 const TrophyCard = ({ trophy }: { trophy: AthleteTrophy }) => (
   <div
-    className={`text-center p-5 rounded-xl border ${
+    className={`text-center p-5 rounded-2xl border relative overflow-hidden ${
       trophy.placement === "CHAMPION"
-        ? "bg-gradient-to-b from-yellow-50 to-white border-yellow-200"
+        ? "bg-gradient-to-b from-amber-50 to-white border-amber-200"
         : "bg-gradient-to-b from-gray-50 to-white border-gray-200"
     }`}
   >
+    {trophy.placement === "CHAMPION" && (
+      <div className="absolute top-0 right-0 w-16 h-16 bg-amber-400/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+    )}
     <span className="text-4xl block mb-2">
-      {trophy.placement === "CHAMPION" ? "🥇" : "🥈"}
+      {trophy.placement === "CHAMPION" ? "🏆" : "🥈"}
     </span>
-    <p
-      className={`text-xs font-bold uppercase tracking-wide mb-1 ${
-        trophy.placement === "CHAMPION" ? "text-yellow-600" : "text-gray-400"
+    <span
+      className={`inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wide px-2 py-0.5 rounded-full mb-2 ${
+        trophy.placement === "CHAMPION"
+          ? "bg-amber-100 text-amber-700"
+          : "bg-gray-100 text-gray-500"
       }`}
     >
-      {trophy.placement === "CHAMPION" ? "Campeão" : "Vice-campeão"}
-    </p>
-    <p className="text-sm font-bold text-gray-800 leading-tight">
+      {trophy.placement === "CHAMPION" ? "🥇 Campeão" : "🥈 Vice"}
+    </span>
+    <p className="text-[13px] font-bold text-gray-900 leading-tight mb-1">
       {trophy.tournamentName}
     </p>
-    <p className="text-xs text-gray-500 mt-1">{trophy.category}</p>
-    <p className="text-xs text-gray-400 mt-0.5">
-      {normalizeSport(trophy.sport)}
+    <p className="text-[11px] text-gray-500">{trophy.category}</p>
+    <p className="text-[11px] text-gray-400">{normalizeSport(trophy.sport)}</p>
+    <p className="text-[10px] text-gray-300 mt-2">
+      {formatDate(trophy.earnedAt)}
     </p>
-    <p className="text-xs text-gray-300 mt-2">{formatDate(trophy.earnedAt)}</p>
   </div>
 );
 
@@ -292,67 +289,69 @@ const AchievementCard = ({ achievement }: { achievement: Achievement }) => {
       className={`flex items-start gap-3 p-4 rounded-xl border transition-all ${
         achievement.isUnlocked
           ? `${tierCfg?.bg ?? "bg-white border-gray-200"}`
-          : "bg-white border-gray-100 opacity-60"
+          : "bg-white border-gray-100 opacity-50"
       }`}
     >
       <span
-        className={`text-3xl flex-shrink-0 ${!achievement.isUnlocked ? "grayscale" : ""}`}
+        className={`text-2xl flex-shrink-0 mt-0.5 ${!achievement.isUnlocked ? "grayscale" : ""}`}
       >
         {achievement.icon}
       </span>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-0.5 flex-wrap">
           <p
-            className={`font-semibold text-sm ${achievement.isUnlocked ? "text-gray-900" : "text-gray-400"}`}
+            className={`font-bold text-[13px] ${achievement.isUnlocked ? "text-gray-900" : "text-gray-400"}`}
           >
             {achievement.name}
           </p>
           {tierCfg && achievement.isUnlocked && (
             <span
-              className={`text-xs font-bold px-1.5 py-0.5 rounded ${tierCfg.color} ${tierCfg.bg} border`}
+              className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded border ${tierCfg.color} ${tierCfg.bg}`}
             >
               {tierCfg.label}
             </span>
           )}
         </div>
-        <p className="text-xs text-gray-400">{achievement.description}</p>
+        <p className="text-[12px] text-gray-400 font-normal">
+          {achievement.description}
+        </p>
 
-        {/* Barra de progresso */}
         {achievement.hasProgress &&
           !achievement.isUnlocked &&
           achievement.nextThreshold && (
             <div className="mt-2">
-              <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
+              <div className="flex items-center justify-between text-[11px] text-gray-400 mb-1">
                 <span>
                   {achievement.progress} / {achievement.nextThreshold}
                 </span>
-                <span>{achievement.nextTierLabel}</span>
+                <span className="font-semibold">
+                  {achievement.nextTierLabel}
+                </span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-1.5">
+              <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className="h-1.5 rounded-full bg-green-500 transition-all"
+                  className="h-full rounded-full bg-gradient-to-r from-[#00e87a] to-[#00c8ff] transition-all"
                   style={{ width: `${pct}%` }}
                 />
               </div>
             </div>
           )}
 
-        {/* Progresso para próximo tier (já desbloqueado, mas tem tier acima) */}
         {achievement.hasProgress &&
           achievement.isUnlocked &&
           achievement.nextThreshold && (
             <div className="mt-2">
-              <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
+              <div className="flex items-center justify-between text-[11px] text-gray-400 mb-1">
                 <span>
                   {achievement.progress} / {achievement.nextThreshold}
                 </span>
-                <span className="text-gray-400">
+                <span className="font-semibold">
                   Próximo: {achievement.nextTierLabel}
                 </span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-1.5">
+              <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className="h-1.5 rounded-full bg-blue-400 transition-all"
+                  className="h-full rounded-full bg-gradient-to-r from-blue-400 to-[#00c8ff] transition-all"
                   style={{ width: `${pct}%` }}
                 />
               </div>
@@ -360,7 +359,7 @@ const AchievementCard = ({ achievement }: { achievement: Achievement }) => {
           )}
 
         {achievement.isUnlocked && achievement.unlockedAt && (
-          <p className="text-xs text-gray-300 mt-1">
+          <p className="text-[11px] text-gray-300 mt-1.5">
             Desbloqueado em {formatDate(achievement.unlockedAt)}
           </p>
         )}
@@ -369,9 +368,7 @@ const AchievementCard = ({ achievement }: { achievement: Achievement }) => {
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MAIN COMPONENT
-// ─────────────────────────────────────────────────────────────────────────────
+// ─── COMPONENTE PRINCIPAL ─────────────────────────────────────────────────────
 
 const AthleteProfile: React.FC = () => {
   const [athlete, setAthlete] = useState<AthleteData | null>(null);
@@ -398,10 +395,10 @@ const AthleteProfile: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#f8f9fc]">
         <AthleteHeader />
         <div className="pt-24 flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+          <span className="w-8 h-8 border-2 border-blue-600/20 border-t-blue-600 rounded-full animate-spin inline-block" />
         </div>
       </div>
     );
@@ -409,14 +406,16 @@ const AthleteProfile: React.FC = () => {
 
   if (!athlete) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#f8f9fc]">
         <AthleteHeader />
-        <div className="pt-24 text-center text-gray-500">
+        <div className="pt-24 text-center text-gray-500 text-sm">
           Erro ao carregar perfil.
         </div>
       </div>
     );
   }
+
+  // ── Derivações (preservadas) ──────────────────────────────────────────────
 
   const heatmap = generateHeatmap(tournaments);
   const totalTournaments = tournaments.length;
@@ -427,7 +426,6 @@ const AthleteProfile: React.FC = () => {
     [athlete.city, athlete.state].filter(Boolean).join(", ") || "—";
   const memberSince = new Date(athlete.createdAt).getFullYear();
 
-  // Stats vindos da API (com fallback 0 se ainda não processado)
   const totalTrophies = stats?.summary.totalTrophies ?? 0;
   const totalTitles = stats?.summary.totalTitles ?? 0;
   const achievUnlocked = stats?.summary.totalAchievementsUnlocked ?? 0;
@@ -435,7 +433,6 @@ const AthleteProfile: React.FC = () => {
   const trophies = stats?.trophies ?? [];
   const leagueStandings = stats?.leagueStandings ?? [];
 
-  // Achievements agrupados por categoria para exibição
   const allAchievements = [
     ...(stats?.achievements.unlocked ?? []),
     ...(stats?.achievements.inProgress ?? []),
@@ -451,589 +448,622 @@ const AthleteProfile: React.FC = () => {
 
   const achievementsByCategory = filteredAchievements.reduce(
     (acc, a) => {
-      const cat = a.category;
-      if (!acc[cat]) acc[cat] = [];
-      acc[cat].push(a);
+      if (!acc[a.category]) acc[a.category] = [];
+      acc[a.category].push(a);
       return acc;
     },
     {} as Record<string, Achievement[]>,
   );
 
+  const TABS = [
+    { id: "overview" as const, label: "Visão Geral" },
+    {
+      id: "tournaments" as const,
+      label: `Torneios${totalTournaments > 0 ? ` (${totalTournaments})` : ""}`,
+    },
+    {
+      id: "trophies" as const,
+      label: `Troféus${totalTrophies > 0 ? ` (${totalTrophies})` : ""}`,
+    },
+    {
+      id: "leagues" as const,
+      label: `Ligas${leagueStandings.length > 0 ? ` (${leagueStandings.length})` : ""}`,
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f8f9fc] pb-24 md:pb-8">
       <AthleteHeader />
 
-      <main className="pt-20 pb-12">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          {/* ── Hero Card ──────────────────────────────────────────────────── */}
-          <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden mb-6">
-            <div className="h-24 bg-gradient-to-r from-[#1a1f4a] to-[#0f1540]" />
-            <div className="px-6 pb-6">
-              <div className="flex items-end justify-between -mt-10 mb-4">
-                <div className="w-20 h-20 rounded-xl border-4 border-white bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center overflow-hidden shadow-lg">
-                  {athlete.avatarUrl ? (
-                    <img
-                      src={athlete.avatarUrl}
-                      alt={athlete.fullName}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-2xl font-black text-white">
-                      {getInitials(athlete.fullName)}
-                    </span>
-                  )}
-                </div>
-                <Link
-                  to="/athlete/settings"
-                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Editar Perfil
-                </Link>
-              </div>
-
-              <h1 className="text-2xl font-black text-gray-900 mb-1">
-                {athlete.fullName}
-              </h1>
-              <div className="flex flex-wrap gap-3 text-sm text-gray-500">
-                {location !== "—" && (
-                  <span className="flex items-center gap-1">
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                    {location}
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-5 pb-12">
+        {/* ── Hero Card ─────────────────────────────────────────────────────── */}
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm mb-5">
+          <div className="h-20 bg-gradient-to-r from-[#0a0e1a] to-[#1e2538] relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,232,122,0.15),transparent_60%)]" />
+          </div>
+          <div className="px-5 pb-5">
+            <div className="flex items-end justify-between -mt-9 mb-4">
+              <div className="w-16 h-16 rounded-2xl border-[3px] border-white bg-gradient-to-br from-[#00e87a] to-[#00b85f] flex items-center justify-center overflow-hidden shadow-[0_0_16px_rgba(0,232,122,0.3)]">
+                {athlete.avatarUrl ? (
+                  <img
+                    src={athlete.avatarUrl}
+                    alt={athlete.fullName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-xl font-extrabold text-[#0a0e1a]">
+                    {getInitials(athlete.fullName)}
                   </span>
                 )}
-                <span className="flex items-center gap-1">
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  Membro desde {memberSince}
-                </span>
               </div>
-
-              {/* Stats row */}
-              <div className="flex gap-6 mt-5 pt-5 border-t border-gray-100 flex-wrap">
-                <div className="text-center">
-                  <div className="text-2xl font-black text-gray-900">
-                    {totalTournaments}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-0.5">Torneios</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-black text-green-600">
-                    {confirmedTournaments}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-0.5">
-                    Confirmados
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-black text-yellow-500">
-                    {totalTitles}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-0.5">Títulos</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-black text-purple-600">
-                    {totalTrophies}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-0.5">Troféus</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-black text-blue-600">
-                    {achievUnlocked}
-                    <span className="text-sm text-gray-300">
-                      /{achievTotal}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-400 mt-0.5">Conquistas</div>
-                </div>
-                {leagueStandings.length > 0 && (
-                  <div className="text-center">
-                    <div className="text-2xl font-black text-orange-500">
-                      #{leagueStandings[0].rankPosition ?? "—"}
-                    </div>
-                    <div className="text-xs text-gray-400 mt-0.5 max-w-[72px] truncate">
-                      {leagueStandings[0].league.name}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* ── Tabs ──────────────────────────────────────────────────────── */}
-          <div className="flex gap-1 bg-white border border-gray-200 rounded-xl p-1 mb-6 overflow-x-auto">
-            {(
-              [
-                { id: "overview", label: "Visão Geral" },
-                { id: "tournaments", label: "Torneios" },
-                {
-                  id: "trophies",
-                  label: `Troféus ${totalTrophies > 0 ? `(${totalTrophies})` : ""}`,
-                },
-                {
-                  id: "leagues",
-                  label: `Ligas ${leagueStandings.length > 0 ? `(${leagueStandings.length})` : ""}`,
-                },
-              ] as const
-            ).map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? "bg-[#1a1f4a] text-white shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
+              <Link
+                to="/athlete/settings"
+                className="px-3.5 py-1.5 border border-gray-200 rounded-xl text-[12px] font-bold text-gray-600 hover:bg-gray-50 transition-colors"
               >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+                Editar Perfil
+              </Link>
+            </div>
 
-          {/* ── Tab: Visão Geral ─────────────────────────────────────────── */}
-          {activeTab === "overview" && (
-            <div className="space-y-6">
-              {/* Heatmap */}
-              <div className="bg-white border border-gray-200 rounded-xl p-6">
-                <h2 className="text-base font-bold text-gray-900 mb-4">
-                  Atividade nos Últimos 3 Meses
-                </h2>
-                <div className="flex gap-1 flex-wrap">
-                  {heatmap.map((day, i) => (
-                    <div
-                      key={i}
-                      title={day.date.toLocaleDateString("pt-BR")}
-                      className={`w-3 h-3 rounded-sm ${INTENSITY_COLORS[day.intensity]}`}
-                    />
-                  ))}
-                </div>
-                <div className="flex items-center gap-2 mt-3 text-xs text-gray-400">
-                  <span>Menos</span>
-                  {INTENSITY_COLORS.map((c, i) => (
-                    <div key={i} className={`w-3 h-3 rounded-sm ${c}`} />
-                  ))}
-                  <span>Mais</span>
-                </div>
-              </div>
-
-              {/* Últimos torneios */}
-              <div className="bg-white border border-gray-200 rounded-xl p-6">
-                <h2 className="text-base font-bold text-gray-900 mb-4">
-                  Últimos Torneios
-                </h2>
-                {tournaments.length === 0 ? (
-                  <div className="text-center py-8 text-gray-400">
-                    <p className="text-sm">Ainda sem torneios inscritos.</p>
-                    <Link
-                      to="/tournaments"
-                      className="text-green-600 hover:underline text-sm mt-2 inline-block"
-                    >
-                      Ver torneios disponíveis →
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {tournaments.slice(0, 5).map((entry) => (
-                      <Link
-                        key={entry.id}
-                        to={`/tournaments/${entry.tournament.id}`}
-                        className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
-                      >
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">
-                            {entry.tournament.name}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-0.5">
-                            {entry.tournament.club.name} · {entry.category} ·{" "}
-                            {normalizeSport(entry.tournament.sport)}
-                          </p>
-                        </div>
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full font-medium ${
-                            entry.status === "CONFIRMED"
-                              ? "bg-green-100 text-green-700"
-                              : entry.status === "PENDING"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {normalizeStatus(entry.status)}
-                        </span>
-                      </Link>
-                    ))}
-                    {tournaments.length > 5 && (
-                      <button
-                        onClick={() => setActiveTab("tournaments")}
-                        className="text-sm text-green-600 hover:underline w-full text-center pt-1"
-                      >
-                        Ver todos os {tournaments.length} torneios →
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Conquistas recentes */}
-              {(stats?.achievements.unlocked ?? []).length > 0 && (
-                <div className="bg-white border border-gray-200 rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-base font-bold text-gray-900">
-                      Conquistas Recentes
-                    </h2>
-                    <button
-                      onClick={() => setActiveTab("trophies")}
-                      className="text-xs text-blue-600 hover:underline font-semibold"
-                    >
-                      Ver todas →
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-3">
-                    {stats!.achievements.unlocked.slice(0, 4).map((a) => (
-                      <div
-                        key={a.key}
-                        className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100"
-                      >
-                        <span className="text-xl">{a.icon}</span>
-                        <div>
-                          <p className="text-xs font-semibold text-gray-800">
-                            {a.name}
-                          </p>
-                          {a.currentTier && (
-                            <p
-                              className={`text-xs font-bold ${TIER_CONFIG[a.currentTier].color}`}
-                            >
-                              {TIER_CONFIG[a.currentTier].label}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            <h1 className="text-[22px] font-extrabold text-gray-900 tracking-tight mb-1.5">
+              {athlete.fullName}
+            </h1>
+            <div className="flex flex-wrap gap-3 text-[12px] text-gray-500 mb-4 font-normal">
+              {location !== "—" && <span>📍 {location}</span>}
+              <span>📅 Membro desde {memberSince}</span>
+              {athlete.user?.email && (
+                <span className="hidden sm:inline">
+                  ✉️ {athlete.user.email}
+                </span>
               )}
             </div>
-          )}
 
-          {/* ── Tab: Torneios ────────────────────────────────────────────── */}
-          {activeTab === "tournaments" && (
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
-              <h2 className="text-base font-bold text-gray-900 mb-4">
-                Histórico de Torneios ({totalTournaments})
-              </h2>
-              {tournaments.length === 0 ? (
-                <div className="text-center py-12 text-gray-400">
-                  <svg
-                    className="w-12 h-12 mx-auto mb-3 opacity-30"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+            <div className="grid grid-cols-5 gap-2 pt-4 border-t border-gray-100">
+              {[
+                {
+                  value: totalTournaments,
+                  label: "Torneios",
+                  color: "text-gray-900",
+                },
+                {
+                  value: confirmedTournaments,
+                  label: "Confirm.",
+                  color: "text-green-600",
+                },
+                {
+                  value: totalTitles,
+                  label: "Títulos",
+                  color: "text-amber-600",
+                },
+                {
+                  value: totalTrophies,
+                  label: "Troféus",
+                  color: "text-purple-600",
+                },
+                {
+                  value: `${achievUnlocked}/${achievTotal}`,
+                  label: "Conquistas",
+                  color: "text-blue-600",
+                },
+              ].map(({ value, label, color }) => (
+                <div key={label} className="text-center">
+                  <p
+                    className={`text-[20px] font-extrabold tracking-tight leading-none ${color}`}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                    />
-                  </svg>
-                  <p className="text-sm">Ainda sem torneios inscritos.</p>
+                    {value}
+                  </p>
+                  <p className="text-[10px] text-gray-400 font-semibold mt-1 uppercase tracking-wide">
+                    {label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Tabs ──────────────────────────────────────────────────────────── */}
+        <div className="flex border-b border-gray-200 mb-5 overflow-x-auto">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-3 text-[13px] font-bold whitespace-nowrap border-b-2 -mb-px transition-all duration-150 ${
+                activeTab === tab.id
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Tab: Visão Geral ──────────────────────────────────────────────── */}
+        {activeTab === "overview" && (
+          <div className="space-y-4">
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+              <h2 className="text-[14px] font-extrabold text-gray-900 mb-4 tracking-tight">
+                Atividade — Últimos 3 Meses
+              </h2>
+              <div className="flex gap-1 flex-wrap">
+                {heatmap.map((day, i) => (
+                  <div
+                    key={i}
+                    title={day.date.toLocaleDateString("pt-BR")}
+                    className={`w-3 h-3 rounded-sm ${INTENSITY_COLORS[day.intensity]}`}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center gap-2 mt-3 text-[11px] text-gray-400">
+                <span>Menos</span>
+                {INTENSITY_COLORS.map((c, i) => (
+                  <div key={i} className={`w-3 h-3 rounded-sm ${c}`} />
+                ))}
+                <span>Mais</span>
+              </div>
+            </div>
+
+            {/* Estatísticas detalhadas — placeholder Sprint 7.S1 */}
+            <div className="bg-gradient-to-br from-[#0a0e1a] to-[#141824] border border-white/[0.08] rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-[14px] font-extrabold text-[#f0f4ff] tracking-tight">
+                  Estatísticas Detalhadas
+                </h2>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#00e87a]/10 text-[#00e87a] border border-[#00e87a]/20">
+                  Em breve
+                </span>
+              </div>
+              <p className="text-[12px] text-[#6b7a99] mb-4 font-normal leading-relaxed">
+                Vitórias, derrotas, % de aproveitamento, melhores parceiros e
+                adversários mais frequentes.
+              </p>
+              <div className="grid grid-cols-3 gap-3">
+                {["Vitórias", "Derrotas", "% Aproveit."].map((label) => (
+                  <div
+                    key={label}
+                    className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-3 text-center"
+                  >
+                    <div className="h-5 bg-white/[0.06] rounded-md mb-2 animate-pulse" />
+                    <p className="text-[10px] font-semibold text-[#6b7a99] uppercase tracking-wide">
+                      {label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <h2 className="text-[14px] font-extrabold text-gray-900 tracking-tight">
+                  Últimos Torneios
+                </h2>
+                {tournaments.length > 5 && (
+                  <button
+                    onClick={() => setActiveTab("tournaments")}
+                    className="text-blue-600 text-[12px] font-bold hover:text-blue-700 transition-colors"
+                  >
+                    Ver todos →
+                  </button>
+                )}
+              </div>
+              {tournaments.length === 0 ? (
+                <div className="flex flex-col items-center text-center px-6 py-10">
+                  <span className="text-3xl mb-3 opacity-40">🎾</span>
+                  <p className="text-[13px] font-bold text-gray-700 mb-1">
+                    Ainda sem torneios
+                  </p>
                   <Link
                     to="/tournaments"
-                    className="text-green-600 hover:underline text-sm mt-2 inline-block"
+                    className="text-blue-600 text-[12px] font-semibold hover:underline mt-1"
                   >
                     Ver torneios disponíveis →
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {tournaments.map((entry) => (
+                <div className="divide-y divide-gray-50">
+                  {tournaments.slice(0, 5).map((entry) => (
                     <Link
                       key={entry.id}
                       to={`/tournaments/${entry.tournament.id}`}
-                      className="block p-4 rounded-xl border border-gray-100 hover:border-green-200 hover:bg-green-50/30 transition-all"
+                      className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors"
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-medium">
-                              {normalizeSport(entry.tournament.sport)}
-                            </span>
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                entry.tournament.status === "COMPLETED"
-                                  ? "bg-purple-100 text-purple-700"
-                                  : entry.tournament.status === "ONGOING"
-                                    ? "bg-blue-100 text-blue-700"
-                                    : "bg-gray-100 text-gray-600"
-                              }`}
-                            >
-                              {normalizeStatus(entry.tournament.status)}
-                            </span>
-                          </div>
-                          <p className="font-bold text-gray-900">
-                            {entry.tournament.name}
-                          </p>
-                          <p className="text-sm text-gray-500 mt-0.5">
-                            {entry.tournament.club.name} · {entry.category}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            Parceiro:{" "}
-                            {entry.player1Name === athlete.fullName
-                              ? entry.player2Name
-                              : entry.player1Name}
-                          </p>
-                        </div>
-                        <div className="text-right flex-shrink-0">
-                          <span
-                            className={`text-xs px-2 py-1 rounded-full font-medium ${
-                              entry.status === "CONFIRMED"
-                                ? "bg-green-100 text-green-700"
-                                : entry.status === "PENDING"
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : "bg-gray-100 text-gray-600"
-                            }`}
-                          >
-                            {normalizeStatus(entry.status)}
-                          </span>
-                          <p className="text-xs text-gray-400 mt-2">
-                            {formatDate(entry.registrationDate)}
-                          </p>
-                        </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900 text-[13px] truncate">
+                          {entry.tournament.name}
+                        </p>
+                        <p className="text-[11px] text-gray-500 mt-0.5 font-normal">
+                          {entry.tournament.club.name} · {entry.category} ·{" "}
+                          {normalizeSport(entry.tournament.sport)}
+                        </p>
                       </div>
+                      <span
+                        className={`ml-3 text-[11px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${
+                          entry.status === "CONFIRMED"
+                            ? "bg-green-50 text-green-700"
+                            : entry.status === "PENDING"
+                              ? "bg-amber-50 text-amber-700"
+                              : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {normalizeStatus(entry.status)}
+                      </span>
                     </Link>
                   ))}
                 </div>
               )}
             </div>
-          )}
 
-          {/* ── Tab: Troféus & Conquistas ─────────────────────────────────── */}
-          {activeTab === "trophies" && (
-            <div className="space-y-6">
-              {/* Troféus */}
-              <div className="bg-white border border-gray-200 rounded-xl p-6">
-                <h2 className="text-base font-bold text-gray-900 mb-6">
+            {(stats?.achievements.unlocked ?? []).length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-[14px] font-extrabold text-gray-900 tracking-tight">
+                    Conquistas Recentes
+                  </h2>
+                  <button
+                    onClick={() => setActiveTab("trophies")}
+                    className="text-blue-600 text-[12px] font-bold hover:text-blue-700 transition-colors"
+                  >
+                    Ver todas →
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {stats!.achievements.unlocked.slice(0, 4).map((a) => (
+                    <div
+                      key={a.key}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${
+                        a.currentTier
+                          ? TIER_CONFIG[a.currentTier].bg
+                          : "bg-gray-50 border-gray-200"
+                      }`}
+                    >
+                      <span className="text-lg">{a.icon}</span>
+                      <div>
+                        <p className="font-bold text-gray-900 text-[12px]">
+                          {a.name}
+                        </p>
+                        {a.currentTier && (
+                          <p
+                            className={`text-[10px] font-extrabold ${TIER_CONFIG[a.currentTier].color}`}
+                          >
+                            {TIER_CONFIG[a.currentTier].label}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Tab: Torneios ─────────────────────────────────────────────────── */}
+        {activeTab === "tournaments" && (
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h2 className="text-[14px] font-extrabold text-gray-900 tracking-tight">
+                Histórico de Torneios ({totalTournaments})
+              </h2>
+            </div>
+            {tournaments.length === 0 ? (
+              <div className="flex flex-col items-center py-12 text-center px-6">
+                <span className="text-4xl mb-3 opacity-40">📋</span>
+                <p className="text-[13px] font-bold text-gray-700 mb-1">
+                  Nenhum torneio ainda
+                </p>
+                <Link
+                  to="/tournaments"
+                  className="text-blue-600 text-[12px] font-semibold hover:underline mt-1"
+                >
+                  Ver torneios disponíveis →
+                </Link>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-50">
+                {tournaments.map((entry) => (
+                  <Link
+                    key={entry.id}
+                    to={`/tournaments/${entry.tournament.id}`}
+                    className="block px-5 py-4 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                            {normalizeSport(entry.tournament.sport)}
+                          </span>
+                          <span
+                            className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                              entry.tournament.status === "COMPLETED"
+                                ? "bg-purple-50 text-purple-700"
+                                : entry.tournament.status === "ONGOING"
+                                  ? "bg-blue-50 text-blue-700"
+                                  : "bg-gray-100 text-gray-500"
+                            }`}
+                          >
+                            {normalizeStatus(entry.tournament.status)}
+                          </span>
+                        </div>
+                        <p className="font-bold text-gray-900 text-[14px]">
+                          {entry.tournament.name}
+                        </p>
+                        <p className="text-[12px] text-gray-500 mt-0.5 font-normal">
+                          {entry.tournament.club.name} · {entry.category}
+                        </p>
+                        <p className="text-[11px] text-gray-400 mt-1 font-normal">
+                          Parceiro:{" "}
+                          {entry.player1Name === athlete.fullName
+                            ? entry.player2Name
+                            : entry.player1Name}
+                        </p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <span
+                          className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
+                            entry.status === "CONFIRMED"
+                              ? "bg-green-50 text-green-700"
+                              : entry.status === "PENDING"
+                                ? "bg-amber-50 text-amber-700"
+                                : "bg-gray-100 text-gray-500"
+                          }`}
+                        >
+                          {normalizeStatus(entry.status)}
+                        </span>
+                        <p className="text-[11px] text-gray-400 mt-2">
+                          {formatDate(entry.registrationDate)}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Tab: Troféus & Conquistas ──────────────────────────────────────── */}
+        {activeTab === "trophies" && (
+          <div className="space-y-4">
+            <div className="bg-[#0a0e1a] border border-white/[0.08] rounded-2xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-white/[0.06] flex items-center gap-2">
+                <span className="text-lg">🏆</span>
+                <h2 className="text-[14px] font-extrabold text-[#f0f4ff] tracking-tight">
                   Sala de Troféus
                 </h2>
+                {totalTrophies > 0 && (
+                  <span className="ml-auto text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#00e87a]/10 text-[#00e87a] border border-[#00e87a]/20">
+                    {totalTrophies} troféus
+                  </span>
+                )}
+              </div>
+              <div className="p-5">
                 {trophies.length === 0 ? (
-                  <div className="text-center py-12 text-gray-400">
-                    <span className="text-5xl block mb-3">🏆</span>
-                    <p className="text-sm font-medium text-gray-600">
+                  <div className="flex flex-col items-center text-center py-10">
+                    <span className="text-5xl block mb-3 opacity-30">🏆</span>
+                    <p className="text-[14px] font-bold text-[#f0f4ff] mb-1">
                       Ainda sem troféus
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-[12px] text-[#6b7a99] font-normal">
                       Chegue à final de um torneio para conquistar seu primeiro
                       troféu
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {trophies.map((trophy) => (
                       <TrophyCard key={trophy.id} trophy={trophy} />
                     ))}
                   </div>
                 )}
               </div>
-
-              {/* Conquistas */}
-              <div className="bg-white border border-gray-200 rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-                  <h2 className="text-base font-bold text-gray-900">
-                    Conquistas ({achievUnlocked}/{achievTotal})
-                  </h2>
-                  {/* Filtros */}
-                  <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-                    {(
-                      [
-                        { key: "all", label: "Todas" },
-                        {
-                          key: "unlocked",
-                          label: `Desbloqueadas (${stats?.achievements.unlocked.length ?? 0})`,
-                        },
-                        {
-                          key: "inProgress",
-                          label: `Em progresso (${stats?.achievements.inProgress.length ?? 0})`,
-                        },
-                      ] as const
-                    ).map((f) => (
-                      <button
-                        key={f.key}
-                        onClick={() => setAchievementFilter(f.key)}
-                        className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                          achievementFilter === f.key
-                            ? "bg-white text-gray-900 shadow-sm"
-                            : "text-gray-500 hover:text-gray-700"
-                        }`}
-                      >
-                        {f.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {filteredAchievements.length === 0 ? (
-                  <div className="text-center py-10 text-gray-400 text-sm">
-                    Nenhuma conquista neste filtro.
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {Object.entries(achievementsByCategory).map(
-                      ([cat, list]) => (
-                        <div key={cat}>
-                          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">
-                            {CATEGORY_LABELS[cat] ?? cat}
-                          </h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {list.map((a) => (
-                              <AchievementCard key={a.key} achievement={a} />
-                            ))}
-                          </div>
-                        </div>
-                      ),
-                    )}
-                  </div>
-                )}
-              </div>
             </div>
-          )}
 
-          {/* ── Tab: Ligas ───────────────────────────────────────────────── */}
-          {activeTab === "leagues" && (
-            <div className="space-y-4">
-              {leagueStandings.length === 0 ? (
-                <div className="bg-white border border-gray-200 rounded-xl p-12 text-center text-gray-400">
-                  <span className="text-4xl block mb-3">🏆</span>
-                  <p className="text-sm font-medium text-gray-600">
-                    Nenhuma liga ainda
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Participe de torneios vinculados a ligas para aparecer aqui
-                  </p>
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <h2 className="text-[14px] font-extrabold text-gray-900 tracking-tight">
+                  Conquistas ({achievUnlocked}/{achievTotal})
+                </h2>
+                <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+                  {[
+                    { key: "all" as const, label: "Todas" },
+                    {
+                      key: "unlocked" as const,
+                      label: `Desbloqueadas (${stats?.achievements.unlocked.length ?? 0})`,
+                    },
+                    {
+                      key: "inProgress" as const,
+                      label: `Em progresso (${stats?.achievements.inProgress.length ?? 0})`,
+                    },
+                  ].map((f) => (
+                    <button
+                      key={f.key}
+                      onClick={() => setAchievementFilter(f.key)}
+                      className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                        achievementFilter === f.key
+                          ? "bg-white text-gray-900 shadow-sm"
+                          : "text-gray-500 hover:text-gray-700"
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {filteredAchievements.length === 0 ? (
+                <div className="text-center py-8 text-gray-400 text-sm">
+                  Nenhuma conquista neste filtro.
                 </div>
               ) : (
-                leagueStandings.map((standing) => {
-                  // Agrupa entries por categoria
-                  const byCategory = standing.entries.reduce(
-                    (acc, e) => {
-                      if (!acc[e.category])
-                        acc[e.category] = { points: 0, entries: [] };
-                      acc[e.category].points += e.points;
-                      acc[e.category].entries.push(e);
-                      return acc;
-                    },
-                    {} as Record<
-                      string,
-                      { points: number; entries: typeof standing.entries }
-                    >,
-                  );
-                  const categories = Object.keys(byCategory).sort();
-
-                  return (
-                    <div
-                      key={standing.league.id}
-                      className="bg-white border border-gray-200 rounded-xl p-6"
-                    >
-                      {/* Header da liga */}
-                      <div className="flex items-center gap-2 mb-5">
-                        <span className="text-lg">🏆</span>
-                        <h3 className="font-bold text-gray-900">
-                          {standing.league.name}
-                        </h3>
-                        {standing.league.sport && (
-                          <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">
-                            {normalizeSport(standing.league.sport)}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Pontos por categoria — sempre separado */}
-                      <div className="space-y-4">
-                        {categories.map((cat) => {
-                          const catData = byCategory[cat];
-                          return (
-                            <div
-                              key={cat}
-                              className="bg-gray-50 rounded-xl p-4 border border-gray-100"
-                            >
-                              <div className="flex items-center justify-between mb-3">
-                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
-                                  {cat}
-                                </p>
-                                <div className="text-right">
-                                  <span className="text-xl font-black text-gray-900">
-                                    {catData.points}
-                                  </span>
-                                  <span className="text-xs text-gray-400 ml-1">
-                                    pts
-                                  </span>
-                                </div>
-                              </div>
-                              {/* Detalhes por torneio nesta categoria */}
-                              <div className="space-y-1.5">
-                                {catData.entries.map((entry, i) => (
-                                  <div
-                                    key={i}
-                                    className="flex items-center justify-between text-sm"
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-base">
-                                        {entry.placement === "champion"
-                                          ? "🥇"
-                                          : entry.placement === "runner_up"
-                                            ? "🥈"
-                                            : entry.placement === "semi"
-                                              ? "🥉"
-                                              : "▸"}
-                                      </span>
-                                      <span className="text-gray-500 text-xs capitalize">
-                                        {entry.placement.replace("_", " ")}
-                                      </span>
-                                    </div>
-                                    <span className="font-semibold text-gray-700">
-                                      +{entry.points} pts
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })}
+                <div className="space-y-5">
+                  {Object.entries(achievementsByCategory).map(([cat, list]) => (
+                    <div key={cat}>
+                      <p className="text-[11px] font-extrabold text-gray-400 uppercase tracking-widest mb-3">
+                        {CATEGORY_LABELS[cat] ?? cat}
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {list.map((a) => (
+                          <AchievementCard key={a.key} achievement={a} />
+                        ))}
                       </div>
                     </div>
-                  );
-                })
+                  ))}
+                </div>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* ── Tab: Ligas ────────────────────────────────────────────────────── */}
+        {activeTab === "leagues" && (
+          <div className="space-y-4">
+            {leagueStandings.length === 0 ? (
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-12 flex flex-col items-center text-center">
+                <span className="text-5xl mb-3 opacity-40">🏅</span>
+                <p className="text-[15px] font-extrabold text-gray-800 mb-1.5">
+                  Nenhuma liga ainda
+                </p>
+                <p className="text-[13px] text-gray-500 font-normal">
+                  Participe de torneios vinculados a ligas para aparecer aqui
+                </p>
+              </div>
+            ) : (
+              leagueStandings.map((standing) => {
+                const byCategory = standing.entries.reduce(
+                  (acc, e) => {
+                    if (!acc[e.category])
+                      acc[e.category] = { points: 0, entries: [] };
+                    acc[e.category].points += e.points;
+                    acc[e.category].entries.push(e);
+                    return acc;
+                  },
+                  {} as Record<
+                    string,
+                    { points: number; entries: typeof standing.entries }
+                  >,
+                );
+                const categories = Object.keys(byCategory).sort();
+
+                return (
+                  <div
+                    key={standing.league.id}
+                    className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden"
+                  >
+                    <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
+                      <span className="text-lg">🏆</span>
+                      <h3 className="font-extrabold text-gray-900 text-[15px] tracking-tight">
+                        {standing.league.name}
+                      </h3>
+                      {standing.league.sport && (
+                        <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[11px] font-bold rounded-full">
+                          {normalizeSport(standing.league.sport)}
+                        </span>
+                      )}
+                      {standing.rankPosition && (
+                        <span className="ml-auto text-[13px] font-extrabold text-orange-500">
+                          #{standing.rankPosition}
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-5 space-y-3">
+                      {categories.map((cat) => {
+                        const catData = byCategory[cat];
+                        return (
+                          <div
+                            key={cat}
+                            className="bg-gray-50 rounded-xl p-4 border border-gray-100"
+                          >
+                            <div className="flex items-center justify-between mb-3">
+                              <p className="text-[11px] font-extrabold text-gray-500 uppercase tracking-widest">
+                                {cat}
+                              </p>
+                              <div>
+                                <span className="text-[22px] font-extrabold text-gray-900 tracking-tight">
+                                  {catData.points}
+                                </span>
+                                <span className="text-[11px] text-gray-400 ml-1">
+                                  pts
+                                </span>
+                              </div>
+                            </div>
+                            <div className="space-y-1.5">
+                              {catData.entries.map((entry, i) => (
+                                <div
+                                  key={i}
+                                  className="flex items-center justify-between"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-base">
+                                      {entry.placement === "champion"
+                                        ? "🥇"
+                                        : entry.placement === "runner_up"
+                                          ? "🥈"
+                                          : entry.placement === "semi"
+                                            ? "🥉"
+                                            : "▸"}
+                                    </span>
+                                    <span className="text-[12px] text-gray-500 capitalize font-normal">
+                                      {entry.placement.replace("_", " ")}
+                                    </span>
+                                  </div>
+                                  <span className="text-[13px] font-bold text-gray-700">
+                                    +{entry.points} pts
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
       </main>
+
+      {/* ── Bottom Nav — Mobile ────────────────────────────────────────────── */}
+      <div className="fixed bottom-0 left-0 right-0 md:hidden bg-[#0a0e1a]/95 backdrop-blur-xl border-t border-white/[0.08] pb-safe z-50">
+        <div className="flex">
+          {[
+            {
+              to: "/athlete/dashboard",
+              icon: "🏠",
+              label: "Início",
+              active: false,
+            },
+            {
+              to: "/tournaments",
+              icon: "🎾",
+              label: "Torneios",
+              active: false,
+            },
+            {
+              to: "/athlete/profile",
+              icon: "🏆",
+              label: "Troféus",
+              active: true,
+            },
+            {
+              to: "/athlete/profile",
+              icon: "👤",
+              label: "Perfil",
+              active: false,
+            },
+          ].map(({ to, icon, label, active }) => (
+            <Link
+              key={label}
+              to={to}
+              className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-bold transition-colors ${
+                active ? "text-[#00e87a]" : "text-[#6b7a99]"
+              }`}
+            >
+              <span className="text-xl leading-none">{icon}</span>
+              {label}
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
