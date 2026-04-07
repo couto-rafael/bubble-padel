@@ -74,23 +74,17 @@ function normalizeSport(s: string) {
 function statusBadge(tournamentStatus: string) {
   switch (tournamentStatus?.toUpperCase()) {
     case "OPEN":
-      return {
-        label: "Inscrições abertas",
-        cls: "bg-[#00ff88]/20 text-[#00ff88]",
-      };
+      return { label: "Inscrições abertas", cls: "bg-green-50 text-green-700" };
     case "PUBLISHED":
-      return { label: "Em breve", cls: "bg-blue-500/20 text-blue-400" };
+      return { label: "Em breve", cls: "bg-blue-50 text-blue-600" };
     case "CLOSED":
-      return {
-        label: "Aguardando início",
-        cls: "bg-amber-500/20 text-amber-400",
-      };
+      return { label: "Aguardando início", cls: "bg-amber-50 text-amber-700" };
     case "ONGOING":
-      return { label: "Em andamento", cls: "bg-purple-500/20 text-purple-400" };
+      return { label: "Em andamento", cls: "bg-purple-50 text-purple-700" };
     case "COMPLETED":
-      return { label: "Concluído", cls: "bg-gray-500/20 text-gray-400" };
+      return { label: "Concluído", cls: "bg-gray-100 text-gray-500" };
     default:
-      return { label: tournamentStatus, cls: "bg-gray-500/20 text-gray-400" };
+      return { label: tournamentStatus, cls: "bg-gray-100 text-gray-500" };
   }
 }
 
@@ -131,7 +125,7 @@ const AthleteDashboard: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // ── Derivações ──────────────────────────────────────────────────────────────
+  // ── Derivações (lógica preservada) ──────────────────────────────────────────
 
   const now = new Date();
 
@@ -147,19 +141,18 @@ const AthleteDashboard: React.FC = () => {
   const completed = entries.filter(
     (e) => e.tournament.status?.toUpperCase() === "COMPLETED",
   );
-
   const confirmed = entries.filter(
     (e) => e.status?.toUpperCase() === "CONFIRMED",
   );
 
-  // ── Loading ─────────────────────────────────────────────────────────────────
+  // ── Loading ──────────────────────────────────────────────────────────────────
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] via-[#0f1540] to-[#0a0e27]">
+      <div className="min-h-screen bg-[#f8f9fc]">
         <AthleteHeader />
         <div className="flex items-center justify-center pt-32">
-          <div className="w-8 h-8 border-2 border-[#00ff88] border-t-transparent rounded-full animate-spin" />
+          <span className="w-8 h-8 border-2 border-blue-600/20 border-t-blue-600 rounded-full animate-spin inline-block" />
         </div>
       </div>
     );
@@ -167,25 +160,27 @@ const AthleteDashboard: React.FC = () => {
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] via-[#0f1540] to-[#0a0e27]">
+      <div className="min-h-screen bg-[#f8f9fc]">
         <AthleteHeader />
-        <div className="flex items-center justify-center pt-32 text-gray-400">
-          {error || "Erro ao carregar perfil."}
+        <div className="flex flex-col items-center justify-center pt-32 gap-3 text-gray-500">
+          <span className="text-4xl">⚠️</span>
+          <p className="text-sm">{error || "Erro ao carregar perfil."}</p>
         </div>
       </div>
     );
   }
 
   const location = [profile.city, profile.state].filter(Boolean).join(", ");
+  const firstName = profile.fullName.split(" ")[0];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0e27] via-[#0f1540] to-[#0a0e27]">
+    <div className="min-h-screen bg-[#f8f9fc] pb-24 md:pb-8">
       <AthleteHeader />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* ── Boas-vindas ─────────────────────────────────────────────────── */}
-        <div className="mb-8 flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#00ff88] to-[#00cc6a] flex items-center justify-center text-[#0a0e27] text-xl font-black flex-shrink-0">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+        {/* ── Boas-vindas ───────────────────────────────────────────────────── */}
+        <div className="mb-6 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00e87a] to-[#00b85f] flex items-center justify-center text-[#0a0e1a] text-base font-extrabold flex-shrink-0 shadow-[0_0_16px_rgba(0,232,122,0.25)]">
             {profile.avatarUrl ? (
               <img
                 src={profile.avatarUrl}
@@ -197,172 +192,153 @@ const AthleteDashboard: React.FC = () => {
             )}
           </div>
           <div>
-            <h2 className="text-2xl font-black text-white">
-              Olá, {profile.fullName.split(" ")[0]}! 👋
-            </h2>
-            <p className="text-gray-400 text-sm">
+            <h1 className="text-[20px] font-extrabold text-gray-900 tracking-tight">
+              Olá, {firstName}! 👋
+            </h1>
+            <p className="text-gray-500 text-sm font-normal">
               {location || "Bem-vindo ao Bubble Padel"}
             </p>
           </div>
         </div>
 
-        {/* ── Cards de stats ──────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] border border-white/10 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-[#00ff88]/10 rounded-lg flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-[#00ff88]"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                  />
-                </svg>
+        {/* ── Stat Cards ────────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {[
+            {
+              label: "Inscrições",
+              value: entries.length,
+              color: "text-blue-600",
+              bg: "bg-blue-50",
+              icon: "🎾",
+            },
+            {
+              label: "Confirmadas",
+              value: confirmed.length,
+              color: "text-green-600",
+              bg: "bg-green-50",
+              icon: "✅",
+            },
+            {
+              label: "Concluídos",
+              value: completed.length,
+              color: "text-purple-600",
+              bg: "bg-purple-50",
+              icon: "🏆",
+            },
+          ].map(({ label, value, color, bg, icon }) => (
+            <div
+              key={label}
+              className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm"
+            >
+              <div
+                className={`w-8 h-8 ${bg} rounded-lg flex items-center justify-center text-sm mb-3`}
+              >
+                {icon}
               </div>
+              <p
+                className={`text-[28px] font-extrabold tracking-tight leading-none mb-1 ${color}`}
+              >
+                {value}
+              </p>
+              <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                {label}
+              </p>
             </div>
-            <h3 className="text-3xl font-black text-white mb-1">
-              {entries.length}
-            </h3>
-            <p className="text-gray-400 text-sm">Inscrições no total</p>
-          </div>
-
-          <div className="bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] border border-white/10 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-blue-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-            </div>
-            <h3 className="text-3xl font-black text-white mb-1">
-              {upcoming.length}
-            </h3>
-            <p className="text-gray-400 text-sm">Próximos torneios</p>
-          </div>
-
-          <div className="bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] border border-white/10 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-amber-500/10 rounded-lg flex items-center justify-center">
-                <svg
-                  className="w-6 h-6 text-amber-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-                  />
-                </svg>
-              </div>
-            </div>
-            <h3 className="text-3xl font-black text-white mb-1">
-              {completed.length}
-            </h3>
-            <p className="text-gray-400 text-sm">Torneios concluídos</p>
-          </div>
+          ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* ── Próximos torneios ──────────────────────────────────────────── */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] border border-white/10 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-black text-white">Meus Torneios</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* ── Lista de torneios ─────────────────────────────────────────────── */}
+          <div className="lg:col-span-2 space-y-5">
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <h2 className="text-[15px] font-extrabold text-gray-900 tracking-tight">
+                  Meus Torneios
+                </h2>
                 <Link
                   to="/athlete/profile"
-                  className="text-[#00ff88] text-sm font-semibold hover:text-[#00dd77] transition-colors"
+                  className="text-blue-600 text-[13px] font-semibold hover:text-blue-700 transition-colors"
                 >
                   Ver histórico →
                 </Link>
               </div>
 
               {entries.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-[#00ff88]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg
-                      className="w-8 h-8 text-[#00ff88]"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-white font-bold mb-2">
+                <div className="flex flex-col items-center text-center px-6 py-12">
+                  <span className="text-4xl mb-3 block opacity-50">🎾</span>
+                  <p className="text-[15px] font-extrabold text-gray-800 mb-1.5">
                     Nenhuma inscrição ainda
-                  </h3>
-                  <p className="text-gray-400 text-sm mb-6">
-                    Encontre torneios abertos e inscreva-se para começar.
+                  </p>
+                  <p className="text-sm text-gray-500 mb-5 font-normal">
+                    Encontre torneios abertos e inscreva-se para começar
                   </p>
                   <Link
                     to="/tournaments"
-                    className="inline-block px-6 py-3 bg-gradient-to-r from-[#00ff88] to-[#00dd77] text-[#0a0e27] rounded-lg font-bold transition-all hover:scale-[1.02]"
+                    className="px-5 py-2.5 bg-[#00e87a] text-[#0a0e1a] rounded-xl font-extrabold text-sm hover:bg-[#00ff88] hover:shadow-[0_0_16px_rgba(0,232,122,0.3)] transition-all active:scale-[0.98]"
                   >
                     Explorar torneios
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="divide-y divide-gray-50">
                   {entries.slice(0, 5).map((entry) => {
                     const badge = statusBadge(entry.tournament.status);
                     return (
                       <Link
                         key={entry.id}
                         to={`/tournaments/${entry.tournament.id}`}
-                        className="block bg-[#0a0e27]/50 rounded-lg p-4 border border-white/5 hover:border-[#00ff88]/30 transition-colors"
+                        className="flex items-start gap-3 px-5 py-4 hover:bg-gray-50 transition-colors group"
                       >
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-bold text-white truncate">
+                        {/* Ícone de esporte */}
+                        <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0 mt-0.5 group-hover:bg-gray-200 transition-colors">
+                          {entry.tournament.sport?.toUpperCase() ===
+                          "BEACH_TENNIS"
+                            ? "🏖️"
+                            : "🎾"}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <p className="font-bold text-gray-900 text-[14px] truncate">
                               {entry.tournament.name}
-                            </h4>
-                            <p className="text-gray-400 text-sm">
-                              {entry.tournament.club.name} ·{" "}
-                              {entry.tournament.club.city}
                             </p>
-                          </div>
-                          <span
-                            className={`ml-3 px-2.5 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${badge.cls}`}
-                          >
-                            {badge.label}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                          <span>
-                            {normalizeSport(entry.tournament.sport)} ·{" "}
-                            {entry.category}
-                          </span>
-                          <span>{formatDate(entry.tournament.startDate)}</span>
-                          {entry.player2Name && (
-                            <span>
-                              Parceiro: {entry.player2Name.split(" ")[0]}
+                            <span
+                              className={`text-[11px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${badge.cls}`}
+                            >
+                              {badge.label}
                             </span>
-                          )}
+                          </div>
+                          <p className="text-[12px] text-gray-500 font-normal">
+                            {entry.tournament.club.name} ·{" "}
+                            {entry.tournament.club.city}
+                          </p>
+                          <div className="flex items-center gap-3 mt-1.5 text-[11px] text-gray-400 font-medium">
+                            <span>
+                              {normalizeSport(entry.tournament.sport)} ·{" "}
+                              {entry.category}
+                            </span>
+                            <span>
+                              {formatDate(entry.tournament.startDate)}
+                            </span>
+                            {entry.player2Name && (
+                              <span className="hidden sm:inline">
+                                🤝 {entry.player2Name.split(" ")[0]}
+                              </span>
+                            )}
+                          </div>
                         </div>
+                        <svg
+                          className="w-4 h-4 text-gray-300 group-hover:text-gray-400 flex-shrink-0 mt-1 transition-colors"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
                       </Link>
                     );
                   })}
@@ -370,7 +346,7 @@ const AthleteDashboard: React.FC = () => {
                   {entries.length > 5 && (
                     <Link
                       to="/athlete/profile"
-                      className="block text-center py-3 text-[#00ff88] text-sm font-semibold hover:text-[#00dd77] transition-colors"
+                      className="flex items-center justify-center gap-2 py-3.5 text-blue-600 text-[13px] font-bold hover:bg-blue-50 transition-colors"
                     >
                       Ver mais {entries.length - 5} inscrições →
                     </Link>
@@ -378,73 +354,191 @@ const AthleteDashboard: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Achievement preview — placeholder Sprint 8 */}
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-[15px] font-extrabold text-gray-900 tracking-tight">
+                  Conquistas
+                </h2>
+                <Link
+                  to="/athlete/profile"
+                  className="text-blue-600 text-[13px] font-semibold hover:text-blue-700 transition-colors"
+                >
+                  Ver todas →
+                </Link>
+              </div>
+              <div className="flex items-center gap-3 p-4 bg-gradient-to-br from-[#00e87a]/[0.06] to-[#00c8ff]/[0.03] border border-[#00e87a]/15 rounded-xl">
+                <div className="w-12 h-12 bg-[#00e87a]/10 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+                  🎾
+                </div>
+                <div className="flex-1">
+                  <p className="text-[13px] font-bold text-gray-900 mb-1">
+                    {entries.length === 0
+                      ? "Primeiro Passo"
+                      : entries.length >= 5
+                        ? "Veterano"
+                        : "Começando"}
+                  </p>
+                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-[#00e87a] to-[#00c8ff] rounded-full transition-all"
+                      style={{
+                        width: `${Math.min((entries.length / 5) * 100, 100)}%`,
+                      }}
+                    />
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-1 font-medium">
+                    {entries.length} / 5 torneios para próxima conquista
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* ── Sidebar ───────────────────────────────────────────────────── */}
-          <div className="space-y-6">
+          {/* ── Sidebar ───────────────────────────────────────────────────────── */}
+          <div className="space-y-4">
             {/* Perfil resumido */}
-            <div className="bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] border border-white/10 rounded-xl p-6">
-              <h3 className="text-lg font-black text-white mb-4">Meu Perfil</h3>
+            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+              <h2 className="text-[14px] font-extrabold text-gray-900 mb-4 tracking-tight">
+                Meu Perfil
+              </h2>
               <div className="flex flex-col items-center text-center mb-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#00ff88] to-[#00cc6a] flex items-center justify-center text-[#0a0e27] text-xl font-black mb-3">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#00e87a] to-[#00b85f] flex items-center justify-center text-[#0a0e1a] text-base font-extrabold mb-2.5 shadow-[0_0_12px_rgba(0,232,122,0.2)]">
                   {getInitials(profile.fullName)}
                 </div>
-                <p className="font-bold text-white">{profile.fullName}</p>
+                <p className="font-bold text-gray-900 text-[14px] mb-0.5">
+                  {profile.fullName}
+                </p>
                 {location && (
-                  <p className="text-gray-400 text-sm">{location}</p>
+                  <p className="text-gray-500 text-[12px]">{location}</p>
                 )}
                 {profile.user?.email && (
-                  <p className="text-gray-500 text-xs mt-1">
+                  <p className="text-gray-400 text-[11px] mt-0.5 font-normal">
                     {profile.user.email}
                   </p>
                 )}
               </div>
-              <div className="grid grid-cols-3 gap-3 text-center border-t border-white/10 pt-4">
+
+              <div className="grid grid-cols-3 gap-2 text-center bg-gray-50 rounded-xl p-3 mb-4">
                 <div>
-                  <p className="text-xl font-black text-white">
+                  <p className="text-[18px] font-extrabold text-gray-900 tracking-tight">
                     {entries.length}
                   </p>
-                  <p className="text-gray-500 text-xs">Inscrições</p>
+                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">
+                    Total
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xl font-black text-white">
+                  <p className="text-[18px] font-extrabold text-green-600 tracking-tight">
                     {confirmed.length}
                   </p>
-                  <p className="text-gray-500 text-xs">Confirmadas</p>
+                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">
+                    Confirm.
+                  </p>
                 </div>
                 <div>
-                  <p className="text-xl font-black text-white">
+                  <p className="text-[18px] font-extrabold text-purple-600 tracking-tight">
                     {completed.length}
                   </p>
-                  <p className="text-gray-500 text-xs">Concluídos</p>
+                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">
+                    Concluíd.
+                  </p>
                 </div>
               </div>
+
               <Link
                 to="/athlete/profile"
-                className="mt-4 block w-full text-center py-2.5 border border-white/20 text-gray-300 rounded-lg text-sm font-semibold hover:bg-white/5 transition-colors"
+                className="block w-full text-center py-2.5 border border-gray-200 text-gray-600 rounded-xl text-[13px] font-bold hover:bg-gray-50 transition-colors"
               >
                 Ver perfil completo →
               </Link>
             </div>
 
-            {/* Encontrar torneios */}
-            <div className="bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] border border-[#00ff88]/20 rounded-xl p-6">
-              <h3 className="text-lg font-black text-white mb-2">
-                Encontre torneios
-              </h3>
-              <p className="text-gray-400 text-sm mb-4">
-                Descubra torneios abertos na sua cidade.
+            {/* CTA Explorar */}
+            <div className="bg-gradient-to-br from-[#0a0e1a] to-[#141824] rounded-2xl p-5">
+              <p className="text-[13px] font-extrabold text-[#f0f4ff] mb-1.5 tracking-tight">
+                Encontre torneios 🎾
+              </p>
+              <p className="text-[12px] text-[#6b7a99] mb-4 font-normal leading-relaxed">
+                Descubra torneios abertos na sua cidade e região.
               </p>
               <Link
                 to="/tournaments"
-                className="block w-full text-center py-3 bg-gradient-to-r from-[#00ff88] to-[#00dd77] text-[#0a0e27] rounded-lg font-bold text-sm transition-all hover:scale-[1.02]"
+                className="block w-full text-center py-2.5 bg-[#00e87a] text-[#0a0e1a] rounded-xl font-extrabold text-[13px] hover:bg-[#00ff88] hover:shadow-[0_0_16px_rgba(0,232,122,0.3)] transition-all active:scale-[0.98]"
               >
                 Explorar torneios →
               </Link>
             </div>
+
+            {/* Próximo torneio destaque */}
+            {upcoming.length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+                  Próximo
+                </p>
+                <Link
+                  to={`/tournaments/${upcoming[0].tournament.id}`}
+                  className="block hover:opacity-80 transition-opacity"
+                >
+                  <p className="font-bold text-gray-900 text-[14px] mb-1 line-clamp-2">
+                    {upcoming[0].tournament.name}
+                  </p>
+                  <p className="text-[12px] text-gray-500">
+                    {formatDate(upcoming[0].tournament.startDate)}
+                  </p>
+                  <p className="text-[12px] text-gray-400 mt-0.5">
+                    {upcoming[0].category}
+                  </p>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </main>
+
+      {/* ── Bottom Nav — Mobile Atleta ──────────────────────────────────────── */}
+      <div className="fixed bottom-0 left-0 right-0 md:hidden bg-[#0a0e1a]/95 backdrop-blur-xl border-t border-white/[0.08] pb-safe z-50">
+        <div className="flex">
+          {[
+            {
+              to: "/athlete/dashboard",
+              icon: "🏠",
+              label: "Início",
+              active: true,
+            },
+            {
+              to: "/tournaments",
+              icon: "🎾",
+              label: "Torneios",
+              active: false,
+            },
+            {
+              to: "/athlete/profile",
+              icon: "🏆",
+              label: "Troféus",
+              active: false,
+            },
+            {
+              to: "/athlete/profile",
+              icon: "👤",
+              label: "Perfil",
+              active: false,
+            },
+          ].map(({ to, icon, label, active }) => (
+            <Link
+              key={label}
+              to={to}
+              className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-bold transition-colors ${
+                active ? "text-[#00e87a]" : "text-[#6b7a99]"
+              }`}
+            >
+              <span className="text-xl leading-none">{icon}</span>
+              {label}
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
