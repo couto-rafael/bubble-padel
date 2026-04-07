@@ -14,6 +14,12 @@ interface AthleteData {
   birthDate?: string;
   createdAt: string;
   user?: { email: string };
+  // Sprint 7 — perfil Strava
+  nickname?: string | null;
+  sports?: string[];
+  racket?: string | null;
+  instagramUrl?: string | null;
+  twitterUrl?: string | null;
 }
 
 interface TournamentEntry {
@@ -510,10 +516,15 @@ const AthleteProfile: React.FC = () => {
               </Link>
             </div>
 
-            <h1 className="text-[22px] font-extrabold text-gray-900 tracking-tight mb-1.5">
+            <h1 className="text-[22px] font-extrabold text-gray-900 tracking-tight mb-0.5">
               {athlete.fullName}
             </h1>
-            <div className="flex flex-wrap gap-3 text-[12px] text-gray-500 mb-4 font-normal">
+            {athlete.nickname && (
+              <p className="text-[14px] font-semibold text-[#00e87a] mb-1.5">
+                {athlete.nickname}
+              </p>
+            )}
+            <div className="flex flex-wrap gap-3 text-[12px] text-gray-500 mb-3 font-normal">
               {location !== "—" && <span>📍 {location}</span>}
               <span>📅 Membro desde {memberSince}</span>
               {athlete.user?.email && (
@@ -522,6 +533,54 @@ const AthleteProfile: React.FC = () => {
                 </span>
               )}
             </div>
+
+            {/* Esportes / Raquete / Redes sociais */}
+            {((athlete.sports && athlete.sports.length > 0) ||
+              athlete.racket ||
+              athlete.instagramUrl ||
+              athlete.twitterUrl) && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {athlete.sports?.map((s) => (
+                  <span
+                    key={s}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#00e87a]/10 text-green-700 border border-[#00e87a]/20"
+                  >
+                    {s === "BEACH_TENNIS"
+                      ? "🏖️ Beach Tennis"
+                      : s === "PADEL"
+                        ? "🎾 Padel"
+                        : s === "TENIS"
+                          ? "🎾 Tênis"
+                          : "🏓 Pickleball"}
+                  </span>
+                ))}
+                {athlete.racket && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
+                    🏸 {athlete.racket}
+                  </span>
+                )}
+                {athlete.instagramUrl && (
+                  <a
+                    href={`https://instagram.com/${athlete.instagramUrl!.replace("@", "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-pink-50 text-pink-600 border border-pink-200 hover:bg-pink-100 transition-colors"
+                  >
+                    📸 @{athlete.instagramUrl!.replace("@", "")}
+                  </a>
+                )}
+                {athlete.twitterUrl && (
+                  <a
+                    href={`https://twitter.com/${athlete.twitterUrl!.replace("@", "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-sky-50 text-sky-600 border border-sky-200 hover:bg-sky-100 transition-colors"
+                  >
+                    𝕏 @{athlete.twitterUrl!.replace("@", "")}
+                  </a>
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-4 gap-2 pt-4 border-t border-gray-100">
               {[

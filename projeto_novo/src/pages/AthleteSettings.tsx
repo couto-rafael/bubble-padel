@@ -6,6 +6,12 @@ import AthleteHeader from "../components/AthleteHeader";
 
 type Sport = "PADEL" | "BEACH_TENNIS" | "TENIS" | "PICKLEBALL";
 
+interface IbgeCity {
+  id: number;
+  nome: string;
+  uf: string;
+}
+
 interface AthleteForm {
   fullName: string;
   nickname: string;
@@ -48,36 +54,6 @@ const RACKET_BRANDS = [
   "Dunlop",
 ];
 
-const BR_STATES = [
-  "AC",
-  "AL",
-  "AP",
-  "AM",
-  "BA",
-  "CE",
-  "DF",
-  "ES",
-  "GO",
-  "MA",
-  "MT",
-  "MS",
-  "MG",
-  "PA",
-  "PB",
-  "PR",
-  "PE",
-  "PI",
-  "RJ",
-  "RN",
-  "RS",
-  "RO",
-  "RR",
-  "SC",
-  "SP",
-  "SE",
-  "TO",
-];
-
 // ─── COMPONENTE ───────────────────────────────────────────────────────────────
 
 const AthleteSettings: React.FC = () => {
@@ -97,6 +73,12 @@ const AthleteSettings: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [cityQuery, setCityQuery] = useState("");
+  const [citySuggestions, setCitySuggestions] = useState<IbgeCity[]>([]);
+  const [cityLoading, setCityLoading] = useState(false);
+  const [cityTimer, setCityTimer] = useState<ReturnType<
+    typeof setTimeout
+  > | null>(null);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
@@ -106,6 +88,11 @@ const AthleteSettings: React.FC = () => {
     fetch(`${API_URL}/athlete/profile`, { headers: authHeaders() })
       .then((r) => r.json())
       .then(({ data }) => {
+        setCityQuery(
+          data.city && data.state
+            ? `${data.city} — ${data.state}`
+            : (data.city ?? ""),
+        );
         setForm({
           fullName: data.fullName ?? "",
           nickname: data.nickname ?? "",
@@ -138,6 +125,56 @@ const AthleteSettings: React.FC = () => {
         ? f.sports.filter((s) => s !== sport)
         : [...f.sports, sport],
     }));
+  };
+
+  const handleCityInput = (value: string) => {
+    setCityQuery(value);
+    setCitySuggestions([]);
+    if (cityTimer) clearTimeout(cityTimer);
+    if (value.length < 2) return;
+    const t = setTimeout(async () => {
+      setCityLoading(true);
+      try {
+        const res = await fetch(
+          `https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome`,
+        );
+        const all: Array<{
+          id: number;
+          nome: string;
+          microrregiao: { mesorregiao: { UF: { sigla: string } } };
+        }> = await res.json();
+        const q = value
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+        const filtered = all
+          .filter((m) =>
+            m.nome
+              .toLowerCase()
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .includes(q),
+          )
+          .slice(0, 8)
+          .map((m) => ({
+            id: m.id,
+            nome: m.nome,
+            uf: m.microrregiao.mesorregiao.UF.sigla,
+          }));
+        setCitySuggestions(filtered);
+      } catch {
+        /* ignora */
+      } finally {
+        setCityLoading(false);
+      }
+    }, 300);
+    setCityTimer(t);
+  };
+
+  const selectCity = (city: IbgeCity) => {
+    setCityQuery(`${city.nome} — ${city.uf}`);
+    setCitySuggestions([]);
+    setForm((f) => ({ ...f, city: city.nome, state: city.uf }));
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -295,36 +332,44 @@ const AthleteSettings: React.FC = () => {
               </h2>
             </div>
             <div className="p-5">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
-                    Cidade
-                  </label>
-                  <input
-                    value={form.city}
-                    onChange={(e) => set("city", e.target.value)}
-                    placeholder="São Paulo"
-                    className="w-full px-3.5 py-2.5 rounded-xl border-[1.5px] border-gray-200 text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
-                    Estado
-                  </label>
-                  <select
-                    value={form.state}
-                    onChange={(e) => set("state", e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border-[1.5px] border-gray-200 text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all appearance-none"
-                  >
-                    <option value="">Selecione</option>
-                    {BR_STATES.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
+              <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
+                Cidade
+              </label>
+              <div className="relative">
+                <input
+                  value={cityQuery}
+                  onChange={(e) => handleCityInput(e.target.value)}
+                  onBlur={() => setTimeout(() => setCitySuggestions([]), 200)}
+                  placeholder="Ex: Joinville"
+                  autoComplete="off"
+                  className="w-full px-3.5 py-2.5 rounded-xl border-[1.5px] border-gray-200 text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
+                />
+                {cityLoading && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-blue-600/20 border-t-blue-600 rounded-full animate-spin inline-block" />
+                )}
+                {citySuggestions.length > 0 && (
+                  <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                    {citySuggestions.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onMouseDown={() => selectCity(c)}
+                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                      >
+                        <span className="font-semibold text-gray-900">
+                          {c.nome}
+                        </span>
+                        <span className="text-gray-400 ml-2">— {c.uf}</span>
+                      </button>
                     ))}
-                  </select>
-                </div>
+                  </div>
+                )}
               </div>
+              {form.city && form.state && (
+                <p className="text-[12px] text-[#00e87a] font-semibold mt-1.5">
+                  ✓ {form.city} — {form.state}
+                </p>
+              )}
             </div>
           </div>
 
