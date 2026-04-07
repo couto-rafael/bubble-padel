@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import DashboardHeader from "../components/DashboardHeader";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -86,7 +86,6 @@ interface TournamentOption {
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
 const token = () => localStorage.getItem("auth_token") ?? "";
-
 const headers = () => ({
   "Content-Type": "application/json",
   Authorization: `Bearer ${token()}`,
@@ -95,8 +94,7 @@ const headers = () => ({
 const api = {
   getLeagues: async () => {
     const res = await fetch(`${API_URL}/leagues`, { headers: headers() });
-    const j = await res.json();
-    return j.data as {
+    return (await res.json()).data as {
       created: League[];
       member: League[];
       invites: PendingInvite[];
@@ -104,8 +102,7 @@ const api = {
   },
   getLeague: async (id: string) => {
     const res = await fetch(`${API_URL}/leagues/${id}`, { headers: headers() });
-    const j = await res.json();
-    return j.data as LeagueDetail;
+    return (await res.json()).data as LeagueDetail;
   },
   createLeague: async (body: object) => {
     const res = await fetch(`${API_URL}/leagues`, {
@@ -125,7 +122,7 @@ const api = {
     });
     const j = await res.json();
     if (!res.ok) throw new Error(j.error ?? "Erro ao convidar clube");
-    return j.data;
+    return j;
   },
   acceptInvite: async (leagueId: string, clubId: string) => {
     const res = await fetch(
@@ -186,8 +183,7 @@ const api = {
   },
   getMyTournaments: async () => {
     const res = await fetch(`${API_URL}/tournaments`, { headers: headers() });
-    const j = await res.json();
-    return (j.data ?? []) as TournamentOption[];
+    return ((await res.json()).data ?? []) as TournamentOption[];
   },
 };
 
@@ -221,16 +217,21 @@ function getInitials(name: string) {
   );
 }
 
+const inputCls =
+  "w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all placeholder:text-gray-300 placeholder:font-normal";
+const labelCls = "block text-[12px] font-semibold text-gray-500 mb-1.5";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // MODAL: Criar Liga
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface CreateLeagueModalProps {
+const CreateLeagueModal = ({
+  onClose,
+  onCreated,
+}: {
   onClose: () => void;
-  onCreated: (league: League) => void;
-}
-
-const CreateLeagueModal = ({ onClose, onCreated }: CreateLeagueModalProps) => {
+  onCreated: (l: League) => void;
+}) => {
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -266,35 +267,20 @@ const CreateLeagueModal = ({ onClose, onCreated }: CreateLeagueModalProps) => {
     }
   };
 
-  const inputCls =
-    "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-colors";
-  const labelCls = "block text-xs font-semibold text-gray-600 mb-1";
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">Criar Nova Liga</h2>
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 px-4 py-8">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+          <h2 className="text-[17px] font-extrabold text-gray-900 tracking-tight">
+            Criar Nova Liga
+          </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
           >
-            <svg
-              className="w-5 h-5 text-gray-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            ✕
           </button>
         </div>
-
         <div className="p-6 space-y-4">
           <div>
             <label className={labelCls}>Nome da Liga *</label>
@@ -333,27 +319,16 @@ const CreateLeagueModal = ({ onClose, onCreated }: CreateLeagueModalProps) => {
               <option value="PICKLEBALL">Pickleball</option>
             </select>
           </div>
-
-          {/* Pontos por posição — ordem natural da competição */}
           <div className="border-t border-gray-100 pt-4">
-            <p className="text-xs font-bold text-gray-700 mb-3 uppercase tracking-wide">
-              Pontos por Posição (padrão)
+            <p className="text-[11px] font-bold text-gray-500 mb-3 uppercase tracking-widest">
+              Pontos por Posição
             </p>
             <div className="grid grid-cols-2 gap-3">
-              {/* Campos obrigatórios */}
               {[
-                { key: "pointsChampion", label: "🥇 Campeão", required: true },
-                {
-                  key: "pointsRunnerUp",
-                  label: "🥈 Vice-campeão",
-                  required: true,
-                },
-                { key: "pointsSemi", label: "🥉 Semifinal", required: true },
-                {
-                  key: "pointsQuarter",
-                  label: "Quartas de Final",
-                  required: true,
-                },
+                { key: "pointsChampion", label: "🥇 Campeão" },
+                { key: "pointsRunnerUp", label: "🥈 Vice-campeão" },
+                { key: "pointsSemi", label: "🥉 Semifinal" },
+                { key: "pointsQuarter", label: "Quartas de Final" },
               ].map(({ key, label }) => (
                 <div key={key}>
                   <label className={labelCls}>{label}</label>
@@ -368,11 +343,9 @@ const CreateLeagueModal = ({ onClose, onCreated }: CreateLeagueModalProps) => {
                   />
                 </div>
               ))}
-
-              {/* Oitavas — opcional */}
               <div>
                 <label className={labelCls}>
-                  Oitavas de Final{" "}
+                  Oitavas{" "}
                   <span className="text-gray-400 font-normal">(opcional)</span>
                 </label>
                 <input
@@ -390,11 +363,9 @@ const CreateLeagueModal = ({ onClose, onCreated }: CreateLeagueModalProps) => {
                   }
                 />
               </div>
-
-              {/* 16avos — opcional */}
               <div>
                 <label className={labelCls}>
-                  16avos de Final{" "}
+                  16avos{" "}
                   <span className="text-gray-400 font-normal">(opcional)</span>
                 </label>
                 <input
@@ -412,8 +383,6 @@ const CreateLeagueModal = ({ onClose, onCreated }: CreateLeagueModalProps) => {
                   }
                 />
               </div>
-
-              {/* Grupos */}
               <div className="col-span-2">
                 <label className={labelCls}>Fase de Grupos</label>
                 <input
@@ -430,29 +399,27 @@ const CreateLeagueModal = ({ onClose, onCreated }: CreateLeagueModalProps) => {
                 />
               </div>
             </div>
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-[11px] text-gray-400 mt-2">
               Oitavas e 16avos: deixe vazio se o torneio não tiver essa fase.
             </p>
           </div>
-
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+            <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-xl">
               {error}
             </p>
           )}
         </div>
-
-        <div className="flex gap-3 p-6 border-t border-gray-100">
+        <div className="flex gap-3 px-6 py-4 border-t border-gray-100">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+            className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             {loading ? "Criando..." : "Criar Liga"}
           </button>
@@ -489,23 +456,9 @@ const InviteModal = ({
     setError("");
     setSuccessMsg("");
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL ?? "http://localhost:3001/api"}/leagues/${leagueId}/invite`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("auth_token") ?? ""}`,
-          },
-          body: JSON.stringify({ email: email.trim() }),
-        },
-      );
-      const j = await res.json();
-      if (!res.ok) throw new Error(j.error ?? "Erro ao convidar.");
-      // Cenário 1 (clube encontrado) ou Cenário 3 (externo) — ambos chegam aqui
+      const j = await api.inviteClub(leagueId, email.trim());
       setSuccessMsg(j.message ?? "Convite enviado!");
       if (j.data) {
-        // Cenário 1 — clube foi adicionado, recarrega lista
         setTimeout(() => {
           onInvited();
           onClose();
@@ -519,27 +472,17 @@ const InviteModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 px-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-900">Convidar Clube</h2>
+          <h2 className="text-[17px] font-extrabold text-gray-900 tracking-tight">
+            Convidar Clube
+          </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
           >
-            <svg
-              className="w-5 h-5 text-gray-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            ✕
           </button>
         </div>
         {successMsg ? (
@@ -548,16 +491,16 @@ const InviteModal = ({
             <p className="font-semibold text-gray-800">{successMsg}</p>
             <button
               onClick={onClose}
-              className="mt-4 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+              className="mt-4 px-4 py-2 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
             >
               Fechar
             </button>
           </div>
         ) : (
           <>
-            <p className="text-sm text-gray-500 mb-4">
-              Informe o email de cadastro do clube. Se o email não estiver
-              cadastrado, enviaremos um convite para criar uma conta.
+            <p className="text-sm text-gray-500 mb-4 font-normal leading-relaxed">
+              Informe o email de cadastro do clube. Se não estiver cadastrado,
+              enviaremos um convite para criar conta.
             </p>
             <input
               type="email"
@@ -565,24 +508,24 @@ const InviteModal = ({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-colors mb-3"
+              className={`${inputCls} mb-3`}
             />
             {error && (
-              <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg mb-3">
+              <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-xl mb-3">
                 {error}
               </p>
             )}
             <div className="flex gap-3">
               <button
                 onClick={onClose}
-                className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+                className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
                 {loading ? "Enviando..." : "Convidar"}
               </button>
@@ -622,7 +565,6 @@ const LinkTournamentModal = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Torneios elegíveis: DRAFT ou PUBLISHED, ainda não vinculados
   const linkedIds = new Set(league.tournaments.map((t) => t.tournamentId));
   const eligible = tournaments.filter(
     (t) =>
@@ -655,44 +597,27 @@ const LinkTournamentModal = ({
     }
   };
 
-  const inputCls =
-    "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 transition-colors";
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">
-            Vincular Torneio à Liga
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 px-4 py-8">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+          <h2 className="text-[17px] font-extrabold text-gray-900 tracking-tight">
+            Vincular Torneio
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
           >
-            <svg
-              className="w-5 h-5 text-gray-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            ✕
           </button>
         </div>
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">
-              Torneio
-            </label>
+            <label className={labelCls}>Torneio</label>
             {eligible.length === 0 ? (
-              <p className="text-sm text-gray-400 py-2">
-                Nenhum torneio elegível (somente torneios em Rascunho ou
-                Publicado, ainda não vinculados).
+              <p className="text-sm text-gray-400 bg-gray-50 px-4 py-3 rounded-xl">
+                Nenhum torneio elegível. Crie um torneio em rascunho ou
+                publicado.
               </p>
             ) : (
               <select
@@ -700,7 +625,7 @@ const LinkTournamentModal = ({
                 value={selected}
                 onChange={(e) => setSelected(e.target.value)}
               >
-                <option value="">Selecione um torneio...</option>
+                <option value="">Selecione um torneio</option>
                 {eligible.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.name}
@@ -709,81 +634,69 @@ const LinkTournamentModal = ({
               </select>
             )}
           </div>
-
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
               id="override"
               checked={useOverride}
               onChange={(e) => setUseOverride(e.target.checked)}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+              className="w-4 h-4 accent-blue-600 cursor-pointer"
             />
             <label
               htmlFor="override"
-              className="text-sm text-gray-700 cursor-pointer"
+              className="text-sm text-gray-700 font-medium cursor-pointer"
             >
-              Usar pontuação diferente para este torneio
+              Usar pontuação diferente da liga para este torneio
             </label>
           </div>
-
           {useOverride && (
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-              <p className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-3">
-                Override de Pontos
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { key: "pointsChampion", label: "🥇 Campeão" },
-                  { key: "pointsRunnerUp", label: "🥈 Vice" },
-                  { key: "pointsSemi", label: "🥉 Semifinal" },
-                  { key: "pointsQuarter", label: "Quartas" },
-                  { key: "pointsGroup", label: "Grupos" },
-                ].map(({ key, label }) => (
-                  <div key={key}>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      {label}
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      className={inputCls}
-                      value={(pts as any)[key]}
-                      onChange={(e) =>
-                        setPts((p) => ({ ...p, [key]: Number(e.target.value) }))
-                      }
-                    />
-                  </div>
-                ))}
-              </div>
+            <div className="grid grid-cols-2 gap-3 bg-gray-50 rounded-xl p-4">
+              {[
+                { key: "pointsChampion", label: "🥇 Campeão" },
+                { key: "pointsRunnerUp", label: "🥈 Vice" },
+                { key: "pointsSemi", label: "🥉 Semifinal" },
+                { key: "pointsQuarter", label: "Quartas" },
+                { key: "pointsGroup", label: "Grupos" },
+              ].map(({ key, label }) => (
+                <div key={key}>
+                  <label className={labelCls}>{label}</label>
+                  <input
+                    type="number"
+                    min={0}
+                    className={inputCls}
+                    value={(pts as any)[key]}
+                    onChange={(e) =>
+                      setPts((p) => ({ ...p, [key]: Number(e.target.value) }))
+                    }
+                  />
+                </div>
+              ))}
             </div>
           )}
-
           {!useOverride && (
-            <div className="bg-blue-50 rounded-lg px-4 py-3 text-sm text-blue-700">
-              Serão usados os pontos padrão da liga: Campeão{" "}
-              {league.pointsChampion}pts · Vice {league.pointsRunnerUp}pts ·
-              Semi {league.pointsSemi}pts · Quartas {league.pointsQuarter}pts ·
-              Grupos {league.pointsGroup}pts
+            <div className="bg-blue-50 rounded-xl px-4 py-3 text-sm text-blue-700 font-normal">
+              Pontos padrão da liga: Campeão {league.pointsChampion}pts · Vice{" "}
+              {league.pointsRunnerUp}pts · Semi {league.pointsSemi}pts · Quartas{" "}
+              {league.pointsQuarter}pts · Grupos {league.pointsGroup}pts
             </div>
           )}
-
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
+            <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-xl">
               {error}
             </p>
           )}
         </div>
-        <div className="flex gap-3 p-6 border-t border-gray-100">
+        <div className="flex gap-3 px-6 py-4 border-t border-gray-100">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors"
+            className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors"
           >
             Cancelar
           </button>
           <button
             onClick={handleSubmit}
             disabled={loading || eligible.length === 0}
-            className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             {loading ? "Vinculando..." : "Vincular"}
           </button>
@@ -797,7 +710,7 @@ const LinkTournamentModal = ({
 // LEAGUE DETAIL VIEW
 // ─────────────────────────────────────────────────────────────────────────────
 
-const LeagueDetail = ({
+const LeagueDetailView = ({
   leagueId,
   myClubId,
   onBack,
@@ -844,10 +757,8 @@ const LeagueDetail = ({
       .getRanking(leagueId)
       .then((r) => {
         setRankingData(r);
-        // Seleciona a primeira categoria disponível por padrão
-        if (r.availableCategories.length > 0 && !rankingCategory) {
+        if (r.availableCategories.length > 0 && !rankingCategory)
           setRankingCategory(r.availableCategories[0]);
-        }
       })
       .catch(console.error)
       .finally(() => setRankingLoading(false));
@@ -863,34 +774,38 @@ const LeagueDetail = ({
     }
   };
 
-  if (loading) {
+  if (loading)
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <span className="w-6 h-6 border-2 border-blue-600/20 border-t-blue-600 rounded-full animate-spin inline-block" />
       </div>
     );
-  }
 
-  if (!league) {
+  if (!league)
     return (
       <div className="text-center py-24 text-gray-400">
-        <p>Liga não encontrada.</p>
+        <p className="text-sm">Liga não encontrada.</p>
         <button
           onClick={onBack}
-          className="mt-4 text-blue-600 text-sm hover:underline"
+          className="mt-4 text-blue-600 text-sm hover:underline font-semibold"
         >
           ← Voltar
         </button>
       </div>
     );
-  }
+
+  // ── Bug fix P0: totalMembers inclui o criador ──────────────────────────────
+  const totalMembers = league.members.length + 1;
 
   const tabs = [
-    { key: "overview", label: "Visão Geral" },
-    { key: "members", label: `Membros (${league.members.length})` },
-    { key: "tournaments", label: `Torneios (${league.tournaments.length})` },
-    { key: "ranking", label: "Ranking" },
-  ] as const;
+    { key: "overview" as const, label: "Visão Geral" },
+    { key: "members" as const, label: `Membros (${totalMembers})` },
+    {
+      key: "tournaments" as const,
+      label: `Torneios (${league.tournaments.length})`,
+    },
+    { key: "ranking" as const, label: "Ranking" },
+  ];
 
   return (
     <>
@@ -910,125 +825,89 @@ const LeagueDetail = ({
         />
       )}
 
-      {/* Header da Liga */}
+      {/* Header */}
       <div className="mb-6">
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-4 transition-colors"
+          className="text-sm text-gray-500 hover:text-gray-800 mb-4 transition-colors font-semibold flex items-center gap-1"
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          Todas as ligas
+          ← Todas as ligas
         </button>
-
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white text-xl font-black flex-shrink-0">
                 🏆
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  {league.name}
-                </h1>
-                {league.description && (
-                  <p className="text-sm text-gray-500 mt-0.5">
-                    {league.description}
-                  </p>
-                )}
-                <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <h1 className="text-[20px] font-extrabold text-gray-900 tracking-tight">
+                    {league.name}
+                  </h1>
                   {league.sport && (
-                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full font-medium">
+                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[11px] font-bold rounded-full">
                       {normalizeSport(league.sport)}
                     </span>
                   )}
-                  <span>Criada por {league.createdByClub.name}</span>
-                  <span>·</span>
-                  <span>{league.members.length} membros</span>
-                  <span>·</span>
-                  <span>{league.tournaments.length} torneios</span>
                 </div>
+                {league.description && (
+                  <p className="text-sm text-gray-500 font-normal mb-1">
+                    {league.description}
+                  </p>
+                )}
+                <p className="text-[12px] text-gray-400">
+                  Por {league.createdByClub.name} · {totalMembers} membros ·{" "}
+                  {league.tournaments.length} torneios
+                </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Link
+                to={`/leagues/${leagueId}`}
+                target="_blank"
+                className="px-3 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors"
+              >
+                🌐 Página pública
+              </Link>
               {isCreator && (
                 <button
                   onClick={() => setShowInvite(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700 transition-colors"
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 transition-colors"
                 >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                    />
-                  </svg>
-                  Convidar Clube
+                  + Convidar
                 </button>
               )}
               <button
                 onClick={() => setShowLinkTournament(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors"
               >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                  />
-                </svg>
-                Vincular Torneio
+                🔗 Vincular Torneio
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
-        <div className="flex gap-1">
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setActiveTab(t.key)}
-              className={`px-4 py-3 text-sm font-semibold border-b-2 transition-all -mb-px ${
-                activeTab === t.key
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+      {/* LineTabs DS */}
+      <div className="flex border-b border-gray-200 mb-6 overflow-x-auto">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setActiveTab(t.key)}
+            className={`px-4 py-3 text-[13px] font-bold whitespace-nowrap border-b-2 -mb-px transition-all duration-150 ${
+              activeTab === t.key
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
       {/* Tab: Visão Geral */}
       {activeTab === "overview" && (
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {[
             { label: "🥇 Campeão", value: league.pointsChampion },
             { label: "🥈 Vice", value: league.pointsRunnerUp },
@@ -1038,11 +917,15 @@ const LeagueDetail = ({
           ].map(({ label, value }) => (
             <div
               key={label}
-              className="bg-white rounded-xl border border-gray-200 p-4 text-center"
+              className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 text-center"
             >
-              <p className="text-xs text-gray-500 mb-1">{label}</p>
-              <p className="text-2xl font-bold text-gray-900">{value}</p>
-              <p className="text-xs text-gray-400">pts</p>
+              <p className="text-[11px] text-gray-500 mb-1 font-medium">
+                {label}
+              </p>
+              <p className="text-[26px] font-extrabold text-gray-900 tracking-tight leading-none">
+                {value}
+              </p>
+              <p className="text-[11px] text-gray-400 mt-1">pts</p>
             </div>
           ))}
         </div>
@@ -1050,25 +933,24 @@ const LeagueDetail = ({
 
       {/* Tab: Membros */}
       {activeTab === "members" && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
           {/* Criador */}
           <div className="px-5 py-4 bg-blue-50 border-b border-blue-100 flex items-center gap-3">
-            <div className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+            <div className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
               {getInitials(league.createdByClub.name)}
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-gray-900">
+              <p className="text-sm font-bold text-gray-900">
                 {league.createdByClub.name}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 font-normal">
                 {league.createdByClub.city}
               </p>
             </div>
-            <span className="px-2 py-0.5 bg-blue-600 text-white text-xs font-semibold rounded-full">
+            <span className="px-2 py-0.5 bg-blue-600 text-white text-[11px] font-bold rounded-full">
               Criador
             </span>
           </div>
-          {/* Membros */}
           {league.members.length === 0 ? (
             <div className="px-5 py-10 text-center text-gray-400 text-sm">
               Nenhum membro convidado ainda.
@@ -1085,20 +967,22 @@ const LeagueDetail = ({
             <div className="divide-y divide-gray-100">
               {league.members.map((m) => (
                 <div key={m.id} className="px-5 py-4 flex items-center gap-3">
-                  <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 text-xs font-bold">
+                  <div className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 text-xs font-bold flex-shrink-0">
                     {getInitials(m.club.name)}
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-gray-900">
                       {m.club.name}
                     </p>
-                    <p className="text-xs text-gray-500">{m.club.city}</p>
+                    <p className="text-xs text-gray-500 font-normal">
+                      {m.club.city}
+                    </p>
                   </div>
                   <span
-                    className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                    className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${
                       m.status === "ACTIVE"
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-yellow-50 text-yellow-700"
+                        ? "bg-green-50 text-green-700"
+                        : "bg-amber-50 text-amber-700"
                     }`}
                   >
                     {m.status === "ACTIVE" ? "Membro" : "Convidado"}
@@ -1112,7 +996,7 @@ const LeagueDetail = ({
 
       {/* Tab: Torneios */}
       {activeTab === "tournaments" && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
           {league.tournaments.length === 0 ? (
             <div className="px-5 py-10 text-center text-gray-400 text-sm">
               Nenhum torneio vinculado.
@@ -1125,79 +1009,63 @@ const LeagueDetail = ({
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {league.tournaments.map((lt) => {
-                const hasOverride = lt.pointsChampion !== null;
-                return (
-                  <div key={lt.id} className="px-5 py-4 flex items-start gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Link
-                          to={`/tournaments/${lt.tournament.id}`}
-                          className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors"
-                        >
-                          {lt.tournament.name}
-                        </Link>
-                        {hasOverride && (
-                          <span className="px-1.5 py-0.5 bg-amber-50 text-amber-700 text-xs font-medium rounded">
-                            Pontos customizados
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-400">
-                        {normalizeSport(lt.tournament.sport)} ·{" "}
-                        {lt.tournament.categories.join(", ")}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleUnlink(lt.tournamentId)}
-                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Desvincular torneio"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
+              {league.tournaments.map((lt) => (
+                <div key={lt.id} className="px-5 py-4 flex items-center gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                      <Link
+                        to={`/tournaments/${lt.tournament.id}`}
+                        className="text-sm font-semibold text-gray-900 hover:text-blue-600 transition-colors truncate"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                        />
-                      </svg>
-                    </button>
+                        {lt.tournament.name}
+                      </Link>
+                      {lt.pointsChampion !== null && (
+                        <span className="px-1.5 py-0.5 bg-amber-50 text-amber-700 text-[11px] font-bold rounded">
+                          Pts custom
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[12px] text-gray-400 font-normal">
+                      {normalizeSport(lt.tournament.sport)} ·{" "}
+                      {lt.tournament.categories.join(", ")}
+                    </p>
                   </div>
-                );
-              })}
+                  <button
+                    onClick={() => handleUnlink(lt.tournamentId)}
+                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors text-sm"
+                    title="Desvincular"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>
       )}
 
-      {/* Tab: Ranking — sempre por categoria */}
+      {/* Tab: Ranking */}
       {activeTab === "ranking" && (
         <div className="space-y-4">
           {rankingLoading ? (
-            <div className="bg-white rounded-xl border border-gray-200 py-12 flex justify-center">
-              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm py-12 flex justify-center">
+              <span className="w-6 h-6 border-2 border-blue-600/20 border-t-blue-600 rounded-full animate-spin inline-block" />
             </div>
           ) : !rankingData || rankingData.availableCategories.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 px-5 py-10 text-center text-gray-400 text-sm">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm px-5 py-10 text-center text-gray-400 text-sm">
               Nenhum ponto distribuído ainda. O ranking aparece após o primeiro
               torneio ser concluído.
             </div>
           ) : (
             <>
-              {/* Seletor de categoria */}
               <div className="flex gap-2 flex-wrap">
                 {rankingData.availableCategories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setRankingCategory(cat)}
-                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
                       rankingCategory === cat
-                        ? "bg-blue-600 text-white"
+                        ? "bg-blue-600 text-white shadow-sm"
                         : "bg-white border border-gray-200 text-gray-600 hover:border-blue-300"
                     }`}
                   >
@@ -1205,87 +1073,62 @@ const LeagueDetail = ({
                   </button>
                 ))}
               </div>
-
-              {/* Tabela da categoria selecionada */}
               {rankingCategory && rankingData.categories[rankingCategory] && (
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                  <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="px-5 py-3 border-b border-gray-100">
+                    <p className="text-[11px] font-extrabold text-gray-500 uppercase tracking-widest">
                       {rankingCategory}
                     </p>
                   </div>
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-left">
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide w-12">
-                          #
-                        </th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                          Atleta
-                        </th>
-                        <th className="px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide text-right">
-                          Pontos
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {rankingData.categories[rankingCategory].map((r) => (
-                        <tr
-                          key={r.position}
-                          className={r.position <= 3 ? "bg-amber-50/40" : ""}
+                  <div className="divide-y divide-gray-50">
+                    {rankingData.categories[rankingCategory].map((r) => (
+                      <div
+                        key={r.position}
+                        className={`flex items-center gap-4 px-5 py-3.5 ${r.position <= 3 ? "bg-amber-50/40" : ""}`}
+                      >
+                        <span
+                          className={`text-[15px] font-extrabold w-8 text-center flex-shrink-0 ${
+                            r.position === 1
+                              ? "text-amber-500"
+                              : r.position === 2
+                                ? "text-gray-400"
+                                : r.position === 3
+                                  ? "text-amber-700"
+                                  : "text-gray-300"
+                          }`}
                         >
-                          <td className="px-5 py-3">
-                            <span
-                              className={`text-sm font-bold ${
-                                r.position === 1
-                                  ? "text-amber-500"
-                                  : r.position === 2
-                                    ? "text-gray-400"
-                                    : r.position === 3
-                                      ? "text-amber-700"
-                                      : "text-gray-300"
-                              }`}
-                            >
-                              {r.position === 1
-                                ? "🥇"
-                                : r.position === 2
-                                  ? "🥈"
-                                  : r.position === 3
-                                    ? "🥉"
-                                    : r.position}
-                            </span>
-                          </td>
-                          <td className="px-5 py-3">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-gray-600">
-                                {getInitials(
-                                  (r.athlete as any).fullName ?? "?",
-                                )}
-                              </div>
-                              <div>
-                                <p className="font-semibold text-gray-900">
-                                  {(r.athlete as any).fullName ?? "—"}
-                                </p>
-                                {(r.athlete as any).city && (
-                                  <p className="text-xs text-gray-400">
-                                    {(r.athlete as any).city}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-5 py-3 text-right">
-                            <span className="font-bold text-gray-900">
-                              {r.points}
-                            </span>
-                            <span className="text-xs text-gray-400 ml-1">
-                              pts
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          {r.position === 1
+                            ? "🥇"
+                            : r.position === 2
+                              ? "🥈"
+                              : r.position === 3
+                                ? "🥉"
+                                : r.position}
+                        </span>
+                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-[11px] font-bold text-gray-600 flex-shrink-0">
+                          {getInitials((r.athlete as any).fullName ?? "?")}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 text-sm">
+                            {(r.athlete as any).fullName ?? "—"}
+                          </p>
+                          {(r.athlete as any).city && (
+                            <p className="text-[11px] text-gray-400 font-normal">
+                              {(r.athlete as any).city}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <span className="font-extrabold text-gray-900 text-[16px] tracking-tight">
+                            {r.points}
+                          </span>
+                          <span className="text-[11px] text-gray-400 ml-1">
+                            pts
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </>
@@ -1308,9 +1151,15 @@ const LeaguesDashboard = () => {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
-  const [selectedLeagueId, setSelectedLeagueId] = useState<string | null>(null);
 
-  // myClubId extraído do localStorage (auth_user)
+  // URL sync — ?league=:id
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedLeagueId = searchParams.get("league");
+  const setSelectedLeagueId = (id: string | null) => {
+    if (id) setSearchParams({ league: id });
+    else setSearchParams({});
+  };
+
   const myClubId: string = (() => {
     try {
       const raw = localStorage.getItem("auth_user");
@@ -1355,14 +1204,13 @@ const LeaguesDashboard = () => {
     }
   };
 
-  // ── Se tem liga selecionada, mostra o detalhe ─────────────────────────────
   if (selectedLeagueId) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#f8f9fc]">
         <DashboardHeader activePage="leagues" />
         <main className="pt-20 pb-12">
           <div className="max-w-4xl mx-auto px-6">
-            <LeagueDetail
+            <LeagueDetailView
               leagueId={selectedLeagueId}
               myClubId={myClubId}
               onBack={() => setSelectedLeagueId(null)}
@@ -1376,7 +1224,7 @@ const LeaguesDashboard = () => {
   const allLeagues = [...(data?.created ?? []), ...(data?.member ?? [])];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f8f9fc]">
       <DashboardHeader activePage="leagues" />
 
       {showCreate && (
@@ -1392,70 +1240,58 @@ const LeaguesDashboard = () => {
 
       <main className="pt-20 pb-12">
         <div className="max-w-4xl mx-auto px-6">
-          {/* Page Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Ligas</h1>
-              <p className="text-sm text-gray-500">
+              <h1 className="text-[24px] font-extrabold text-gray-900 tracking-tight mb-1">
+                Ligas
+              </h1>
+              <p className="text-sm text-gray-500 font-normal">
                 Gerencie ligas, convide clubes e acompanhe o ranking de atletas.
               </p>
             </div>
             <button
               onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              Criar Liga
+              + Criar Liga
             </button>
           </div>
 
           {/* Convites pendentes */}
           {(data?.invites ?? []).length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">
+            <div className="mb-5">
+              <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3">
                 Convites Pendentes ({data!.invites.length})
-              </h2>
+              </p>
               <div className="space-y-3">
                 {data!.invites.map((invite) => (
                   <div
                     key={invite.memberId}
-                    className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 flex items-center gap-4"
+                    className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 flex items-center gap-4"
                   >
-                    <div className="w-10 h-10 bg-amber-400 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                    <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                       🏆
                     </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-gray-900 text-sm">
                         {invite.name}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 font-normal">
                         Convite de {invite.createdByClub?.name} ·{" "}
                         {invite._count?.tournaments ?? 0} torneios ·{" "}
                         {invite._count?.members ?? 0} membros
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-shrink-0">
                       <button
                         onClick={() => handleDeclineInvite(invite)}
-                        className="px-3 py-1.5 border border-gray-300 text-gray-600 rounded-lg text-xs font-semibold hover:bg-gray-100 transition-colors"
+                        className="px-3 py-1.5 border border-gray-300 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors"
                       >
                         Recusar
                       </button>
                       <button
                         onClick={() => handleAcceptInvite(invite)}
-                        className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700 transition-colors"
+                        className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors"
                       >
                         Aceitar
                       </button>
@@ -1469,21 +1305,21 @@ const LeaguesDashboard = () => {
           {/* Lista de Ligas */}
           {loading ? (
             <div className="flex items-center justify-center py-24">
-              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <span className="w-6 h-6 border-2 border-blue-600/20 border-t-blue-600 rounded-full animate-spin inline-block" />
             </div>
           ) : allLeagues.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 py-16 text-center">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm py-16 text-center">
               <span className="text-5xl block mb-4">🏆</span>
-              <h3 className="text-base font-bold text-gray-800 mb-2">
+              <h3 className="text-[15px] font-extrabold text-gray-800 mb-2">
                 Nenhuma liga ainda
               </h3>
-              <p className="text-sm text-gray-400 mb-6 max-w-sm mx-auto">
+              <p className="text-sm text-gray-400 mb-6 max-w-sm mx-auto font-normal">
                 Crie sua primeira liga para organizar torneios em circuito e
                 gerar um ranking de atletas.
               </p>
               <button
                 onClick={() => setShowCreate(true)}
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+                className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors"
               >
                 Criar primeira liga
               </button>
@@ -1492,29 +1328,31 @@ const LeaguesDashboard = () => {
             <div className="space-y-3">
               {allLeagues.map((league) => {
                 const isCreator = data?.created.some((c) => c.id === league.id);
+                // Bug fix P0: +1 para incluir o criador
+                const memberCount = (league._count?.members ?? 0) + 1;
                 return (
                   <button
                     key={league.id}
                     onClick={() => setSelectedLeagueId(league.id)}
-                    className="w-full bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all px-5 py-4 text-left"
+                    className="w-full bg-white rounded-2xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all px-5 py-4 text-left"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white text-lg flex-shrink-0">
+                      <div className="w-11 h-11 bg-blue-600 rounded-xl flex items-center justify-center text-white text-lg flex-shrink-0">
                         🏆
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <p className="font-semibold text-gray-900 truncate">
+                        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                          <p className="font-bold text-gray-900 truncate text-[15px]">
                             {league.name}
                           </p>
                           {isCreator && (
-                            <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded">
+                            <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-[11px] font-bold rounded">
                               Criador
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-400">
-                          {league._count?.members ?? 0} membros ·{" "}
+                        <p className="text-[12px] text-gray-400 font-normal">
+                          {memberCount} membros ·{" "}
                           {league._count?.tournaments ?? 0} torneios
                           {league.sport
                             ? ` · ${normalizeSport(league.sport)}`
@@ -1522,7 +1360,7 @@ const LeaguesDashboard = () => {
                         </p>
                       </div>
                       <svg
-                        className="w-5 h-5 text-gray-300"
+                        className="w-4 h-4 text-gray-300 flex-shrink-0"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
