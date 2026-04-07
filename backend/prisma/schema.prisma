@@ -120,7 +120,7 @@ model Athlete {
   // Sprint 7 — perfil Strava
   nickname     String?           // Apelido/nome de guerra
   sports       Sport[]           @default([])  // Esportes que pratica
-  racket       String?           // Marca/modelo da raquete
+  rackets      String[]          @default([])  // Marcas/modelos das raquetes
   instagramUrl String?           // Handle ou URL do Instagram
   twitterUrl   String?           // Handle ou URL do Twitter/X
 

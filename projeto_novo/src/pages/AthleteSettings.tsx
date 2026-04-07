@@ -20,7 +20,7 @@ interface AthleteForm {
   city: string;
   state: string;
   sports: Sport[];
-  racket: string;
+  rackets: string[];
   instagramUrl: string;
   twitterUrl: string;
   avatarUrl: string;
@@ -66,7 +66,7 @@ const AthleteSettings: React.FC = () => {
     city: "",
     state: "",
     sports: [],
-    racket: "",
+    rackets: [],
     instagramUrl: "",
     twitterUrl: "",
     avatarUrl: "",
@@ -103,7 +103,11 @@ const AthleteSettings: React.FC = () => {
           city: data.city ?? "",
           state: data.state ?? "",
           sports: data.sports ?? [],
-          racket: data.racket ?? "",
+          rackets: Array.isArray(data.rackets)
+            ? data.rackets
+            : data.racket
+              ? [data.racket]
+              : [],
           instagramUrl: data.instagramUrl ?? "",
           twitterUrl: data.twitterUrl ?? "",
           avatarUrl: data.avatarUrl ?? "",
@@ -194,7 +198,7 @@ const AthleteSettings: React.FC = () => {
           city: form.city || undefined,
           state: form.state || undefined,
           sports: form.sports,
-          racket: form.racket || null,
+          rackets: form.rackets.length > 0 ? form.rackets : [],
           instagramUrl: form.instagramUrl || null,
           twitterUrl: form.twitterUrl || null,
           avatarUrl: form.avatarUrl || undefined,
@@ -418,27 +422,55 @@ const AthleteSettings: React.FC = () => {
               <h2 className="text-[14px] font-extrabold text-gray-900 tracking-tight">
                 🏸 Equipamento
               </h2>
+              <p className="text-[12px] text-gray-400 mt-0.5 font-normal">
+                Adicione até 3 raquetes
+              </p>
             </div>
-            <div className="p-5">
-              <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
-                Marca/Modelo da raquete
-              </label>
-              <input
-                list="racket-brands"
-                value={form.racket}
-                maxLength={60}
-                onChange={(e) => set("racket", e.target.value)}
-                placeholder="Ex: Nox ML10, Babolat Viper..."
-                className="w-full px-3.5 py-2.5 rounded-xl border-[1.5px] border-gray-200 text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
-              />
+            <div className="p-5 space-y-3">
+              {form.rackets.map((racket, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <input
+                    list="racket-brands"
+                    value={racket}
+                    maxLength={60}
+                    onChange={(e) => {
+                      const updated = [...form.rackets];
+                      updated[idx] = e.target.value;
+                      setForm((f) => ({ ...f, rackets: updated }));
+                    }}
+                    placeholder="Ex: Nox ML10, Babolat Viper..."
+                    className="flex-1 px-3.5 py-2.5 rounded-xl border-[1.5px] border-gray-200 text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((f) => ({
+                        ...f,
+                        rackets: f.rackets.filter((_, i) => i !== idx),
+                      }))
+                    }
+                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors flex-shrink-0 text-sm font-bold"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+              {form.rackets.length < 3 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((f) => ({ ...f, rackets: [...f.rackets, ""] }))
+                  }
+                  className="w-full py-2.5 border-[1.5px] border-dashed border-gray-300 rounded-xl text-[13px] font-semibold text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-colors"
+                >
+                  + Adicionar raquete
+                </button>
+              )}
               <datalist id="racket-brands">
                 {RACKET_BRANDS.map((b) => (
                   <option key={b} value={b} />
                 ))}
               </datalist>
-              <p className="text-[11px] text-gray-400 mt-1.5">
-                Campo livre — escreva a marca e o modelo
-              </p>
             </div>
           </div>
 

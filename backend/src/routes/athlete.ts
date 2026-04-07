@@ -19,7 +19,7 @@ const updateSchema = z.object({
   sports: z
     .array(z.enum(["PADEL", "BEACH_TENNIS", "TENIS", "PICKLEBALL"]))
     .optional(),
-  racket: z.string().max(60).optional().nullable(),
+  rackets: z.array(z.string().max(60)).optional(),
   instagramUrl: z.string().max(100).optional().nullable(),
   twitterUrl: z.string().max(100).optional().nullable(),
 });
