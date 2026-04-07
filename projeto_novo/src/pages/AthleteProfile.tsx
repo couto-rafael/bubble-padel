@@ -478,9 +478,7 @@ const AthleteProfile: React.FC = () => {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-5 pb-12">
         {/* ── Hero Card ─────────────────────────────────────────────────────── */}
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm mb-5">
-          <div className="h-20 bg-gradient-to-r from-[#0a0e1a] to-[#1e2538] relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,232,122,0.15),transparent_60%)]" />
-          </div>
+          <div className="h-16 bg-gradient-to-r from-[#00e87a]/10 via-[#00c8ff]/5 to-[#00e87a]/10" />
           <div className="px-5 pb-5">
             <div className="flex items-end justify-between -mt-9 mb-4">
               <div className="w-16 h-16 rounded-2xl border-[3px] border-white bg-gradient-to-br from-[#00e87a] to-[#00b85f] flex items-center justify-center overflow-hidden shadow-[0_0_16px_rgba(0,232,122,0.3)]">
@@ -517,7 +515,7 @@ const AthleteProfile: React.FC = () => {
               )}
             </div>
 
-            <div className="grid grid-cols-5 gap-2 pt-4 border-t border-gray-100">
+            <div className="grid grid-cols-4 gap-2 pt-4 border-t border-gray-100">
               {[
                 {
                   value: totalTournaments,
@@ -525,27 +523,23 @@ const AthleteProfile: React.FC = () => {
                   color: "text-gray-900",
                 },
                 {
-                  value: confirmedTournaments,
-                  label: "Confirm.",
-                  color: "text-green-600",
-                },
-                {
-                  value: totalTitles,
-                  label: "Títulos",
+                  value: totalTrophies,
+                  label: "Troféus",
                   color: "text-amber-600",
                 },
                 {
-                  value: totalTrophies,
-                  label: "Troféus",
-                  color: "text-purple-600",
+                  value: "—",
+                  label: "% Aproveit.",
+                  color: "text-blue-600",
+                  title: "Disponível em breve",
                 },
                 {
                   value: `${achievUnlocked}/${achievTotal}`,
-                  label: "Conquistas",
-                  color: "text-blue-600",
+                  label: "Badges",
+                  color: "text-purple-600",
                 },
-              ].map(({ value, label, color }) => (
-                <div key={label} className="text-center">
+              ].map(({ value, label, color, title }) => (
+                <div key={label} className="text-center" title={title}>
                   <p
                     className={`text-[20px] font-extrabold tracking-tight leading-none ${color}`}
                   >
