@@ -81,6 +81,9 @@ interface TournamentForm {
 
   // Transmissão
   streamingLinks: Record<string, string>; // { courtName: youtubeLink }
+
+  // Liga (opcional)
+  leagueId: string | null;
 }
 
 // ─── dados iniciais ───────────────────────────────────────
@@ -125,6 +128,9 @@ const INITIAL_FORM: TournamentForm = {
 
   // Transmissão
   streamingLinks: {},
+
+  // Liga
+  leagueId: null,
 };
 
 // Lista de categorias disponíveis
@@ -272,6 +278,28 @@ const CreateTournament = () => {
   );
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
+
+  // Liga
+  const [leagues, setLeagues] = useState<Array<{ id: string; name: string }>>(
+    [],
+  );
+  const [showLeagueSection, setShowLeagueSection] = useState(false);
+
+  useEffect(() => {
+    const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
+    fetch(`${apiUrl}/leagues`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("auth_token") ?? ""}`,
+      },
+    })
+      .then((r) => r.json())
+      .then((j) => {
+        const created = j.data?.created ?? [];
+        const member = j.data?.member ?? [];
+        setLeagues([...created, ...member]);
+      })
+      .catch(() => {});
+  }, []);
 
   // Validar datas
   const validateDates = (tournamentStart: string, tournamentEnd: string) => {
@@ -614,6 +642,7 @@ const CreateTournament = () => {
           startTime: s.startTime,
           endTime: s.endTime,
         })),
+        ...(form.leagueId ? { leagueId: form.leagueId } : {}),
       });
 
       navigate("/dashboard/tournaments");
@@ -640,10 +669,10 @@ const CreateTournament = () => {
 
   if (!clubLoading && !isProfileComplete) {
     return (
-      <div className="min-h-screen bg-gray-50 text-gray-900">
+      <div className="min-h-screen bg-[#f8f9fc]">
         <DashboardHeader activePage="tournaments" />
         <main className="pt-20 min-h-screen flex items-center justify-center px-4">
-          <div className="max-w-md w-full bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm">
+          <div className="max-w-md w-full bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-md">
             <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
                 className="w-8 h-8 text-orange-500"
@@ -670,13 +699,13 @@ const CreateTournament = () => {
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={() => navigate("/dashboard")}
-                className="flex-1 py-3 border border-gray-300 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 Voltar ao Dashboard
               </button>
               <button
                 onClick={() => navigate("/dashboard/settings?welcome=true")}
-                className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors"
+                className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-colors"
               >
                 Completar Perfil
               </button>
@@ -688,23 +717,35 @@ const CreateTournament = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
+    <div className="min-h-screen bg-[#f8f9fc]">
       <DashboardHeader activePage="tournaments" />
 
       <main className="pt-20 min-h-screen">
-        <div className="max-w-[1400px] mx-auto px-6 py-8">
+        <div className="max-w-5xl mx-auto px-6 py-8">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Criar Torneio</h1>
-            <p className="text-gray-500 mt-1">
-              Configure todos os detalhes do seu novo torneio
-            </p>
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-[22px] font-extrabold text-gray-900 tracking-tight">
+                Criar Torneio
+              </h1>
+              <span className="text-[12px] font-bold text-gray-400">
+                Passo {currentStepIndex + 1} de {STEPS.length}
+              </span>
+            </div>
+            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                style={{
+                  width: `${((currentStepIndex + 1) / STEPS.length) * 100}%`,
+                }}
+              />
+            </div>
           </div>
 
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Sidebar com steps */}
             <aside className="lg:w-80 flex-shrink-0">
-              <div className="bg-white border border-gray-200 rounded-xl p-6 lg:sticky lg:top-24">
+              <div className="bg-white border border-gray-200 rounded-2xl p-5 lg:sticky lg:top-24 shadow-sm">
                 <nav className="space-y-2">
                   {STEPS.map((step, idx) => (
                     <button
@@ -712,8 +753,8 @@ const CreateTournament = () => {
                       onClick={() => setCurrentStep(step.key)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
                         currentStep === step.key
-                          ? "bg-blue-600/20 text-blue-600 border-l-4 border-blue-600"
-                          : "text-gray-500 hover:text-gray-900 hover:bg-gray-50 border-l-4 border-transparent"
+                          ? "bg-blue-50 text-blue-600 border-l-2 border-blue-600"
+                          : "text-gray-500 hover:text-gray-800 hover:bg-gray-50 border-l-2 border-transparent"
                       }`}
                     >
                       <svg
@@ -751,18 +792,18 @@ const CreateTournament = () => {
 
             {/* Conteúdo principal */}
             <div className="flex-1 min-w-0">
-              <div className="bg-white border border-gray-200 rounded-xl p-6 sm:p-8">
+              <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-sm">
                 {/* ─── STEP 1: INFORMAÇÕES ESSENCIAIS ─── */}
                 {currentStep === "informacoes" && (
                   <div className="space-y-6">
-                    <h2 className="text-xl font-bold text-gray-900 mb-6">
+                    <h2 className="text-[18px] font-extrabold text-gray-900 tracking-tight mb-5">
                       Informações Essenciais
                     </h2>
 
                     {/* Esporte e Tipo de Torneio */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-gray-500 mb-2 font-medium">
+                        <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                           Esporte <span className="text-red-400">*</span>
                         </label>
                         <select
@@ -770,7 +811,7 @@ const CreateTournament = () => {
                           onChange={(e) =>
                             handleChange("sport", e.target.value)
                           }
-                          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                          className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
                         >
                           <option value="Padel">Padel</option>
                           <option value="Beach Tennis">Beach Tennis</option>
@@ -780,7 +821,7 @@ const CreateTournament = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm text-gray-500 mb-2 font-medium">
+                        <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                           Tipo de Torneio{" "}
                           <span className="text-red-400">*</span>
                         </label>
@@ -789,7 +830,7 @@ const CreateTournament = () => {
                           onChange={(e) =>
                             handleChange("tournamentType", e.target.value)
                           }
-                          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                          className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
                         >
                           <option value="Regular (Grupo + Playoffs)">
                             Regular (Grupo + Playoffs)
@@ -804,7 +845,7 @@ const CreateTournament = () => {
 
                     {/* Nome do Torneio */}
                     <div>
-                      <label className="block text-sm text-gray-500 mb-2 font-medium">
+                      <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                         Nome do Torneio <span className="text-red-400">*</span>
                       </label>
                       <input
@@ -812,7 +853,7 @@ const CreateTournament = () => {
                         placeholder="Digite o nome do torneio"
                         value={form.name}
                         onChange={(e) => handleChange("name", e.target.value)}
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                        className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all placeholder:text-gray-300 placeholder:font-normal"
                       />
                     </div>
 
@@ -843,7 +884,7 @@ const CreateTournament = () => {
                         className={`grid gap-4 ${singleDay ? "grid-cols-1 sm:grid-cols-1 max-w-xs" : "grid-cols-1 sm:grid-cols-2"}`}
                       >
                         <div>
-                          <label className="block text-sm text-gray-500 mb-2 font-medium">
+                          <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                             {singleDay ? "Data do Torneio" : "Data Início"}{" "}
                             <span className="text-red-400">*</span>
                           </label>
@@ -856,8 +897,8 @@ const CreateTournament = () => {
                             onClick={(e) => e.currentTarget.showPicker?.()}
                             className={`w-full px-4 py-3 bg-white border rounded-lg text-sm text-gray-900 focus:outline-none transition-all cursor-pointer ${
                               dateErrors.startDate
-                                ? "border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                                : "border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                ? "border-red-400 focus:border-red-500 focus:ring-[3px] focus:ring-red-500/10"
+                                : "border-gray-200 focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10"
                             }`}
                           />
                           {dateErrors.startDate && (
@@ -869,7 +910,7 @@ const CreateTournament = () => {
 
                         {!singleDay && (
                           <div>
-                            <label className="block text-sm text-gray-500 mb-2 font-medium">
+                            <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                               Data Fim <span className="text-red-400">*</span>
                             </label>
                             <input
@@ -881,8 +922,8 @@ const CreateTournament = () => {
                               onClick={(e) => e.currentTarget.showPicker?.()}
                               className={`w-full px-4 py-3 bg-white border rounded-lg text-sm text-gray-900 focus:outline-none transition-all cursor-pointer ${
                                 dateErrors.endDate
-                                  ? "border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500"
-                                  : "border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                  ? "border-red-400 focus:border-red-500 focus:ring-[3px] focus:ring-red-500/10"
+                                  : "border-gray-200 focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10"
                               }`}
                             />
                             {dateErrors.endDate && (
@@ -898,7 +939,7 @@ const CreateTournament = () => {
                     {/* Horários por Dia */}
                     {form.schedules.length > 0 && (
                       <div>
-                        <label className="block text-sm text-gray-500 mb-3 font-medium">
+                        <label className="block text-[12px] font-semibold text-gray-500 mb-2">
                           Horários por Dia
                         </label>
                         <div className="space-y-3">
@@ -939,7 +980,7 @@ const CreateTournament = () => {
                                             e.target.value,
                                           )
                                         }
-                                        className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                        className="px-3 py-1.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
                                       />
                                     </div>
                                     <span className="text-gray-500">até</span>
@@ -967,7 +1008,7 @@ const CreateTournament = () => {
                                             e.target.value,
                                           )
                                         }
-                                        className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                        className="px-3 py-1.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
                                       />
                                     </div>
                                   </div>
@@ -1002,7 +1043,7 @@ const CreateTournament = () => {
 
                     {/* Descrição */}
                     <div>
-                      <label className="block text-sm text-gray-500 mb-2 font-medium">
+                      <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                         Descrição do Torneio
                       </label>
                       <textarea
@@ -1021,14 +1062,14 @@ const CreateTournament = () => {
                 {/* ─── STEP 2: FINANCEIRO ─── */}
                 {currentStep === "financeiro" && (
                   <div className="space-y-6">
-                    <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-6">
+                    <h2 className="text-[18px] font-extrabold text-gray-900 tracking-tight mb-5">
                       Financeiro
                     </h2>
 
                     {/* Valores de Inscrição */}
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm text-gray-500 mb-2 font-medium">
+                        <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                           Valor Inscrição - Primeira Categoria{" "}
                           <span className="text-red-400">*</span>
                         </label>
@@ -1050,7 +1091,7 @@ const CreateTournament = () => {
                               const formatted = (cents / 100).toFixed(2);
                               handleChange("priceFirstCategory", formatted);
                             }}
-                            className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                            className="w-full pl-12 pr-4 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
                           />
                         </div>
                       </div>
@@ -1096,7 +1137,7 @@ const CreateTournament = () => {
                                 const formatted = (cents / 100).toFixed(2);
                                 handleChange("priceSecondCategory", formatted);
                               }}
-                              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                              className="w-full pl-12 pr-4 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
                             />
                           </div>
                         )}
@@ -1105,7 +1146,7 @@ const CreateTournament = () => {
 
                     {/* Chave PIX */}
                     <div>
-                      <label className="block text-sm text-gray-500 mb-2 font-medium">
+                      <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                         Chave PIX{" "}
                         <span className="text-gray-500 text-xs">
                           (Configurada nas Configurações do Clube)
@@ -1119,13 +1160,13 @@ const CreateTournament = () => {
                           handleChange("pixKey", formatPixCNPJ(e.target.value))
                         }
                         maxLength={18}
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                        className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all placeholder:text-gray-300 placeholder:font-normal"
                       />
                     </div>
 
                     {/* Métodos de Pagamento */}
                     <div>
-                      <label className="block text-sm text-gray-500 mb-3 font-medium">
+                      <label className="block text-[12px] font-semibold text-gray-500 mb-2">
                         Formas de Pagamento Aceitas{" "}
                         <span className="text-red-400">*</span>
                       </label>
@@ -1190,7 +1231,7 @@ const CreateTournament = () => {
                     {/* Tabelas de Taxas - Uma para cada método selecionado */}
                     {getSelectedPaymentMethods().length > 0 && (
                       <div>
-                        <label className="block text-sm text-gray-500 mb-3 font-medium">
+                        <label className="block text-[12px] font-semibold text-gray-500 mb-2">
                           Resumo Financeiro por Forma de Pagamento
                         </label>
 
@@ -1304,7 +1345,7 @@ const CreateTournament = () => {
                               onChange={(e) =>
                                 setNewCouponCode(e.target.value.toUpperCase())
                               }
-                              className="sm:col-span-5 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                              className="sm:col-span-5 px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all placeholder:text-gray-300 placeholder:font-normal"
                             />
                             <input
                               type="number"
@@ -1313,7 +1354,7 @@ const CreateTournament = () => {
                               onChange={(e) =>
                                 setNewCouponDiscount(e.target.value)
                               }
-                              className="sm:col-span-3 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                              className="sm:col-span-3 px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all placeholder:text-gray-300 placeholder:font-normal"
                             />
                             <select
                               value={newCouponType}
@@ -1322,7 +1363,7 @@ const CreateTournament = () => {
                                   e.target.value as "percentage" | "fixed",
                                 )
                               }
-                              className="sm:col-span-2 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                              className="sm:col-span-2 px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
                             >
                               <option value="percentage">%</option>
                               <option value="fixed">R$</option>
@@ -1389,13 +1430,13 @@ const CreateTournament = () => {
                 {/* ─── STEP 3: ESTRUTURA ─── */}
                 {currentStep === "estrutura" && (
                   <div className="space-y-6">
-                    <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-6">
+                    <h2 className="text-[18px] font-extrabold text-gray-900 tracking-tight mb-5">
                       Estrutura
                     </h2>
 
                     {/* Clube Sede */}
                     <div>
-                      <label className="block text-sm text-gray-500 mb-2 font-medium">
+                      <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                         Clube Sede
                       </label>
                       <input
@@ -1405,7 +1446,7 @@ const CreateTournament = () => {
                         onChange={(e) =>
                           handleChange("clubSede", e.target.value)
                         }
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                        className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all placeholder:text-gray-300 placeholder:font-normal"
                       />
                     </div>
 
@@ -1433,14 +1474,14 @@ const CreateTournament = () => {
                           onChange={(e) =>
                             handleChange("subSedeName", e.target.value)
                           }
-                          className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                          className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all placeholder:text-gray-300 placeholder:font-normal"
                         />
                       )}
                     </div>
 
                     {/* Quadras */}
                     <div>
-                      <label className="block text-sm text-gray-500 mb-2 font-medium">
+                      <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                         Quadras
                       </label>
                       <button
@@ -1479,7 +1520,7 @@ const CreateTournament = () => {
                                   newCourts[idx] = e.target.value;
                                   handleChange("courts", newCourts);
                                 }}
-                                className="flex-1 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                                className="flex-1 px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
                               />
                               <button
                                 onClick={() => handleRemoveCourt(idx)}
@@ -1507,7 +1548,7 @@ const CreateTournament = () => {
 
                     {/* Tempo por Partida */}
                     <div>
-                      <label className="block text-sm text-gray-500 mb-2 font-medium">
+                      <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                         Tempo por Partida (minutos)
                       </label>
                       <div className="relative">
@@ -1531,7 +1572,7 @@ const CreateTournament = () => {
                           onChange={(e) =>
                             handleChange("matchDuration", e.target.value)
                           }
-                          className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                          className="w-full pl-12 pr-4 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
                         />
                       </div>
                     </div>
@@ -1552,7 +1593,7 @@ const CreateTournament = () => {
                       </label>
                       {form.hasLimit && (
                         <div className="mt-4">
-                          <label className="block text-sm text-gray-500 mb-2 font-medium">
+                          <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                             Número máximo de duplas
                           </label>
                           <input
@@ -1562,7 +1603,7 @@ const CreateTournament = () => {
                             onChange={(e) =>
                               handleChange("maxTeams", e.target.value)
                             }
-                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                            className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all placeholder:text-gray-300 placeholder:font-normal"
                           />
                           {capacity && (
                             <p className="mt-2 text-xs text-blue-600">
@@ -1587,7 +1628,7 @@ const CreateTournament = () => {
                 {/* ─── STEP 4: CATEGORIAS ─── */}
                 {currentStep === "categorias" && (
                   <div className="space-y-6">
-                    <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-6">
+                    <h2 className="text-[18px] font-extrabold text-gray-900 tracking-tight mb-5">
                       Categorias
                     </h2>
 
@@ -1712,13 +1753,13 @@ const CreateTournament = () => {
                 {/* ─── STEP 5: IMAGENS ─── */}
                 {currentStep === "imagens" && (
                   <div className="space-y-6">
-                    <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-6">
+                    <h2 className="text-[18px] font-extrabold text-gray-900 tracking-tight mb-5">
                       Imagens
                     </h2>
 
                     {/* Foto de Perfil do Torneio */}
                     <div>
-                      <label className="block text-sm text-gray-500 mb-3 font-medium">
+                      <label className="block text-[12px] font-semibold text-gray-500 mb-2">
                         Foto de Perfil do Torneio
                       </label>
                       <div className="flex flex-col sm:flex-row items-start gap-4">
@@ -1786,7 +1827,7 @@ const CreateTournament = () => {
 
                     {/* Patrocinadores */}
                     <div>
-                      <label className="block text-sm text-gray-500 mb-3 font-medium">
+                      <label className="block text-[12px] font-semibold text-gray-500 mb-2">
                         Patrocinadores
                       </label>
                       <button
@@ -1820,7 +1861,7 @@ const CreateTournament = () => {
                           {form.sponsors.map((sponsor) => (
                             <div
                               key={sponsor.id}
-                              className="bg-white border border-gray-200 rounded-lg p-4"
+                              className="bg-white border border-gray-200 rounded-xl p-4"
                             >
                               <div className="flex flex-col sm:flex-row gap-4">
                                 {/* Logo do patrocinador */}
@@ -1871,7 +1912,7 @@ const CreateTournament = () => {
                                 {/* Nome do patrocinador */}
                                 <div className="flex-1 flex flex-col gap-3">
                                   <div>
-                                    <label className="block text-xs text-gray-500 mb-1.5">
+                                    <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                                       Nome do Patrocinador
                                     </label>
                                     <input
@@ -1884,7 +1925,7 @@ const CreateTournament = () => {
                                           e.target.value,
                                         )
                                       }
-                                      className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                                      className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all placeholder:text-gray-300 placeholder:font-normal"
                                     />
                                   </div>
 
@@ -1948,7 +1989,7 @@ const CreateTournament = () => {
                 {/* ─── STEP 7: TRANSMISSÃO ─── */}
                 {currentStep === "transmissao" && (
                   <div className="space-y-6">
-                    <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-6">
+                    <h2 className="text-[18px] font-extrabold text-gray-900 tracking-tight mb-5">
                       Transmissão
                     </h2>
 
@@ -1992,7 +2033,7 @@ const CreateTournament = () => {
                           {form.courts.map((court, idx) => (
                             <div
                               key={idx}
-                              className="bg-white border border-gray-200 rounded-lg p-4"
+                              className="bg-white border border-gray-200 rounded-xl p-4"
                             >
                               <label className="block text-sm text-gray-900 font-medium mb-2">
                                 {court}
@@ -2022,7 +2063,7 @@ const CreateTournament = () => {
                                         e.target.value,
                                       )
                                     }
-                                    className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                                    className="w-full pl-11 pr-4 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
                                   />
                                 </div>
                                 {form.streamingLinks[court] && (
@@ -2053,7 +2094,83 @@ const CreateTournament = () => {
                           ))}
                         </div>
 
-                        <div className="mt-4 p-4 bg-blue-500/5 border border-blue-500/20 rounded-lg">
+                        {/* ─── Liga (seção colapsável) ─── */}
+                        <div className="border-t border-gray-100 pt-6">
+                          <button
+                            type="button"
+                            onClick={() => setShowLeagueSection((v) => !v)}
+                            className="w-full flex items-center justify-between group"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                                <span className="text-base">🏅</span>
+                              </div>
+                              <div className="text-left">
+                                <p className="text-[14px] font-bold text-gray-900">
+                                  Vincular a uma Liga
+                                </p>
+                                <p className="text-[12px] text-gray-400 font-normal">
+                                  Opcional — os pontos serão distribuídos
+                                  automaticamente
+                                </p>
+                              </div>
+                            </div>
+                            <span
+                              className={`text-gray-400 transition-transform duration-200 ${showLeagueSection ? "rotate-180" : ""}`}
+                            >
+                              ▾
+                            </span>
+                          </button>
+
+                          {showLeagueSection && (
+                            <div className="mt-4 space-y-3">
+                              {leagues.length === 0 ? (
+                                <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-500">
+                                  Nenhuma liga criada ainda.{" "}
+                                  <a
+                                    href="/dashboard/leagues"
+                                    className="text-blue-600 font-semibold hover:underline"
+                                  >
+                                    Criar liga →
+                                  </a>
+                                </div>
+                              ) : (
+                                <>
+                                  <div>
+                                    <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
+                                      Liga
+                                    </label>
+                                    <select
+                                      value={form.leagueId ?? ""}
+                                      onChange={(e) =>
+                                        handleChange(
+                                          "leagueId",
+                                          e.target.value || null,
+                                        )
+                                      }
+                                      className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
+                                    >
+                                      <option value="">Nenhuma liga</option>
+                                      {leagues.map((l) => (
+                                        <option key={l.id} value={l.id}>
+                                          {l.name}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  {form.leagueId && (
+                                    <p className="text-[12px] text-green-600 font-semibold">
+                                      ✓ Os pontos serão distribuídos
+                                      automaticamente ao concluir o torneio
+                                    </p>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl">
                           <div className="flex gap-3">
                             <svg
                               className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5"
@@ -2069,7 +2186,7 @@ const CreateTournament = () => {
                               />
                             </svg>
                             <div>
-                              <p className="text-sm text-blue-400 font-medium mb-1">
+                              <p className="text-[12px] font-bold text-blue-600 mb-1">
                                 Dica:
                               </p>
                               <p className="text-xs text-gray-500">
@@ -2089,7 +2206,7 @@ const CreateTournament = () => {
                   <button
                     onClick={handlePrevious}
                     disabled={isFirstStep}
-                    className="px-6 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300 text-gray-900 rounded-lg font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-50"
+                    className="px-6 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     Anterior
                   </button>
@@ -2100,8 +2217,8 @@ const CreateTournament = () => {
                       disabled={isSubmitting}
                       className={`px-6 py-2.5 rounded-lg font-semibold text-sm shadow-sm transition-all ${
                         isSubmitting
-                          ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-                          : "bg-emerald-600 hover:bg-emerald-700 text-white hover:shadow"
+                          ? "bg-gray-300 text-gray-400 cursor-not-allowed"
+                          : "bg-[#00e87a] hover:bg-[#00ff88] text-[#0a0e1a] hover:shadow-[0_0_16px_rgba(0,232,122,0.3)]"
                       }`}
                     >
                       {isSubmitting ? (
@@ -2135,7 +2252,7 @@ const CreateTournament = () => {
                   ) : (
                     <button
                       onClick={handleNext}
-                      className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm shadow-sm hover:shadow transition-all"
+                      className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold shadow-sm transition-all"
                     >
                       Próximo
                       <svg
@@ -2162,8 +2279,8 @@ const CreateTournament = () => {
 
       {/* Modal de Validação */}
       {showValidationModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[200] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
             <div className="flex items-start gap-4 mb-4">
               <div className="flex-shrink-0 w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                 <svg
@@ -2206,7 +2323,7 @@ const CreateTournament = () => {
             <div className="flex justify-end">
               <button
                 onClick={() => setShowValidationModal(false)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-colors"
+                className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors"
               >
                 Entendi
               </button>
