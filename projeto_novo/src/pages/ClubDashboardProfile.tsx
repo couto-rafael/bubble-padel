@@ -8,16 +8,16 @@ import { ClubService } from "../services/api";
 interface ClubData {
   id: string;
   name: string;
-  cnpj?: string;
-  phone?: string;
-  email?: string;
+  cnpj?: string | null;
+  phone?: string | null;
+  email?: string | null;
   logoUrl?: string | null;
-  city?: string;
-  state?: string;
+  city?: string | null;
+  state?: string | null;
   courts?: string[];
   matchDuration?: number;
-  defaultStartTime?: string;
-  defaultEndTime?: string;
+  defaultStartTime?: string | null;
+  defaultEndTime?: string | null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -69,18 +69,27 @@ const ClubDashboardProfile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#f8f9fc]">
         <DashboardHeader activePage="dashboard" />
-        <div className="pt-24 flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-        </div>
+        <main className="pt-20 pb-12">
+          <div className="max-w-7xl mx-auto px-6 animate-pulse">
+            <div className="h-8 bg-gray-200 rounded-xl w-48 mb-8 mt-2" />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-200 h-64" />
+              <div className="lg:col-span-9 space-y-4">
+                <div className="bg-white rounded-2xl border border-gray-200 h-40" />
+                <div className="bg-white rounded-2xl border border-gray-200 h-32" />
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
 
   if (!club) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[#f8f9fc]">
         <DashboardHeader activePage="dashboard" />
         <div className="pt-24 text-center text-gray-500">
           Erro ao carregar perfil do clube.
@@ -94,24 +103,24 @@ const ClubDashboardProfile = () => {
   const courtsCount = club.courts?.length ?? 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f8f9fc]">
       <DashboardHeader activePage="dashboard" />
 
       <main className="pt-20 pb-12">
-        <div className="max-w-[1400px] mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-6">
           {/* Page Header */}
-          <div className="mb-8 flex items-center justify-between">
+          <div className="mb-6 flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">
+              <h1 className="text-[22px] font-extrabold text-gray-900 tracking-tight mb-0.5">
                 Perfil do Clube
               </h1>
-              <p className="text-gray-600">
+              <p className="text-sm text-gray-500 font-normal">
                 Visualize as informações do seu clube
               </p>
             </div>
             <Link
               to="/dashboard/settings"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm flex items-center gap-2"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition-colors flex items-center gap-2"
             >
               <svg
                 className="w-4 h-4"
@@ -140,7 +149,7 @@ const ClubDashboardProfile = () => {
             {/* LEFT SIDEBAR */}
             <aside className="lg:col-span-3 space-y-6">
               {/* Club Card */}
-              <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
                 {/* Logo */}
                 <div className="flex flex-col items-center mb-6">
                   <div className="relative group">
@@ -186,7 +195,7 @@ const ClubDashboardProfile = () => {
                       />
                     </label>
                   </div>
-                  <h2 className="mt-4 text-lg font-bold text-gray-900 text-center">
+                  <h2 className="mt-4 text-[16px] font-extrabold text-gray-900 text-center tracking-tight">
                     {club.name}
                   </h2>
                   <p className="text-sm text-gray-500 text-center mt-1">
@@ -270,7 +279,7 @@ const ClubDashboardProfile = () => {
                 <div className="space-y-2">
                   <Link
                     to="/dashboard/tournaments/create"
-                    className="flex items-center gap-2 w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-colors"
+                    className="flex items-center gap-2 w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition-colors"
                   >
                     <svg
                       className="w-4 h-4"
@@ -289,7 +298,7 @@ const ClubDashboardProfile = () => {
                   </Link>
                   <Link
                     to="/dashboard/tournaments"
-                    className="flex items-center gap-2 w-full px-4 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg font-medium text-sm transition-colors"
+                    className="flex items-center gap-2 w-full px-4 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl font-bold text-sm transition-colors"
                   >
                     <svg
                       className="w-4 h-4"
@@ -308,7 +317,7 @@ const ClubDashboardProfile = () => {
                   </Link>
                   <Link
                     to="/dashboard/settings"
-                    className="flex items-center gap-2 w-full px-4 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg font-medium text-sm transition-colors"
+                    className="flex items-center gap-2 w-full px-4 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl font-bold text-sm transition-colors"
                   >
                     <svg
                       className="w-4 h-4"
@@ -338,57 +347,63 @@ const ClubDashboardProfile = () => {
             {/* MAIN CONTENT */}
             <main className="lg:col-span-9 space-y-6">
               {/* Club Info */}
-              <div className="bg-white border border-gray-200 rounded-xl p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+                <h2 className="text-[15px] font-extrabold text-gray-900 tracking-tight mb-4">
                   Informações do Clube
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                   <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                       Nome
                     </p>
-                    <p className="font-semibold text-gray-900">{club.name}</p>
+                    <p className="font-bold text-gray-900 text-[14px]">
+                      {club.name}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                       Localização
                     </p>
-                    <p className="font-semibold text-gray-900">{location}</p>
+                    <p className="font-bold text-gray-900 text-[14px]">
+                      {location}
+                    </p>
                   </div>
                   {club.phone && (
                     <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                         Telefone
                       </p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-bold text-gray-900 text-[14px]">
                         {club.phone}
                       </p>
                     </div>
                   )}
                   {club.cnpj && (
                     <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                         CNPJ
                       </p>
-                      <p className="font-semibold text-gray-900">{club.cnpj}</p>
+                      <p className="font-bold text-gray-900 text-[14px]">
+                        {club.cnpj}
+                      </p>
                     </div>
                   )}
                   {courtsCount > 0 && (
                     <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                         Quadras
                       </p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-bold text-gray-900 text-[14px]">
                         {courtsCount} quadra{courtsCount !== 1 ? "s" : ""}
                       </p>
                     </div>
                   )}
                   {club.matchDuration && (
                     <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                         Duração padrão
                       </p>
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-bold text-gray-900 text-[14px]">
                         {club.matchDuration} min
                       </p>
                     </div>
@@ -398,15 +413,15 @@ const ClubDashboardProfile = () => {
 
               {/* Courts */}
               {club.courts && club.courts.length > 0 && (
-                <div className="bg-white border border-gray-200 rounded-xl p-6">
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+                  <h2 className="text-[15px] font-extrabold text-gray-900 tracking-tight mb-4">
                     Quadras
                   </h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                     {club.courts.map((court, i) => (
                       <div
                         key={i}
-                        className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-100"
+                        className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100"
                       >
                         <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
                           <svg
@@ -434,27 +449,27 @@ const ClubDashboardProfile = () => {
 
               {/* Schedule defaults */}
               {(club.defaultStartTime || club.defaultEndTime) && (
-                <div className="bg-white border border-gray-200 rounded-xl p-6">
-                  <h2 className="text-lg font-bold text-gray-900 mb-4">
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+                  <h2 className="text-[15px] font-extrabold text-gray-900 tracking-tight mb-4">
                     Horários Padrão
                   </h2>
                   <div className="flex gap-8">
                     {club.defaultStartTime && (
                       <div>
-                        <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                           Início
                         </p>
-                        <p className="font-semibold text-gray-900">
+                        <p className="font-bold text-gray-900 text-[14px]">
                           {club.defaultStartTime}
                         </p>
                       </div>
                     )}
                     {club.defaultEndTime && (
                       <div>
-                        <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">
                           Fim
                         </p>
-                        <p className="font-semibold text-gray-900">
+                        <p className="font-bold text-gray-900 text-[14px]">
                           {club.defaultEndTime}
                         </p>
                       </div>

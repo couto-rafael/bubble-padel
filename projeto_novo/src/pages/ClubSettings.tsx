@@ -5,8 +5,8 @@ import { useClub, useTournaments } from "../hooks";
 import { useAuth } from "../contexts/AuthContext";
 
 const INPUT_CLS =
-  "w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors";
-const LABEL_CLS = "block text-sm font-medium text-gray-600 mb-2";
+  "w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all placeholder:text-gray-400 placeholder:font-normal";
+const LABEL_CLS = "block text-[12px] font-semibold text-gray-500 mb-1.5";
 
 const SIDEBAR = [
   {
@@ -227,19 +227,19 @@ const ClubSettings = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-500 text-sm">Carregando...</div>
+      <div className="min-h-screen bg-[#f8f9fc] flex items-center justify-center">
+        <div className="text-gray-500 text-sm font-medium">Carregando...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
+    <div className="min-h-screen bg-[#f8f9fc] text-gray-900">
       <DashboardHeader activePage="dashboard" />
       <main className="pt-20 min-h-screen">
-        <div className="max-w-[1400px] mx-auto px-6 py-4 sm:py-8">
+        <div className="max-w-7xl mx-auto px-6 py-4 sm:py-8">
           {showWelcomeBanner && (
-            <div className="mb-6 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="mb-6 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-xl">👋</span>
@@ -282,7 +282,7 @@ const ClubSettings = () => {
                 <button
                   key={item.key}
                   onClick={() => setActiveTab(item.key)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${activeTab === item.key ? "bg-blue-50 text-blue-600 border border-blue-200" : "bg-white text-gray-600 border border-gray-300"}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-bold whitespace-nowrap transition-all ${activeTab === item.key ? "bg-blue-50 text-blue-600 border border-blue-200" : "bg-white text-gray-600 border border-gray-200"}`}
                 >
                   <svg
                     className="w-4 h-4"
@@ -306,13 +306,13 @@ const ClubSettings = () => {
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
             {/* Sidebar */}
             <aside className="hidden lg:block w-64 flex-shrink-0">
-              <div className="bg-white border border-gray-200 rounded-xl overflow-hidden sticky top-24">
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden sticky top-24">
                 <nav className="py-2">
                   {SIDEBAR.map((item) => (
                     <button
                       key={item.key}
                       onClick={() => setActiveTab(item.key)}
-                      className={`w-full flex items-center gap-3 px-5 py-3 text-sm transition-colors ${activeTab === item.key ? "bg-blue-50 text-blue-600 border-l-[3px] border-blue-600" : "text-gray-500 hover:text-gray-900 hover:bg-gray-50 border-l-[3px] border-transparent"}`}
+                      className={`w-full flex items-center gap-3 px-5 py-3 text-[13px] font-semibold transition-colors ${activeTab === item.key ? "bg-blue-50 text-blue-600 border-l-2 border-blue-600" : "text-gray-500 hover:text-gray-800 hover:bg-gray-50 border-l-2 border-transparent"}`}
                     >
                       <svg
                         style={{ width: "1.125rem", height: "1.125rem" }}
@@ -340,10 +340,10 @@ const ClubSettings = () => {
               {/* PERFIL */}
               {activeTab === "perfil" && (
                 <div>
-                  <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">
+                  <h2 className="text-[18px] font-extrabold text-gray-900 tracking-tight mb-5">
                     Perfil do Clube
                   </h2>
-                  <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 space-y-4">
+                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sm:p-6 space-y-4">
                     <div>
                       <label className={LABEL_CLS}>Logo do Clube</label>
                       <div className="flex items-center gap-5">
@@ -363,7 +363,7 @@ const ClubSettings = () => {
                           </svg>
                         </div>
                         <div>
-                          <button className="px-4 py-2 border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                          <button className="px-4 py-2 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors">
                             Carregar Logo
                           </button>
                           <p className="text-xs text-gray-500 mt-1">
@@ -432,7 +432,7 @@ const ClubSettings = () => {
                       <button
                         onClick={handleSaveAll}
                         disabled={saving}
-                        className={`flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white"} disabled:opacity-50`}
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"} disabled:opacity-50`}
                       >
                         {saving
                           ? "Salvando..."
@@ -443,7 +443,7 @@ const ClubSettings = () => {
                       <div>
                         <button
                           onClick={() => setActiveTab("estrutura")}
-                          className="flex items-center gap-2 px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold transition-colors"
+                          className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-bold transition-colors"
                         >
                           Próximo: Estrutura
                           <svg
@@ -469,10 +469,10 @@ const ClubSettings = () => {
               {/* ESTRUTURA */}
               {activeTab === "estrutura" && (
                 <div>
-                  <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">
+                  <h2 className="text-[18px] font-extrabold text-gray-900 tracking-tight mb-5">
                     Estrutura
                   </h2>
-                  <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 space-y-6">
+                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sm:p-6 space-y-6">
                     {/* Quadras */}
                     <div>
                       <label className={LABEL_CLS}>Quadras</label>
@@ -651,7 +651,7 @@ const ClubSettings = () => {
                       <button
                         onClick={handleSaveAll}
                         disabled={saving}
-                        className={`flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white"} disabled:opacity-50`}
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"} disabled:opacity-50`}
                       >
                         {saving
                           ? "Salvando..."
@@ -662,7 +662,7 @@ const ClubSettings = () => {
                       <div>
                         <button
                           onClick={() => setActiveTab("financeiro")}
-                          className="flex items-center gap-2 px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold transition-colors"
+                          className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-bold transition-colors"
                         >
                           Próximo: Financeiro
                           <svg
@@ -688,10 +688,10 @@ const ClubSettings = () => {
               {/* FINANCEIRO */}
               {activeTab === "financeiro" && (
                 <div>
-                  <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">
+                  <h2 className="text-[18px] font-extrabold text-gray-900 tracking-tight mb-5">
                     Financeiro
                   </h2>
-                  <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 space-y-6">
+                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sm:p-6 space-y-6">
                     <div>
                       <label className={LABEL_CLS}>
                         Métodos de Pagamento Aceitos
@@ -846,7 +846,7 @@ const ClubSettings = () => {
                       <button
                         onClick={handleSaveAll}
                         disabled={saving}
-                        className={`flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white"} disabled:opacity-50`}
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"} disabled:opacity-50`}
                       >
                         {saving
                           ? "Salvando..."
@@ -857,7 +857,7 @@ const ClubSettings = () => {
                       <div>
                         <button
                           onClick={() => setActiveTab("conta")}
-                          className="flex items-center gap-2 px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold transition-colors"
+                          className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-bold transition-colors"
                         >
                           Próximo: Conta
                           <svg
@@ -883,7 +883,7 @@ const ClubSettings = () => {
               {/* CONTA */}
               {activeTab === "conta" && (
                 <div>
-                  <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">
+                  <h2 className="text-[18px] font-extrabold text-gray-900 tracking-tight mb-5">
                     Conta
                   </h2>
                   <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 space-y-5">
@@ -980,7 +980,7 @@ const ClubSettings = () => {
                       <button
                         onClick={handleSaveAll}
                         disabled={saving}
-                        className={`flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white"} disabled:opacity-50`}
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"} disabled:opacity-50`}
                       >
                         {saving
                           ? "Salvando..."

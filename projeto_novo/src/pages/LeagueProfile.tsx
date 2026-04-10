@@ -82,18 +82,30 @@ function normalizeSport(s: string | null) {
 function normalizeTournamentStatus(s: string) {
   switch (s?.toUpperCase()) {
     case "COMPLETED":
-      return { label: "Finalizado", cls: "bg-purple-100 text-purple-700" };
+      return {
+        label: "Finalizado",
+        cls: "bg-purple-500/20 text-purple-300 border border-purple-500/20",
+      };
     case "ONGOING":
-      return { label: "Em Andamento", cls: "bg-blue-100 text-blue-700" };
+      return {
+        label: "Em Andamento",
+        cls: "bg-blue-500/20 text-blue-300 border border-blue-500/20",
+      };
     case "OPEN":
       return {
         label: "Inscrições Abertas",
-        cls: "bg-emerald-100 text-emerald-700",
+        cls: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/20",
       };
     case "CLOSED":
-      return { label: "Encerrado", cls: "bg-red-100 text-red-700" };
+      return {
+        label: "Encerrado",
+        cls: "bg-red-500/20 text-red-300 border border-red-500/20",
+      };
     default:
-      return { label: "Em Breve", cls: "bg-gray-100 text-gray-600" };
+      return {
+        label: "Em Breve",
+        cls: "bg-white/10 text-gray-300 border border-white/10",
+      };
   }
 }
 
@@ -155,15 +167,30 @@ const LeagueProfile: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#00ff88] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#0a0e1a]">
+        <nav className="fixed top-0 left-0 right-0 z-50 h-16 bg-[#0a0e1a]/95 border-b border-white/[0.07]" />
+        <main className="pt-24 pb-16 max-w-4xl mx-auto px-6 animate-pulse space-y-6">
+          <div className="bg-white/5 rounded-2xl p-8 flex items-center gap-4">
+            <div className="w-14 h-14 rounded-xl bg-white/10 flex-shrink-0" />
+            <div className="flex-1 space-y-2">
+              <div className="h-6 bg-white/10 rounded-lg w-56" />
+              <div className="h-4 bg-white/10 rounded-lg w-36" />
+            </div>
+          </div>
+          <div className="h-11 bg-white/5 rounded-xl" />
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-14 bg-white/5 rounded-xl" />
+            ))}
+          </div>
+        </main>
       </div>
     );
   }
 
   if (notFound || !league) {
     return (
-      <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center text-center px-4">
+      <div className="min-h-screen bg-[#0a0e1a] flex items-center justify-center text-center px-4">
         <div>
           <span className="text-5xl block mb-4">🏆</span>
           <h1 className="text-2xl font-bold text-white mb-2">
@@ -174,7 +201,7 @@ const LeagueProfile: React.FC = () => {
           </p>
           <Link
             to="/"
-            className="px-6 py-3 bg-[#00ff88] text-[#0a0e27] rounded-lg font-bold hover:bg-[#00dd77] transition-colors"
+            className="px-6 py-3 bg-[#00ff88] text-[#0a0e1a] rounded-xl font-extrabold hover:bg-[#00ff99] transition-colors"
           >
             Ir para o início
           </Link>
@@ -196,7 +223,7 @@ const LeagueProfile: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a0e27] text-white">
+    <div className="min-h-screen bg-[#0a0e1a] text-white">
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e27]/95 backdrop-blur-sm border-b border-white/5">
         <div className="max-w-4xl mx-auto px-6 flex items-center justify-between h-16">
@@ -216,11 +243,13 @@ const LeagueProfile: React.FC = () => {
                 />
               </svg>
             </div>
-            <span className="text-lg font-bold">Bubble</span>
+            <span className="text-[17px] font-extrabold tracking-tight">
+              Bubble
+            </span>
           </Link>
           <button
             onClick={() => handleShare(league)}
-            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-white/[0.08] hover:bg-white/15 rounded-xl text-[13px] font-bold transition-colors border border-white/[0.08]"
           >
             <svg
               className="w-4 h-4"
@@ -242,14 +271,14 @@ const LeagueProfile: React.FC = () => {
 
       <main className="pt-24 pb-16 max-w-4xl mx-auto px-6">
         {/* Hero */}
-        <div className="bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] border border-white/10 rounded-2xl p-8 mb-8">
+        <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-8 mb-8">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-xl flex items-center justify-center text-[#0a0e27] text-2xl flex-shrink-0">
                 🏆
               </div>
               <div>
-                <h1 className="text-2xl font-black text-white mb-1">
+                <h1 className="text-[26px] font-black text-white mb-1 tracking-tight leading-tight">
                   {league.name}
                 </h1>
                 {league.description && (
@@ -288,13 +317,13 @@ const LeagueProfile: React.FC = () => {
             {/* Stats rápidas */}
             <div className="flex gap-6">
               <div className="text-center">
-                <div className="text-2xl font-black text-white">
+                <div className="text-[26px] font-black text-white leading-none">
                   {league.tournaments.length}
                 </div>
                 <div className="text-xs text-gray-400 mt-0.5">Torneios</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-black text-[#00ff88]">
+                <div className="text-[26px] font-black text-[#00ff88] leading-none">
                   {league.ranking.availableCategories.length}
                 </div>
                 <div className="text-xs text-gray-400 mt-0.5">Categorias</div>
@@ -304,7 +333,7 @@ const LeagueProfile: React.FC = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-white/5 rounded-xl p-1 mb-6 overflow-x-auto">
+        <div className="flex gap-1 bg-white/[0.05] rounded-xl p-1 mb-6 overflow-x-auto border border-white/[0.06]">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -355,7 +384,7 @@ const LeagueProfile: React.FC = () => {
                 {/* Tabela da categoria selecionada */}
                 {selectedCategory &&
                   league.ranking.categories[selectedCategory] && (
-                    <div className="bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] border border-white/10 rounded-xl overflow-hidden">
+                    <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl overflow-hidden">
                       <div className="px-5 py-3 border-b border-white/10">
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">
                           {selectedCategory}
@@ -413,7 +442,7 @@ const LeagueProfile: React.FC = () => {
                                       {getInitials(r.fullName)}
                                     </div>
                                     <div>
-                                      <p className="font-semibold text-white">
+                                      <p className="font-bold text-white text-[14px]">
                                         {r.fullName}
                                       </p>
                                       {r.city && (
@@ -461,7 +490,7 @@ const LeagueProfile: React.FC = () => {
                   <Link
                     key={lt.id}
                     to={`/tournaments/${lt.tournament.id}`}
-                    className="block bg-gradient-to-br from-[#1a1f4a]/60 to-[#0f1540]/60 border border-white/10 hover:border-[#00ff88]/30 rounded-xl p-5 transition-all"
+                    className="block bg-white/[0.04] border border-white/[0.08] hover:border-[#00ff88]/30 hover:bg-white/[0.06] rounded-2xl p-5 transition-all group"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
@@ -475,7 +504,7 @@ const LeagueProfile: React.FC = () => {
                             {status.label}
                           </span>
                         </div>
-                        <p className="font-bold text-white mb-1">
+                        <p className="font-extrabold text-white mb-1 text-[15px] tracking-tight group-hover:text-[#00ff88] transition-colors">
                           {lt.tournament.name}
                         </p>
                         <p className="text-sm text-gray-400">
@@ -515,7 +544,7 @@ const LeagueProfile: React.FC = () => {
 
         {/* Tab: Pontuação */}
         {activeTab === "points" && (
-          <div className="bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] border border-white/10 rounded-xl p-6">
+          <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6">
             <h2 className="text-base font-bold text-white mb-4">
               Tabela de Pontos
             </h2>
@@ -535,10 +564,12 @@ const LeagueProfile: React.FC = () => {
               ].map(({ label, value }) => (
                 <div
                   key={label}
-                  className="bg-white/5 border border-white/10 rounded-xl p-4 text-center"
+                  className="bg-white/[0.05] border border-white/[0.08] rounded-xl p-4 text-center"
                 >
                   <p className="text-xs text-gray-400 mb-1">{label}</p>
-                  <p className="text-2xl font-black text-[#00ff88]">{value}</p>
+                  <p className="text-[26px] font-black text-[#00ff88] leading-none">
+                    {value}
+                  </p>
                   <p className="text-xs text-gray-500">pts</p>
                 </div>
               ))}
