@@ -1056,6 +1056,82 @@ const CreateTournament = () => {
                         className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none"
                       />
                     </div>
+
+                    {/* ─── Liga (seção colapsável) ─── */}
+                    <div className="border-t border-gray-100 pt-5">
+                      <button
+                        type="button"
+                        onClick={() => setShowLeagueSection((v) => !v)}
+                        className="w-full flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                            <span className="text-base">🏅</span>
+                          </div>
+                          <div className="text-left">
+                            <p className="text-[14px] font-bold text-gray-900">
+                              Vincular a uma Liga
+                            </p>
+                            <p className="text-[12px] text-gray-400 font-normal">
+                              Opcional — pontos distribuídos automaticamente ao
+                              concluir
+                            </p>
+                          </div>
+                        </div>
+                        <span
+                          className={`text-gray-400 text-lg transition-transform duration-200 ${showLeagueSection ? "rotate-180" : ""}`}
+                        >
+                          ▾
+                        </span>
+                      </button>
+
+                      {showLeagueSection && (
+                        <div className="mt-4 space-y-3">
+                          {leagues.length === 0 ? (
+                            <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-500">
+                              Nenhuma liga criada ainda.{" "}
+                              <a
+                                href="/dashboard/leagues"
+                                className="text-blue-600 font-semibold hover:underline"
+                              >
+                                Criar liga →
+                              </a>
+                            </div>
+                          ) : (
+                            <>
+                              <div>
+                                <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
+                                  Liga
+                                </label>
+                                <select
+                                  value={form.leagueId ?? ""}
+                                  onChange={(e) =>
+                                    handleChange(
+                                      "leagueId",
+                                      e.target.value || null,
+                                    )
+                                  }
+                                  className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
+                                >
+                                  <option value="">Nenhuma liga</option>
+                                  {leagues.map((l) => (
+                                    <option key={l.id} value={l.id}>
+                                      {l.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              {form.leagueId && (
+                                <p className="text-[12px] text-green-600 font-semibold">
+                                  ✓ Os pontos serão distribuídos automaticamente
+                                  ao concluir o torneio
+                                </p>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -2092,82 +2168,6 @@ const CreateTournament = () => {
                               </div>
                             </div>
                           ))}
-                        </div>
-
-                        {/* ─── Liga (seção colapsável) ─── */}
-                        <div className="border-t border-gray-100 pt-6">
-                          <button
-                            type="button"
-                            onClick={() => setShowLeagueSection((v) => !v)}
-                            className="w-full flex items-center justify-between group"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                                <span className="text-base">🏅</span>
-                              </div>
-                              <div className="text-left">
-                                <p className="text-[14px] font-bold text-gray-900">
-                                  Vincular a uma Liga
-                                </p>
-                                <p className="text-[12px] text-gray-400 font-normal">
-                                  Opcional — os pontos serão distribuídos
-                                  automaticamente
-                                </p>
-                              </div>
-                            </div>
-                            <span
-                              className={`text-gray-400 transition-transform duration-200 ${showLeagueSection ? "rotate-180" : ""}`}
-                            >
-                              ▾
-                            </span>
-                          </button>
-
-                          {showLeagueSection && (
-                            <div className="mt-4 space-y-3">
-                              {leagues.length === 0 ? (
-                                <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-500">
-                                  Nenhuma liga criada ainda.{" "}
-                                  <a
-                                    href="/dashboard/leagues"
-                                    className="text-blue-600 font-semibold hover:underline"
-                                  >
-                                    Criar liga →
-                                  </a>
-                                </div>
-                              ) : (
-                                <>
-                                  <div>
-                                    <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
-                                      Liga
-                                    </label>
-                                    <select
-                                      value={form.leagueId ?? ""}
-                                      onChange={(e) =>
-                                        handleChange(
-                                          "leagueId",
-                                          e.target.value || null,
-                                        )
-                                      }
-                                      className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
-                                    >
-                                      <option value="">Nenhuma liga</option>
-                                      {leagues.map((l) => (
-                                        <option key={l.id} value={l.id}>
-                                          {l.name}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                  {form.leagueId && (
-                                    <p className="text-[12px] text-green-600 font-semibold">
-                                      ✓ Os pontos serão distribuídos
-                                      automaticamente ao concluir o torneio
-                                    </p>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          )}
                         </div>
 
                         <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl">
