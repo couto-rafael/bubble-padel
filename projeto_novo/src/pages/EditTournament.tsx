@@ -519,7 +519,7 @@ const EditTournament = () => {
       <DashboardHeader activePage="tournaments" />
 
       <main className="pt-20 pb-12">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-6">
           {/* HEADER */}
           <div className="mb-6">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-4">
@@ -633,8 +633,8 @@ const EditTournament = () => {
           </div>
 
           {/* TABS */}
-          <div className="flex border-b border-gray-200 mb-6 overflow-x-auto">
-            <div className="flex min-w-max">
+          <div className="flex border-b border-gray-200 mb-6 overflow-x-auto scrollbar-none">
+            <div className="flex">
               {tabs.map((tab) => (
                 <button
                   key={tab.key}
