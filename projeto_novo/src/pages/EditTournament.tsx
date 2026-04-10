@@ -29,46 +29,40 @@ const StatusBadge = ({
 }) => {
   const config = {
     draft: {
-      bg: "bg-amber-100 border-2 border-amber-500",
-      text: "text-amber-900",
-      dot: "bg-amber-600",
-      label: "⚠️ RASCUNHO",
-      shadow: "shadow-lg shadow-amber-200",
+      bg: "bg-amber-50 border border-amber-200",
+      text: "text-amber-700",
+      dot: "bg-amber-500",
+      label: "Rascunho",
     },
     published: {
-      bg: "bg-emerald-50 border-2 border-emerald-400",
-      text: "text-emerald-800",
-      dot: "bg-emerald-600",
-      label: "✓ Publicado",
-      shadow: "",
+      bg: "bg-blue-50 border border-blue-200",
+      text: "text-blue-700",
+      dot: "bg-blue-500",
+      label: "Publicado",
     },
     open: {
-      bg: "bg-green-100 border-2 border-green-500",
-      text: "text-green-900",
-      dot: "bg-green-600",
-      label: "🟢 Inscrições Abertas",
-      shadow: "shadow-lg shadow-green-200",
+      bg: "bg-green-50 border border-green-200",
+      text: "text-green-700",
+      dot: "bg-green-500",
+      label: "Inscrições Abertas",
     },
     closed: {
-      bg: "bg-red-50 border-2 border-red-400",
-      text: "text-red-800",
+      bg: "bg-red-50 border border-red-200",
+      text: "text-red-600",
       dot: "bg-red-500",
-      label: "🔴 Inscrições Encerradas",
-      shadow: "",
+      label: "Inscrições Encerradas",
     },
     ongoing: {
-      bg: "bg-blue-50 border-2 border-blue-400",
-      text: "text-blue-800",
-      dot: "bg-blue-600",
-      label: "▶ Em Andamento",
-      shadow: "",
+      bg: "bg-purple-50 border border-purple-200",
+      text: "text-purple-700",
+      dot: "bg-purple-500",
+      label: "Em Andamento",
     },
     completed: {
-      bg: "bg-purple-50 border-2 border-purple-400",
-      text: "text-purple-800",
-      dot: "bg-purple-600",
-      label: "✓ Finalizado",
-      shadow: "",
+      bg: "bg-gray-100 border border-gray-200",
+      text: "text-gray-600",
+      dot: "bg-gray-400",
+      label: "Finalizado",
     },
   };
 
@@ -76,9 +70,9 @@ const StatusBadge = ({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${style.bg} ${style.text} ${style.shadow}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${style.bg} ${style.text}`}
     >
-      <span className={`w-2 h-2 rounded-full ${style.dot}`} />
+      <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
       {style.label}
     </span>
   );
@@ -101,8 +95,8 @@ const ConfirmModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in">
-      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-in zoom-in slide-in-from-bottom-4 duration-200">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[200] p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
         <div className="flex items-start gap-4 mb-6">
           <div className="flex-shrink-0 w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
             <svg
@@ -447,7 +441,7 @@ const EditTournament = () => {
 
   if (loading || teamsLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#f8f9fc] flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Carregando torneio...</p>
@@ -458,7 +452,7 @@ const EditTournament = () => {
 
   if (!tournament) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#f8f9fc] flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-bold text-gray-900 mb-2">
             Torneio não encontrado
@@ -521,13 +515,13 @@ const EditTournament = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f8f9fc]">
       <DashboardHeader activePage="tournaments" />
 
       <main className="pt-20 pb-12">
-        <div className="max-w-[1400px] mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-6">
           {/* HEADER */}
-          <div className="mb-8">
+          <div className="mb-6">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-4">
               <div className="flex items-center gap-3 flex-1">
                 <button
@@ -549,10 +543,10 @@ const EditTournament = () => {
                   </svg>
                 </button>
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                  <h1 className="text-[22px] font-extrabold text-gray-900 tracking-tight mb-0.5">
                     {tournament.name}
                   </h1>
-                  <p className="text-gray-600">
+                  <p className="text-sm text-gray-500 font-normal">
                     Gerencie todas as informações do torneio
                   </p>
                 </div>
@@ -604,7 +598,7 @@ const EditTournament = () => {
                 {tournament.status === "ongoing" && (
                   <button
                     onClick={() => handleStatusChange("completed")}
-                    className="px-6 py-3 bg-purple-600 text-white rounded-lg font-bold text-sm hover:bg-purple-700 shadow-lg transition-all whitespace-nowrap"
+                    className="px-5 py-2.5 bg-[#00e87a] text-[#0a0e1a] rounded-xl text-sm font-bold hover:bg-[#00ff88] hover:shadow-[0_0_16px_rgba(0,232,122,0.3)] transition-all whitespace-nowrap"
                   >
                     Finalizar Torneio
                   </button>
@@ -616,7 +610,7 @@ const EditTournament = () => {
                         `/dashboard/tournaments/${tournament.id}/results`,
                       )
                     }
-                    className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg font-bold text-sm hover:bg-gray-800 shadow-lg transition-all whitespace-nowrap"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-gray-800 transition-colors shadow-sm whitespace-nowrap"
                   >
                     <svg
                       className="w-4 h-4"
@@ -639,13 +633,13 @@ const EditTournament = () => {
           </div>
 
           {/* TABS */}
-          <div className="bg-white border border-gray-200 rounded-xl mb-6 overflow-x-auto">
-            <div className="flex border-b border-gray-200 min-w-max">
+          <div className="flex border-b border-gray-200 mb-6 overflow-x-auto">
+            <div className="flex min-w-max">
               {tabs.map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key as Tab)}
-                  className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold transition-colors relative ${activeTab === tab.key ? "text-blue-600" : "text-gray-600 hover:text-gray-900"}`}
+                  className={`flex items-center gap-2 px-4 py-3 text-[13px] font-bold transition-all relative border-b-2 -mb-px whitespace-nowrap ${activeTab === tab.key ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}
                 >
                   <svg
                     className="w-4 h-4"
@@ -675,13 +669,13 @@ const EditTournament = () => {
               {/* COLUNA ESQUERDA — 2/3 */}
               <div className="lg:col-span-2 space-y-6">
                 {/* Informações Básicas */}
-                <div className="bg-white border border-gray-200 rounded-xl p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-6">
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6">
+                  <h3 className="text-[15px] font-extrabold text-gray-900 tracking-tight mb-5">
                     Informações Básicas
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-600 mb-2">
+                      <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                         Nome do Torneio
                       </label>
                       <input
@@ -694,20 +688,20 @@ const EditTournament = () => {
                             "o nome do torneio",
                           )
                         }
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
+                        className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all cursor-pointer hover:border-gray-300"
                         placeholder="Clique para alterar"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">
+                      <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                         Esporte
                       </label>
-                      <div className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg text-sm text-gray-500 cursor-not-allowed">
+                      <div className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-100 rounded-xl text-sm text-gray-400 bg-gray-50 cursor-not-allowed">
                         {tournament.sport}
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">
+                      <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                         Clube Sede
                       </label>
                       <input
@@ -720,12 +714,12 @@ const EditTournament = () => {
                             "o clube sede",
                           )
                         }
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
+                        className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all cursor-pointer hover:border-gray-300"
                         placeholder="Clique para alterar"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">
+                      <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                         Data de Início
                       </label>
                       <input
@@ -739,11 +733,11 @@ const EditTournament = () => {
                           )
                         }
                         onClick={(e) => e.currentTarget.showPicker?.()}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
+                        className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all cursor-pointer hover:border-gray-300"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">
+                      <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                         Data de Término
                       </label>
                       <input
@@ -757,7 +751,7 @@ const EditTournament = () => {
                           )
                         }
                         onClick={(e) => e.currentTarget.showPicker?.()}
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
+                        className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all cursor-pointer hover:border-gray-300"
                       />
                     </div>
                   </div>
@@ -783,8 +777,8 @@ const EditTournament = () => {
               {/* COLUNA DIREITA — 1/3 */}
               <div className="space-y-6">
                 {/* Estrutura */}
-                <div className="bg-white border border-gray-200 rounded-xl p-6">
-                  <h3 className="text-base font-bold text-gray-900 mb-3">
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+                  <h3 className="text-[13px] font-extrabold text-gray-900 tracking-tight mb-3">
                     Estrutura
                   </h3>
                   <div className="space-y-3">
@@ -841,8 +835,8 @@ const EditTournament = () => {
                 </div>
 
                 {/* Capacidade */}
-                <div className="bg-white border border-gray-200 rounded-xl p-6">
-                  <h3 className="text-base font-bold text-gray-900 mb-3">
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+                  <h3 className="text-[13px] font-extrabold text-gray-900 tracking-tight mb-3">
                     Capacidade
                   </h3>
                   {capacity ? (
@@ -916,8 +910,8 @@ const EditTournament = () => {
 
                 {/* Limite */}
                 {tournament && (
-                  <div className="bg-white border border-gray-200 rounded-xl p-6">
-                    <h3 className="text-base font-bold text-gray-900 mb-2">
+                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+                    <h3 className="text-[13px] font-extrabold text-gray-900 tracking-tight mb-2">
                       Limite de Inscrições
                     </h3>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -940,9 +934,9 @@ const EditTournament = () => {
                   ["draft", "published"].includes(
                     tournament.status?.toLowerCase() ?? "",
                   ) && (
-                    <div className="bg-white border border-gray-200 rounded-xl p-6">
+                    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-base font-bold text-gray-900">
+                        <h3 className="text-[13px] font-extrabold text-gray-900 tracking-tight">
                           Liga
                         </h3>
                         {linkedLeague && (
@@ -962,7 +956,7 @@ const EditTournament = () => {
                           <button
                             onClick={handleUnlinkLeague}
                             disabled={leagueLinking}
-                            className="w-full px-3 py-2 border border-gray-300 text-gray-600 rounded-lg text-xs font-semibold hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                            className="w-full px-3 py-2 border border-gray-200 text-gray-600 rounded-xl text-xs font-bold hover:bg-gray-50 disabled:opacity-50 transition-colors"
                           >
                             {leagueLinking
                               ? "Removendo..."
@@ -994,7 +988,7 @@ const EditTournament = () => {
                                 handleLinkLeague(e.target.value);
                             }}
                             disabled={leagueLinking}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-200 disabled:opacity-50 transition-colors"
+                            className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 disabled:opacity-50 transition-all"
                           >
                             <option value="">Selecionar liga...</option>
                             {myLeagues.map((l) => (
@@ -1014,11 +1008,11 @@ const EditTournament = () => {
                     tournament.status?.toLowerCase() ?? "",
                   ) &&
                   linkedLeague && (
-                    <div className="bg-white border border-gray-200 rounded-xl p-6">
-                      <h3 className="text-base font-bold text-gray-900 mb-3">
+                    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+                      <h3 className="text-[13px] font-extrabold text-gray-900 tracking-tight mb-3">
                         Liga
                       </h3>
-                      <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-xl">
                         <span className="text-lg">🏆</span>
                         <span className="text-sm font-semibold text-blue-800 flex-1 truncate">
                           {linkedLeague.name}
@@ -1294,7 +1288,7 @@ const EditTournament = () => {
                 </div>
                 <button
                   onClick={() => setIsAddCategoryModalOpen(true)}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 shadow-sm hover:shadow transition-all"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm"
                 >
                   <svg
                     className="w-4 h-4"
@@ -1503,7 +1497,7 @@ const EditTournament = () => {
 
       {/* Modal Adicionar Categoria */}
       {isAddCategoryModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 flex items-center justify-center z-[200] p-4">
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => {
@@ -1511,9 +1505,9 @@ const EditTournament = () => {
               setNewCategoryName("");
             }}
           />
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 relative z-10">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 relative z-10">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-xl font-bold text-gray-900">
+              <h3 className="text-[17px] font-extrabold text-gray-900 tracking-tight">
                 Adicionar Categoria
               </h3>
               <button
@@ -1607,7 +1601,7 @@ const EditTournament = () => {
                   e.key === "Enter" && handleAddCategory(newCategoryName)
                 }
                 placeholder="Ex: Master 35+, Misto B..."
-                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 text-sm"
+                className="flex-1 px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
                 autoFocus
               />
               <button
