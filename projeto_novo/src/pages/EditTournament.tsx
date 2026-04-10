@@ -779,101 +779,6 @@ const EditTournament = () => {
 
               {/* COLUNA DIREITA — 1/3 */}
               <div className="space-y-6">
-                {/* Capacidade */}
-                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
-                  <h3 className="text-[13px] font-extrabold text-gray-900 tracking-tight mb-3">
-                    Capacidade
-                  </h3>
-                  {capacity ? (
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
-                          <div className="text-2xl font-black text-blue-700">
-                            {capacity.maxTeams}
-                          </div>
-                          <div className="text-xs text-blue-500 mt-0.5">
-                            Duplas máx.
-                          </div>
-                        </div>
-                        <div
-                          className={`border rounded-lg p-3 text-center ${confirmedCount > capacity.maxTeams ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-100"}`}
-                        >
-                          <div
-                            className={`text-2xl font-black ${confirmedCount > capacity.maxTeams ? "text-red-600" : "text-gray-700"}`}
-                          >
-                            {confirmedCount}
-                          </div>
-                          <div className="text-xs text-gray-400 mt-0.5">
-                            Confirmadas
-                          </div>
-                        </div>
-                        <div className="bg-gray-50 border border-gray-100 rounded-lg p-3 text-center">
-                          <div className="text-2xl font-black text-gray-700">
-                            {capacity.slotsAvailable}
-                          </div>
-                          <div className="text-xs text-gray-400 mt-0.5">
-                            Slots totais
-                          </div>
-                        </div>
-                        <div
-                          className={`border rounded-lg p-3 text-center ${capacity.maxTeams - confirmedCount < 0 ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-100"}`}
-                        >
-                          <div
-                            className={`text-2xl font-black ${capacity.maxTeams - confirmedCount < 0 ? "text-red-600" : "text-gray-700"}`}
-                          >
-                            {capacity.maxTeams - confirmedCount}
-                          </div>
-                          <div className="text-xs text-gray-400 mt-0.5">
-                            Vagas livres
-                          </div>
-                        </div>
-                      </div>
-                      <div className="w-full bg-gray-100 rounded-full h-1.5">
-                        <div
-                          className={`h-1.5 rounded-full ${confirmedCount > capacity.maxTeams ? "bg-red-500" : "bg-blue-500"}`}
-                          style={{
-                            width: `${Math.min((confirmedCount / capacity.maxTeams) * 100, 100)}%`,
-                          }}
-                        />
-                      </div>
-                      {confirmedCount > capacity.maxTeams && (
-                        <div className="p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
-                          ⚠️ {confirmedCount - capacity.maxTeams} dupla
-                          {confirmedCount - capacity.maxTeams !== 1
-                            ? "s"
-                            : ""}{" "}
-                          a mais que a estrutura comporta.
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-400">
-                      Sem dados suficientes.
-                    </p>
-                  )}
-                </div>
-
-                {/* Limite */}
-                {tournament && (
-                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
-                    <h3 className="text-[13px] font-extrabold text-gray-900 tracking-tight mb-2">
-                      Limite de Inscrições
-                    </h3>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xl font-black text-gray-900">
-                        {(tournament as any).maxTeams >= 999
-                          ? "Sem limite"
-                          : `${(tournament as any).maxTeams} duplas`}
-                      </span>
-                      {capacity && (tournament as any).maxTeams >= 999 && (
-                        <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full">
-                          Rec.: {capacity.maxTeams} duplas
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-
                 {/* Liga */}
                 {tournament &&
                   ["draft", "published"].includes(
@@ -968,6 +873,100 @@ const EditTournament = () => {
                       </p>
                     </div>
                   )}
+                {/* Capacidade */}
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+                  <h3 className="text-[13px] font-extrabold text-gray-900 tracking-tight mb-3">
+                    Capacidade
+                  </h3>
+                  {capacity ? (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
+                          <div className="text-2xl font-black text-blue-700">
+                            {capacity.maxTeams}
+                          </div>
+                          <div className="text-xs text-blue-500 mt-0.5">
+                            Duplas máx.
+                          </div>
+                        </div>
+                        <div
+                          className={`border rounded-lg p-3 text-center ${confirmedCount > capacity.maxTeams ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-100"}`}
+                        >
+                          <div
+                            className={`text-2xl font-black ${confirmedCount > capacity.maxTeams ? "text-red-600" : "text-gray-700"}`}
+                          >
+                            {confirmedCount}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-0.5">
+                            Confirmadas
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 border border-gray-100 rounded-lg p-3 text-center">
+                          <div className="text-2xl font-black text-gray-700">
+                            {capacity.slotsAvailable}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-0.5">
+                            Slots totais
+                          </div>
+                        </div>
+                        <div
+                          className={`border rounded-lg p-3 text-center ${capacity.maxTeams - confirmedCount < 0 ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-100"}`}
+                        >
+                          <div
+                            className={`text-2xl font-black ${capacity.maxTeams - confirmedCount < 0 ? "text-red-600" : "text-gray-700"}`}
+                          >
+                            {capacity.maxTeams - confirmedCount}
+                          </div>
+                          <div className="text-xs text-gray-400 mt-0.5">
+                            Vagas livres
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-1.5">
+                        <div
+                          className={`h-1.5 rounded-full ${confirmedCount > capacity.maxTeams ? "bg-red-500" : "bg-blue-500"}`}
+                          style={{
+                            width: `${Math.min((confirmedCount / capacity.maxTeams) * 100, 100)}%`,
+                          }}
+                        />
+                      </div>
+                      {confirmedCount > capacity.maxTeams && (
+                        <div className="p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
+                          ⚠️ {confirmedCount - capacity.maxTeams} dupla
+                          {confirmedCount - capacity.maxTeams !== 1
+                            ? "s"
+                            : ""}{" "}
+                          a mais que a estrutura comporta.
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400">
+                      Sem dados suficientes.
+                    </p>
+                  )}
+                </div>
+
+                {/* Limite */}
+                {tournament && (
+                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+                    <h3 className="text-[13px] font-extrabold text-gray-900 tracking-tight mb-2">
+                      Limite de Inscrições
+                    </h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xl font-black text-gray-900">
+                        {(tournament as any).maxTeams >= 999
+                          ? "Sem limite"
+                          : `${(tournament as any).maxTeams} duplas`}
+                      </span>
+                      {capacity && (tournament as any).maxTeams >= 999 && (
+                        <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full">
+                          Rec.: {capacity.maxTeams} duplas
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

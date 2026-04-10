@@ -81,7 +81,7 @@ const StatusBadge = ({ tournament }: { tournament: Tournament }) => {
   const style = getStatusDisplay(tournament);
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${style.bg} ${style.text}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold ${style.bg} ${style.text}`}
     >
       <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
       {style.label}
@@ -100,16 +100,16 @@ const TournamentCard = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6 hover:border-gray-300 hover:shadow-sm transition-all">
+    <div className="bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-md transition-all group">
       <div className="flex items-start justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-900 flex-1 pr-3">
+        <h3 className="text-[15px] font-extrabold text-gray-900 tracking-tight flex-1 pr-3 group-hover:text-blue-600 transition-colors">
           {tournament.name}
         </h3>
         <StatusBadge tournament={tournament} />
       </div>
 
       <div className="space-y-2.5 mb-4">
-        <div className="flex items-center gap-2.5 text-sm text-gray-600">
+        <div className="flex items-center gap-2.5 text-[13px] text-gray-500">
           <svg
             className="w-4 h-4 text-blue-600 flex-shrink-0"
             fill="none"
@@ -129,7 +129,7 @@ const TournamentCard = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-2.5 text-sm text-gray-600">
+        <div className="flex items-center gap-2.5 text-[13px] text-gray-500">
           <svg
             className="w-4 h-4 text-blue-600 flex-shrink-0"
             fill="none"
@@ -146,7 +146,7 @@ const TournamentCard = ({
           <span>{tournament.totalTeams} duplas</span>
         </div>
 
-        <div className="flex items-center gap-2.5 text-sm text-gray-600">
+        <div className="flex items-center gap-2.5 text-[13px] text-gray-500">
           <svg
             className="w-4 h-4 text-blue-600 flex-shrink-0"
             fill="none"
@@ -163,7 +163,7 @@ const TournamentCard = ({
           <span>R$ {tournament.priceFirstCategory.toFixed(2)}</span>
         </div>
 
-        <div className="flex items-center gap-2.5 text-sm text-gray-600">
+        <div className="flex items-center gap-2.5 text-[13px] text-gray-500">
           <svg
             className="w-4 h-4 text-blue-600 flex-shrink-0"
             fill="none"
@@ -187,18 +187,20 @@ const TournamentCard = ({
       </div>
 
       <div className="mb-4">
-        <p className="text-xs font-medium text-gray-500 mb-2">Categorias:</p>
+        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">
+          Categorias
+        </p>
         <div className="flex flex-wrap gap-2">
           {tournament.categories.slice(0, 3).map((cat, idx) => (
             <span
               key={idx}
-              className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700"
+              className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700"
             >
               {cat}
             </span>
           ))}
           {tournament.categories.length > 3 && (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-gray-100 text-gray-500">
               +{tournament.categories.length - 3}
             </span>
           )}
@@ -208,7 +210,7 @@ const TournamentCard = ({
       <div className="flex items-center gap-2 pt-3 border-t border-gray-200">
         <Link
           to={`/dashboard/tournaments/${tournament.id}/edit`}
-          className="flex items-center justify-center gap-2 flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-all"
+          className="flex items-center justify-center gap-2 flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[13px] font-bold transition-colors"
         >
           <svg
             className="w-4 h-4"
@@ -259,7 +261,7 @@ const TournamentCard = ({
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold text-sm hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-50 transition-colors"
               >
                 Cancelar
               </button>
@@ -268,7 +270,7 @@ const TournamentCard = ({
                   onDelete(tournament.id);
                   setShowDeleteConfirm(false);
                 }}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold text-sm hover:bg-red-700"
+                className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 transition-colors"
               >
                 Excluir
               </button>
@@ -311,26 +313,45 @@ const MyTournaments = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando torneios...</p>
-        </div>
+      <div className="min-h-screen bg-[#f8f9fc]">
+        <DashboardHeader activePage="tournaments" />
+        <main className="pt-20 pb-12">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="h-8 bg-gray-200 rounded-xl w-40 mb-6 animate-pulse" />
+            <div className="h-11 bg-gray-200 rounded-xl mb-6 animate-pulse" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className="bg-white border border-gray-200 rounded-2xl p-5 animate-pulse"
+                >
+                  <div className="h-5 bg-gray-200 rounded-lg w-3/4 mb-4" />
+                  <div className="space-y-2.5 mb-4">
+                    <div className="h-4 bg-gray-100 rounded-lg w-1/2" />
+                    <div className="h-4 bg-gray-100 rounded-lg w-1/3" />
+                    <div className="h-4 bg-gray-100 rounded-lg w-2/5" />
+                  </div>
+                  <div className="h-9 bg-gray-200 rounded-xl mt-4" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f8f9fc]">
       <DashboardHeader activePage="tournaments" />
       <main className="pt-20 pb-12">
-        <div className="max-w-[1400px] mx-auto px-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-[22px] font-extrabold text-gray-900 tracking-tight">
                 Meus Torneios
               </h1>
-              <p className="text-gray-600 mt-1">
+              <p className="text-sm text-gray-500 font-normal mt-0.5">
                 Gerencie todos os seus torneios
               </p>
             </div>
@@ -355,33 +376,34 @@ const MyTournaments = () => {
             </Link>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
-            <div className="relative">
-              <svg
-                className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <input
-                type="text"
-                placeholder="Buscar por nome do torneio..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+          <div className="relative mb-6">
+            <svg
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
-            </div>
+            </svg>
+            <input
+              type="text"
+              placeholder="Buscar por nome do torneio..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-2.5 bg-white border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 placeholder:text-gray-400 placeholder:font-normal outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all shadow-sm"
+            />
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl mb-6 overflow-x-auto">
-            <div className="flex border-b border-gray-200 min-w-max">
+          <div
+            className="flex border-b border-gray-200 mb-6 overflow-x-auto"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            <div className="flex">
               {[
                 { key: "todos", label: "Todos", count: counts.todos },
                 { key: "rascunho", label: "Rascunho", count: counts.rascunho },
@@ -404,7 +426,7 @@ const MyTournaments = () => {
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key as any)}
-                  className={`px-6 py-4 text-sm font-semibold transition-colors relative ${activeTab === tab.key ? "text-blue-600" : "text-gray-600 hover:text-gray-900"}`}
+                  className={`px-4 py-3 text-[13px] font-bold transition-all relative border-b-2 -mb-px whitespace-nowrap ${activeTab === tab.key ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}
                 >
                   {tab.label} ({tab.count})
                   {activeTab === tab.key && (
@@ -426,7 +448,7 @@ const MyTournaments = () => {
               ))}
             </div>
           ) : (
-            <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+            <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center shadow-sm">
               <div className="w-16 h-16 bg-gray-50 border border-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg
                   className="w-8 h-8 text-gray-400"
@@ -442,7 +464,7 @@ const MyTournaments = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">
+              <h3 className="text-[15px] font-extrabold text-gray-900 mb-1">
                 Nenhum torneio encontrado
               </h3>
               <p className="text-gray-600 mb-6">
