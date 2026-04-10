@@ -633,7 +633,10 @@ const EditTournament = () => {
           </div>
 
           {/* TABS */}
-          <div className="flex border-b border-gray-200 mb-6 overflow-x-auto scrollbar-none">
+          <div
+            className="flex border-b border-gray-200 mb-6 overflow-x-auto"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
             <div className="flex">
               {tabs.map((tab) => (
                 <button
@@ -776,64 +779,6 @@ const EditTournament = () => {
 
               {/* COLUNA DIREITA — 1/3 */}
               <div className="space-y-6">
-                {/* Estrutura */}
-                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
-                  <h3 className="text-[13px] font-extrabold text-gray-900 tracking-tight mb-3">
-                    Estrutura
-                  </h3>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
-                        Quadras
-                      </p>
-                      <p className="font-semibold text-gray-900 text-sm">
-                        {((tournament as any).courts ?? []).length > 0
-                          ? `${((tournament as any).courts ?? []).length} quadra${((tournament as any).courts ?? []).length !== 1 ? "s" : ""}`
-                          : "—"}
-                      </p>
-                      {((tournament as any).courts ?? []).length > 0 && (
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {((tournament as any).courts ?? []).join(", ")}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
-                        Duração por Jogo
-                      </p>
-                      <p className="font-semibold text-gray-900 text-sm">
-                        {(tournament as any).matchDuration ?? 60} min
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">
-                        Horários
-                      </p>
-                      {((tournament as any).daySchedules ?? []).length > 0 ? (
-                        <div className="space-y-1">
-                          {((tournament as any).daySchedules ?? []).map(
-                            (s: any, i: number) => (
-                              <div key={i} className="text-xs text-gray-600">
-                                <span className="text-gray-400">
-                                  {new Date(
-                                    s.date.slice(0, 10) + "T12:00:00",
-                                  ).toLocaleDateString("pt-BR")}
-                                </span>{" "}
-                                {s.startTime}–{s.endTime}
-                              </div>
-                            ),
-                          )}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-gray-400">—</p>
-                      )}
-                    </div>
-                  </div>
-                  <p className="text-xs text-blue-500 mt-4">
-                    Para alterar, recrie o torneio.
-                  </p>
-                </div>
-
                 {/* Capacidade */}
                 <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
                   <h3 className="text-[13px] font-extrabold text-gray-900 tracking-tight mb-3">
