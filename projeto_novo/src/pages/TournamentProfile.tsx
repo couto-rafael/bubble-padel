@@ -680,7 +680,7 @@ const TournamentProfile = () => {
                   className={`px-4 py-4 border-b-2 transition-colors whitespace-nowrap ${
                     activeTab === tab.id
                       ? "border-[#00ff88] text-[#00ff88]"
-                      : "border-transparent text-gray-400 hover:text-white"
+                      : "border-transparent text-gray-300 hover:text-white"
                   } font-medium text-sm`}
                 >
                   {tab.label}
@@ -723,7 +723,7 @@ const TournamentProfile = () => {
                   className={`px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
                     activeSubTab === subTab.id
                       ? "text-[#00ff88] bg-[#00ff88]/10"
-                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                      : "text-gray-300 hover:text-white hover:bg-white/5"
                   } rounded-t-lg`}
                 >
                   {subTab.label}
@@ -1296,13 +1296,13 @@ const TournamentProfile = () => {
                       placeholder="Buscar atleta..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88] text-sm"
+                      className="pl-9 pr-4 py-2 bg-[#0a0e1a] border border-white/20 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-[#00ff88] text-sm"
                     />
                   </div>
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88] text-sm"
+                    className="px-4 py-2 bg-[#0a0e1a] border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#00ff88] text-sm"
                   >
                     <option value="Todas">Todas as Categorias</option>
                     {tournament.categories.map((cat: string) => (
@@ -1416,7 +1416,7 @@ const TournamentProfile = () => {
                     placeholder="Buscar por nome do atleta..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88] transition-colors"
+                    className="w-full pl-10 pr-4 py-2.5 bg-[#0a0e1a] border border-white/20 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-[#00ff88] transition-colors"
                   />
                 </div>
 
@@ -1424,7 +1424,7 @@ const TournamentProfile = () => {
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88] appearance-none cursor-pointer"
+                  className="px-4 py-2.5 bg-[#0a0e1a] border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#00ff88] appearance-none cursor-pointer"
                   style={{
                     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
                     backgroundRepeat: "no-repeat",
@@ -1672,7 +1672,7 @@ const TournamentProfile = () => {
                       placeholder="Buscar atleta..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88] transition-colors"
+                      className="w-full pl-10 pr-4 py-2.5 bg-[#0a0e1a] border border-white/20 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-[#00ff88] transition-colors"
                     />
                   </div>
 
@@ -1680,7 +1680,7 @@ const TournamentProfile = () => {
                   <select
                     value={selectedCourt}
                     onChange={(e) => setSelectedCourt(e.target.value)}
-                    className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88] appearance-none cursor-pointer"
+                    className="px-4 py-2.5 bg-[#0a0e1a] border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#00ff88] appearance-none cursor-pointer"
                     style={{
                       backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
                       backgroundRepeat: "no-repeat",
@@ -1700,7 +1700,7 @@ const TournamentProfile = () => {
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88] appearance-none cursor-pointer"
+                    className="px-4 py-2.5 bg-[#0a0e1a] border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#00ff88] appearance-none cursor-pointer"
                     style={{
                       backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
                       backgroundRepeat: "no-repeat",
@@ -1721,7 +1721,7 @@ const TournamentProfile = () => {
                   <select
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88]"
+                    className="px-4 py-2.5 bg-[#0a0e1a] border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#00ff88]"
                   >
                     <option value="">Todas as datas</option>
                     {((tournament.daySchedules as any[]) ?? []).map(
