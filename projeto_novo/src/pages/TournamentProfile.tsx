@@ -1269,15 +1269,13 @@ const TournamentProfile = () => {
           {/* PARTICIPANTS TAB */}
           {activeTab === "participants" && (
             <div>
-              <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-bold mb-2">Duplas Inscritas</h2>
-                  <p className="text-gray-400">
-                    Total de {confirmedTeams.length} duplas confirmadas
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <div className="relative">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold mb-1">Duplas Inscritas</h2>
+                <p className="text-gray-400 mb-4">
+                  Total de {confirmedTeams.length} duplas confirmadas
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="relative flex-1">
                     <svg
                       className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
                       fill="none"
@@ -1296,13 +1294,13 @@ const TournamentProfile = () => {
                       placeholder="Buscar atleta..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9 pr-4 py-2 bg-[#0a0e1a] border border-white/20 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-[#00ff88] text-sm"
+                      className="w-full pl-9 pr-4 py-2.5 bg-[#0a0e1a] border border-white/20 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-[#00ff88] text-sm"
                     />
                   </div>
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="px-4 py-2 bg-[#0a0e1a] border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#00ff88] text-sm"
+                    className="w-full sm:w-48 px-4 py-2.5 bg-[#0a0e1a] border border-white/20 rounded-lg text-white focus:outline-none focus:border-[#00ff88] text-sm"
                   >
                     <option value="Todas">Todas as Categorias</option>
                     {tournament.categories.map((cat: string) => (
