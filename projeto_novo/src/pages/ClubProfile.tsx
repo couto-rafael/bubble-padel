@@ -84,15 +84,29 @@ export default function ClubProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center">
-        <div className="w-10 h-10 border-2 border-[#00ff88] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#0a0e1a]">
+        <header className="border-b border-white/[0.07] bg-[#0a0e1a]/95 sticky top-0 z-50 h-16" />
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-16 space-y-8 animate-pulse">
+          <div className="flex items-center gap-8">
+            <div className="w-24 h-24 rounded-2xl bg-white/5 flex-shrink-0" />
+            <div className="flex-1 space-y-3">
+              <div className="h-8 bg-white/5 rounded-xl w-64" />
+              <div className="h-4 bg-white/5 rounded-lg w-40" />
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-white/5 rounded-xl p-6 h-52" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   if (notFound || !club) {
     return (
-      <div className="min-h-screen bg-[#0a0e27] flex flex-col items-center justify-center text-white">
+      <div className="min-h-screen bg-[#0a0e1a] flex flex-col items-center justify-center text-white">
         <h2 className="text-2xl font-bold mb-2">Clube não encontrado</h2>
         <Link to="/tournaments" className="text-[#00ff88] hover:underline">
           Ver torneios
@@ -121,9 +135,9 @@ export default function ClubProfile() {
   });
 
   return (
-    <div className="min-h-screen bg-[#0a0e27] text-white">
+    <div className="min-h-screen bg-[#0a0e1a] text-white">
       {/* Header */}
-      <header className="border-b border-white/5 bg-[#050817]/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-white/[0.07] bg-[#0a0e1a]/95 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link to="/tournaments" className="flex items-center gap-2.5">
             <div className="w-8 h-8 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center">
@@ -166,7 +180,7 @@ export default function ClubProfile() {
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#0f1540] to-[#0a0e27] pt-16 pb-12 px-6 lg:px-8">
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#0d1230] to-[#0a0e1a] pt-16 pb-12 px-6 lg:px-8">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(0,255,136,0.06),transparent_60%)]" />
         <div className="max-w-7xl mx-auto relative">
           <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
@@ -197,10 +211,10 @@ export default function ClubProfile() {
 
             {/* Info */}
             <div className="flex-1">
-              <h1 className="text-4xl md:text-5xl font-black mb-3">
+              <h1 className="text-[36px] md:text-[48px] font-black mb-3 tracking-tight leading-tight">
                 {club.name}
               </h1>
-              <div className="flex flex-wrap items-center gap-4 text-gray-400 text-sm">
+              <div className="flex flex-wrap items-center gap-4 text-gray-400 text-[13px]">
                 <span className="flex items-center gap-1.5">
                   <svg
                     className="w-4 h-4"
@@ -268,19 +282,19 @@ export default function ClubProfile() {
             {/* Stats */}
             <div className="flex gap-6">
               <div className="text-center">
-                <div className="text-3xl font-black text-[#00ff88]">
+                <div className="text-[32px] font-black text-[#00ff88] leading-none">
                   {totalTournaments}
                 </div>
                 <div className="text-xs text-gray-400 mt-1">Torneios</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-black text-[#00ccff]">
+                <div className="text-[32px] font-black text-[#00ccff] leading-none">
                   {activeTournaments}
                 </div>
                 <div className="text-xs text-gray-400 mt-1">Ativos</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-black text-gray-300">
+                <div className="text-[32px] font-black text-gray-300 leading-none">
                   {completedTournaments}
                 </div>
                 <div className="text-xs text-gray-400 mt-1">Concluídos</div>
@@ -294,7 +308,9 @@ export default function ClubProfile() {
       <section className="py-12 px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-            <h2 className="text-2xl font-bold">Torneios do Clube</h2>
+            <h2 className="text-[20px] font-extrabold tracking-tight">
+              Torneios do Clube
+            </h2>
             <div className="flex gap-2 flex-wrap">
               {(["all", "open", "ongoing", "completed"] as const).map((f) => (
                 <button
@@ -319,7 +335,7 @@ export default function ClubProfile() {
           </div>
 
           {filteredTournaments.length === 0 ? (
-            <div className="text-center py-20 text-gray-400">
+            <div className="flex flex-col items-center py-20 text-gray-500">
               <svg
                 className="w-16 h-16 mx-auto mb-4 opacity-20"
                 fill="none"
@@ -347,20 +363,20 @@ export default function ClubProfile() {
                   <Link
                     key={tournament.id}
                     to={`/tournaments/${tournament.id}`}
-                    className="group bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10 hover:border-[#00ff88]/30 transition-all hover:scale-[1.02] block"
+                    className="group bg-white/[0.04] p-5 rounded-2xl border border-white/[0.08] hover:border-[#00ff88]/30 hover:bg-white/[0.06] transition-all block"
                   >
                     <div className="flex gap-2 flex-wrap mb-4">
                       <span
-                        className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${statusClass}`}
+                        className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${statusClass}`}
                       >
                         {statusLabel}
                       </span>
-                      <span className="px-2.5 py-1 rounded-full text-xs font-semibold border bg-[#00ccff]/10 text-[#00ccff] border-[#00ccff]/20">
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-bold border bg-[#00ccff]/10 text-[#00ccff] border-[#00ccff]/20">
                         {normalizeSport(tournament.sport)}
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-bold mb-3 group-hover:text-[#00ff88] transition-colors">
+                    <h3 className="text-[15px] font-extrabold mb-3 tracking-tight group-hover:text-[#00ff88] transition-colors">
                       {tournament.name}
                     </h3>
 
@@ -405,13 +421,13 @@ export default function ClubProfile() {
                           {tournament.categories.slice(0, 3).map((cat) => (
                             <span
                               key={cat}
-                              className="px-2 py-0.5 bg-white/5 rounded text-xs text-gray-400"
+                              className="px-2 py-0.5 bg-white/[0.06] rounded-full text-[11px] text-gray-400"
                             >
                               {cat}
                             </span>
                           ))}
                           {tournament.categories.length > 3 && (
-                            <span className="px-2 py-0.5 bg-white/5 rounded text-xs text-gray-400">
+                            <span className="px-2 py-0.5 bg-white/[0.06] rounded-full text-[11px] text-gray-400">
                               +{tournament.categories.length - 3}
                             </span>
                           )}
@@ -420,11 +436,11 @@ export default function ClubProfile() {
                     </div>
 
                     {isOpen ? (
-                      <div className="w-full py-2.5 bg-gradient-to-r from-[#00ff88] to-[#00dd77] text-[#0a0e27] rounded-lg font-bold text-sm text-center">
+                      <div className="w-full py-2.5 bg-[#00ff88] text-[#0a0e1a] rounded-xl font-extrabold text-[13px] text-center hover:bg-[#00ff99] transition-colors">
                         Inscrever-se
                       </div>
                     ) : (
-                      <div className="w-full py-2.5 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold text-sm text-center">
+                      <div className="w-full py-2.5 bg-white/5 border border-white/10 text-gray-400 rounded-xl font-bold text-[13px] text-center">
                         {statusLabel === "Em Breve"
                           ? "Inscrições Em Breve"
                           : statusLabel === "Em Andamento"
