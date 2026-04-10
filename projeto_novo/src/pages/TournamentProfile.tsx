@@ -478,15 +478,15 @@ const TournamentProfile = () => {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-8">
             <div className="lg:col-span-3">
               <div className="flex flex-wrap items-center gap-2 mb-3">
-                <span className="px-3 py-1 bg-[#00ff88]/20 text-[#00ff88] rounded-full text-sm font-semibold border border-[#00ff88]/30">
+                <span className="px-3 py-1.5 bg-[#00ff88]/20 text-[#00ff88] rounded-full text-[12px] font-extrabold border border-[#00ff88]/30 tracking-wide">
                   {statusLabel}
                 </span>
-                <span className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm font-semibold border border-blue-500/30">
+                <span className="px-3 py-1.5 bg-blue-500/20 text-blue-300 rounded-full text-[12px] font-extrabold border border-blue-500/30 tracking-wide">
                   {sportLabel}
                 </span>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-4">
+              <h1 className="text-[26px] sm:text-[32px] md:text-[40px] lg:text-[48px] font-black mb-4 leading-tight tracking-tight">
                 {tournamentName}
               </h1>
 
@@ -735,7 +735,7 @@ const TournamentProfile = () => {
       )}
 
       {/* Content */}
-      <section className="py-8 md:py-12 px-4 md:px-6 lg:px-8">
+      <section className="py-8 md:py-12 px-4 md:px-6 lg:px-8 pb-24 md:pb-12">
         <div className="max-w-7xl mx-auto">
           {/* INFO TAB */}
           {activeTab === "info" && (
@@ -2365,10 +2365,10 @@ const TournamentProfile = () => {
       )}
 
       {showRegisterForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-          <div className="bg-[#1a1f4a] border border-white/10 rounded-2xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 px-4">
+          <div className="bg-[#0d1236] border border-white/[0.12] rounded-2xl p-6 w-full max-w-md shadow-2xl">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-white">
+              <h3 className="text-[17px] font-extrabold text-white tracking-tight">
                 Inscrição no Torneio
               </h3>
               <button
@@ -2381,7 +2381,7 @@ const TournamentProfile = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs text-gray-400 mb-1">
+                <label className="block text-[12px] font-semibold text-gray-400 mb-1.5">
                   Categoria
                 </label>
                 <select
@@ -2428,7 +2428,7 @@ const TournamentProfile = () => {
                           player1Name: e.target.value,
                         }))
                       }
-                      className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#00ff88] mb-2"
+                      className="w-full px-3.5 py-2.5 bg-[#0a0e1a] border border-white/[0.12] rounded-xl text-white text-sm outline-none focus:border-[#00ff88] focus:ring-[3px] focus:ring-[#00ff88]/10 transition-all placeholder:text-gray-600 mb-2"
                     />
                     <input
                       placeholder="Email"
@@ -2440,7 +2440,7 @@ const TournamentProfile = () => {
                           player1Email: e.target.value,
                         }))
                       }
-                      className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#00ff88]"
+                      className="w-full px-3.5 py-2.5 bg-[#0a0e1a] border border-white/[0.12] rounded-xl text-white text-sm outline-none focus:border-[#00ff88] focus:ring-[3px] focus:ring-[#00ff88]/10 transition-all placeholder:text-gray-600"
                     />
                   </>
                 )}
@@ -2460,7 +2460,7 @@ const TournamentProfile = () => {
                       player2Name: e.target.value,
                     }))
                   }
-                  className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#00ff88] mb-2"
+                  className="w-full px-3.5 py-2.5 bg-[#0a0e1a] border border-white/[0.12] rounded-xl text-white text-sm outline-none focus:border-[#00ff88] focus:ring-[3px] focus:ring-[#00ff88]/10 transition-all placeholder:text-gray-600 mb-2"
                 />
                 <input
                   placeholder="Email"
@@ -2472,7 +2472,7 @@ const TournamentProfile = () => {
                       player2Email: e.target.value,
                     }))
                   }
-                  className="w-full px-3 py-2 bg-[#0a0e27] border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#00ff88]"
+                  className="w-full px-3.5 py-2.5 bg-[#0a0e1a] border border-white/[0.12] rounded-xl text-white text-sm outline-none focus:border-[#00ff88] focus:ring-[3px] focus:ring-[#00ff88]/10 transition-all placeholder:text-gray-600"
                 />
               </div>
 
@@ -2524,7 +2524,7 @@ const TournamentProfile = () => {
                 <button
                   onClick={handleRegister}
                   disabled={registerLoading}
-                  className="flex-1 py-2.5 bg-[#00ff88] text-[#0a0e27] rounded-lg font-bold text-sm hover:bg-[#00dd77] transition-all disabled:opacity-50"
+                  className="flex-1 py-2.5 bg-[#00ff88] text-[#0a0e1a] rounded-xl font-extrabold text-sm hover:bg-[#00ff99] hover:shadow-[0_0_16px_rgba(0,255,136,0.3)] transition-all disabled:opacity-40 active:scale-[0.98]"
                 >
                   {registerLoading ? "A enviar..." : "Confirmar Inscrição"}
                 </button>
@@ -2534,8 +2534,37 @@ const TournamentProfile = () => {
         </div>
       )}
 
+      {/* ── CTA Mobile Fixo ─────────────────────────────────────────────── */}
+      {isOpen && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-[#0a0e1a]/95 backdrop-blur-xl border-t border-white/10 px-4 py-3">
+          {registerSuccess ? (
+            <div className="w-full py-3 bg-green-600/20 border border-green-500/30 text-green-300 rounded-xl font-bold text-sm text-center">
+              ✓ Inscrição realizada! Aguarde confirmação.
+            </div>
+          ) : isClub ? (
+            <div className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-xl font-bold text-sm text-center">
+              Inscrição exclusiva para atletas
+            </div>
+          ) : !currentUser ? (
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="w-full py-3.5 bg-[#00ff88] text-[#0a0e1a] rounded-xl font-extrabold text-[15px] hover:bg-[#00ff99] transition-all active:scale-[0.98] shadow-[0_0_20px_rgba(0,255,136,0.25)]"
+            >
+              {`Inscrever-se — ${tournament.priceFirstCategory > 0 ? "R$ " + tournament.priceFirstCategory.toFixed(2).replace(".", ",") : "Grátis"}`}
+            </button>
+          ) : isAthlete ? (
+            <button
+              onClick={handleOpenRegister}
+              className="w-full py-3.5 bg-[#00ff88] text-[#0a0e1a] rounded-xl font-extrabold text-[15px] hover:bg-[#00ff99] transition-all active:scale-[0.98] shadow-[0_0_20px_rgba(0,255,136,0.25)]"
+            >
+              {`Inscrever-se — ${tournament.priceFirstCategory > 0 ? "R$ " + tournament.priceFirstCategory.toFixed(2).replace(".", ",") : "Grátis"}`}
+            </button>
+          ) : null}
+        </div>
+      )}
+
       {/* Footer */}
-      <footer className="bg-[#0a0e27] border-t border-white/5 py-8 md:py-12 px-4 md:px-6 lg:px-8 mt-12 md:mt-20">
+      <footer className="bg-[#0a0e27] border-t border-white/5 py-8 md:py-12 px-4 md:px-6 lg:px-8 mt-12 md:mt-20 pb-20 md:pb-12">
         <div className="max-w-7xl mx-auto text-center text-gray-400">
           <p>&copy; 2026 Bubble. Todos os direitos reservados.</p>
         </div>
