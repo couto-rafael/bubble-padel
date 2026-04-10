@@ -621,10 +621,10 @@
         <span class="badge">10 Especialistas</span>
         <span class="badge">72+ Recomendações</span>
         <span class="badge">12 Debates</span>
-        <span class="badge amber">Score Atual 7.2/10</span>
-        <span class="badge green">Meta Launch 7.5/10</span>
+        <span class="badge green">Score Atual 8.5/10</span>
+        <span class="badge amber">Meta Beta Público 9.0/10</span>
       </div>
-      <p class="date">Atualizado: Abril 2026 — Sprint 5 concluída</p>
+      <p class="date">Atualizado: Abril 2026 — Sprint 7 concluída ✅</p>
     </header>
 
     <!-- ============================================================ -->
@@ -650,12 +650,10 @@
           <div class="name">Product / UX Specialist</div>
           <div class="role">Tournament Flow & Athlete Experience</div>
           <div class="score" style="color: var(--green)">
-            7.0<span style="font-size: 14px; color: var(--muted)">/10</span>
+            8.5<span style="font-size: 14px; color: var(--muted)">/10</span>
           </div>
           <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
-            Fluxo de torneio completo e funcional (ciclo de vida, grupos,
-            playoffs, resultados). Falta experiência do atleta pós-inscrição:
-            notificações, área pessoal, histórico.
+            DS v2 aplicado em 7 páginas. Perfil Strava do atleta (apelido, esportes, raquetes, social). CTA mobile fixo. BottomNav dinâmico. Falta feed social e perfil público por URL.
           </p>
         </div>
 
@@ -663,11 +661,10 @@
           <div class="name">Fullstack Tech Lead</div>
           <div class="role">React + TypeScript + Node.js</div>
           <div class="score" style="color: var(--blue)">
-            7.2<span style="font-size: 14px; color: var(--muted)">/10</span>
+            8.5<span style="font-size: 14px; color: var(--muted)">/10</span>
           </div>
           <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
-            Arquitetura de hooks sólida (useGroups, useTeams, useSchedule,
-            usePlayoffs). Padrão enum maiúsculo/minúsculo resolvido. Falta error
+            Schema migrado para Neon. rackets[], sports[], nickname, instagramUrl, twitterUrl adicionados. Imports relativos, db push, zero migrate dev. Bug crítico pendente: logout em /tournaments.
             handling consistente no frontend e testes unitários.
           </p>
         </div>
@@ -750,7 +747,7 @@
           <div class="name">GTM / Launch</div>
           <div class="role">Go-to-Market Strategy</div>
           <div class="score" style="color: var(--blue)">
-            7.2<span style="font-size: 14px; color: var(--muted)">/10</span>
+            8.5<span style="font-size: 14px; color: var(--muted)">/10</span>
           </div>
           <p style="font-size: 13px; color: var(--muted); margin-top: 8px">
             ✅ <strong>Sprint 2:</strong> Modelo de monetização definido (PIX
@@ -2586,11 +2583,11 @@
         <p style="font-size: 14px; color: var(--muted); margin-bottom: 16px">
           Score de Prontidão para Lançamento Comercial
         </p>
-        <span class="big" style="color: var(--amber)">7.2</span>
+        <span class="big" style="color: var(--green)">8.5</span>
         <span class="arrow">→</span>
-        <span class="big" style="color: var(--green)">7.5</span>
+        <span class="big" style="color: var(--blue)">9.0</span>
         <p style="font-size: 14px; color: var(--muted); margin-top: 16px">
-          Sprints 1–5 concluídas. Meta de lançamento: Sprint 6 + UI pass.
+          Sprints 1–7 concluídas. Meta de beta público: Sprint 8 (bugs + feed social + mobile).
         </p>
         <p
           style="
@@ -2602,36 +2599,29 @@
             margin-right: auto;
           "
         >
-          Score 7.2 reflete core de produto sólido (grupos, schedule, playoffs, pagamentos, emails, gamificação, ligas).
-          Gap para 7.5: UI/UX pass (Sprint 6–7), ranking por categoria corrigido, página pública da liga.
-          Funcionalidades core estão acima da média para um sistema em pré-lançamento.
+          Score 8.5 reflete produto sólido com DS v2 aplicado (7 páginas redesenhadas), perfil Strava do atleta, ligas maduras e CTA mobile. Gap para 9.0: correção do bug de logout em /tournaments (P0), feed social/amigos (Sprint 8), perfil público por URL, testes em dispositivos reais.
         </p>
       </div>
 
       <h3 style="font-size: 1.1rem; margin: 24px 0 16px">
-        Próximos 30 Dias — Lista Prioritária
+        Sprint 8 — Próximas Prioridades
       </h3>
       <div class="card" style="margin-bottom: 24px">
         <ol style="padding-left: 20px; font-size: 14px">
           <li style="padding: 6px 0">
-            <strong>Semana 1:</strong> Termos de uso + LGPD + email de
-            confirmação de inscrição
+            <strong>P0 — Bug crítico:</strong> Logout automático ao ir para /tournaments como atleta. Investigar AuthService.getCurrentUser() + proteção de rota.
           </li>
           <li style="padding: 6px 0">
-            <strong>Semana 2:</strong> Share nativo + rate limiting + ONGOING
-            automático por data + checklist de onboarding
+            <strong>P0 — Bug BottomNav:</strong> BottomNav do atleta some no TournamentProfile (página pública sem AthleteHeader).
           </li>
           <li style="padding: 6px 0">
-            <strong>Semana 3-4:</strong> Alpha com 1-2 clubes reais. Bug fixing.
-            Mobile validation
+            <strong>P1 — 7.S1:</strong> Endpoint /athlete/stats detalhado — vitórias, % win rate, melhores parceiros. Exibir no AthleteProfile (placeholder já existe).
           </li>
           <li style="padding: 6px 0">
-            <strong>Semana 5-6:</strong> Gateway PIX integrado. Beta com 5-10
-            clubes. Modelo de comissão ativo
+            <strong>P1 — Strava Fase 2:</strong> Upload de patrocinadores (S3), feed social (AthleteFriendship + AthletePost), perfil público /athletes/:id, botão compartilhar.
           </li>
           <li style="padding: 6px 0">
-            <strong>Q2 2026:</strong> Lançamento público com landing page, área
-            do atleta e ranking
+            <strong>P2 — LeagueProfile melhorias:</strong> Contador atletas únicos, aba Feed/Fotos (empty state), link na Home nav.
           </li>
         </ol>
       </div>
@@ -2656,9 +2646,7 @@
 
     <footer class="footer">
       <p>
-        BubblePadel — Auditoria Completa + Plano de Lançamento · Março 2026 · 10
-        Especialistas · 72+ Recomendações · Projeções são estimativas baseadas
-        em benchmarks do mercado de sports tech B2B no Brasil.
+        BubblePadel — Briefing + Plano de Produto · Abril 2026 · Sprint 7 concluída · 8 agentes IA · Score 8.5/10 · Projeções baseadas em benchmarks do mercado de sports tech B2B no Brasil.
       </p>
     </footer>
 
@@ -2713,8 +2701,8 @@
           ],
           datasets: [
             {
-              label: "Estado Atual",
-              data: [8.5, 8.5, 7.5, 7, 6, 6.5, 4, 2, 2, 2, 3, 3],
+              label: "Estado Atual (Sprint 7)",
+              data: [8.5, 8.5, 7.5, 7, 6.5, 8.5, 6, 3, 2, 2, 3, 5],
               borderColor: "#ef4444",
               backgroundColor: "rgba(239,68,68,0.1)",
               borderWidth: 2,
@@ -2722,7 +2710,7 @@
               pointRadius: 4,
             },
             {
-              label: "Meta Launch (Sprint 1-3)",
+              label: "Meta Beta Público (Sprint 8–9)",
               data: [9, 9, 8, 8, 7, 7.5, 6, 7, 6, 7, 6, 7],
               borderColor: "#00ff88",
               backgroundColor: "rgba(0,255,136,0.06)",

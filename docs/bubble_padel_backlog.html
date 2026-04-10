@@ -584,13 +584,13 @@
           <span>Sprint 5.5:</span> 9 tasks · Ligas + Etapas
         </div>
         <div class="hero-badge">
-          <span>Sprint 6:</span> 8 tasks · Design System + UI Audit
+          <span>Sprint 6:</span> 8+4 tasks · Design System + Ligas ✅
         </div>
         <div class="hero-badge">
-          <span>Sprint 7:</span> 10 tasks · UI Redesign Desktop
+          <span>Sprint 7:</span> 10 tasks · UI Redesign + Strava Atleta ✅
         </div>
         <div class="hero-badge">
-          <span>Sprint 8:</span> 8 tasks · Mobile Responsiveness
+          <span>Sprint 8:</span> Bugs P0 + Strava Fase 2 + Feed Social
         </div>
         <div class="hero-badge">
           <span>Sprint 9:</span> 8 tasks · Crescimento + Marketing
@@ -610,8 +610,8 @@
         <li><a href="#sprint4">Sprint 4</a></li>
         <li><a href="#sprint5">Sprint 5</a></li>
         <li><a href="#sprint55">Sprint 5.5</a></li>
-        <li><a href="#sprint6">Sprint 6</a></li>
-        <li><a href="#sprint7">Sprint 7</a></li>
+        <li><a href="#sprint6">Sprint 6 ✅</a></li>
+        <li><a href="#sprint7">Sprint 7 ✅</a></li>
         <li><a href="#sprint8">Sprint 8</a></li>
         <li><a href="#sprint9">Sprint 9</a></li>
         <li><a href="#resumo">Resumo</a></li>
@@ -3378,10 +3378,9 @@
       <!-- ========================================================== -->
       <section id="sprint6">
         <div class="sprint-header">
-          <h2>🎨 Sprint 6 — Design System + UI Audit + Fixes de Liga</h2>
+          <h2>✅ Sprint 6 — Design System + UI Audit + Fixes de Liga</h2>
           <p class="sprint-theme">
-            Q3 2026 · Definir paleta, tipografia, componentes base, mapear todas as páginas para redesign.
-            + Fixes e melhorias gerados pela Sprint 5: ranking por categoria, convites de liga, oitavas/16avos.
+            CONCLUÍDA — Abril 2026. DS v2 aprovado (Plus Jakarta Sans, dark seletivo), biblioteca de 10 componentes UI, UI Audit de 19 páginas, tokens CSS globais. Ligas: ranking por categoria (6.L1), convites 3 cenários (6.L2), oitavas/16avos (6.L3), página pública (6.L4). Railway reativado (Hobby), banco migrado para Neon.
           </p>
           <div class="sprint-meta">
             <div class="sprint-meta-item"><strong>8+4</strong> tasks</div>
@@ -3693,10 +3692,9 @@
       <!-- ========================================================== -->
       <section id="sprint7">
         <div class="sprint-header">
-          <h2>🖥️ Sprint 7 — UI Redesign Desktop</h2>
+          <h2>✅ Sprint 7 — UI Redesign + Perfil Strava Atleta</h2>
           <p class="sprint-theme">
-            Q3-Q4 2026 · Aplicar o design system em todas as páginas desktop —
-            do ClubDashboard ao AthleteProfile
+            CONCLUÍDA — Abril 2026. DS v2 em 7 páginas (AthleteProfile, AthleteSettings NOVO, AthleteDashboard, LeaguesDashboard, ClubDashboard, CreateTournament, TournamentProfile). Perfil Strava fase 1: apelido, esportes, rackets[], instagramUrl, twitterUrl, autocomplete IBGE. Bug membros(0) liga corrigido. URL sync LeaguesDashboard. Liga colapsável no CreateTournament. CTA mobile fixo TournamentProfile. Schema +5 campos Athlete. Gates 1-7 aprovados.
           </p>
           <div class="sprint-meta">
             <div class="sprint-meta-item"><strong>10</strong> tasks</div>
@@ -3920,192 +3918,245 @@
       <!-- ========================================================== -->
       <section id="sprint8">
         <div class="sprint-header">
-          <h2>📱 Sprint 8 — Mobile Responsiveness</h2>
+          <h2>🐛⚡ Sprint 8 — Bugs P0 + Strava Fase 2 + Feed Social</h2>
           <p class="sprint-theme">
-            Q4 2026 · Adaptar todas as páginas redesenhadas para mobile —
-            atletas usam celular na quadra
+            Abril–Maio 2026 · Corrigir bugs críticos da Sprint 7, completar o perfil Strava do atleta e lançar feed social básico.
           </p>
           <div class="sprint-meta">
-            <div class="sprint-meta-item"><strong>8</strong> tasks</div>
-            <div class="sprint-meta-item"><strong>~56h</strong> estimadas</div>
-            <div class="sprint-meta-item"><strong>2</strong> P0 blockers</div>
-            <div class="sprint-meta-item">
-              <strong>Agente: UI Specialist</strong>
-            </div>
+            <div class="sprint-meta-item"><strong>10</strong> tasks</div>
+            <div class="sprint-meta-item"><strong>~72h</strong> estimadas</div>
+            <div class="sprint-meta-item"><strong>2</strong> P0 bugs</div>
+            <div class="sprint-meta-item"><strong>Dependências:</strong> Sprint 7 concluída</div>
           </div>
-          <div
-            style="
-              background: rgba(0, 204, 255, 0.06);
-              border: 1px solid rgba(0, 204, 255, 0.2);
-              border-radius: 8px;
-              padding: 12px 16px;
-              margin-top: 12px;
-              font-size: 13px;
-              color: var(--muted);
-            "
-          >
-            ⚡ <strong style="color: var(--blue)">Objetivo:</strong> Atleta
-            consegue ver resultados, brackt e inscrever-se num torneio pelo
-            celular sem problema. Clube consegue confirmar inscrições e
-            gerenciar torneio básico no mobile.
+          <div style="background: rgba(0, 204, 255, 0.06); border: 1px solid rgba(0, 204, 255, 0.2); border-radius: 8px; padding: 12px 16px; margin-top: 12px; font-size: 13px; color: var(--muted);">
+            ⚡ <strong style="color: var(--blue)">Objetivo:</strong> Estabilizar a experiência do atleta (bugs P0) e completar o ecossistema social — perfil público, feed de amigos, compartilhamento.
+          </div>
+        </div>
+
+        <!-- ── BLOCO 1: BUGS P0 ── -->
+        <div class="task-card" style="border-left: 3px solid var(--red);">
+          <div class="task-header">
+            <span class="task-id">8.B1</span>
+            <span class="task-title">Bug P0: Logout Automático em /tournaments</span>
+            <span class="badge badge-p0">P0</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">3h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> Sprint 7 concluída</div>
+          <div class="task-objective">
+            Ao logar como atleta e navegar para /tournaments, o sistema faz logout automático.
+            Investigar: AuthService.getCurrentUser(), proteção de rota na página Tournaments,
+            conflito de contexto entre páginas públicas e privadas.
+          </div>
+          <div class="task-files">
+            <h5>Arquivos afetados</h5>
+            <ul>
+              <li class="file-modify">frontend: pages/Tournaments.tsx (INVESTIGATE)</li>
+              <li class="file-modify">frontend: services/api.ts — AuthService (INVESTIGATE)</li>
+              <li class="file-modify">frontend: contexts/AuthContext.tsx (INVESTIGATE)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="task-card" style="border-left: 3px solid var(--red);">
+          <div class="task-header">
+            <span class="task-id">8.B2</span>
+            <span class="task-title">Bug: BottomNav do Atleta Some no TournamentProfile</span>
+            <span class="badge badge-p1">P1</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">3h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> Sprint 7 concluída</div>
+          <div class="task-objective">
+            TournamentProfile é página pública com nav próprio (sem AthleteHeader).
+            Quando atleta logado acessa /tournaments/:id, o BottomNav some.
+            Solução: adicionar BottomNav condicional no TournamentProfile quando currentUser é ATHLETE.
+          </div>
+          <div class="task-files">
+            <h5>Arquivos afetados</h5>
+            <ul>
+              <li class="file-modify">frontend: pages/TournamentProfile.tsx (MODIFY — BottomNav condicional)</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ── BLOCO 2: STATS ATLETA ── -->
+        <div class="task-card">
+          <div class="task-header">
+            <span class="task-id">8.S1</span>
+            <span class="task-title">Endpoint /athlete/stats Detalhado (task 7.S1 migrada)</span>
+            <span class="badge badge-p1">P1</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">8h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> Sprint 7 concluída</div>
+          <div class="task-objective">
+            Endpoint GET /athlete/stats expandido: vitórias totais, derrotas, % win rate,
+            melhores parceiros (por winrate com mínimo 3 jogos), adversários mais frequentes,
+            histórico por categoria. Exibir no AthleteProfile (seção "Estatísticas Detalhadas"
+            já tem placeholder) e resumo no AthleteDashboard.
+          </div>
+          <div class="task-files">
+            <h5>Arquivos afetados</h5>
+            <ul>
+              <li class="file-modify">backend: routes/athlete.ts (MODIFY — enriquecer GET /stats)</li>
+              <li class="file-modify">frontend: pages/AthleteProfile.tsx (MODIFY — substituir placeholder)</li>
+              <li class="file-modify">frontend: pages/AthleteDashboard.tsx (MODIFY — resumo stats)</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ── BLOCO 3: STRAVA FASE 2 ── -->
+        <div class="task-card">
+          <div class="task-header">
+            <span class="task-id">8.P1</span>
+            <span class="task-title">Perfil Público /athletes/:id</span>
+            <span class="badge badge-p1">P1</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">8h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> Sprint 7 (schema + athlete.ts)</div>
+          <div class="task-objective">
+            Criar página pública /athletes/:id (hoje /athlete/profile é privado).
+            Exibir: nome, apelido, esportes, raquetes, social links, troféus públicos, stats resumidas.
+            Rota pública sem auth. Necessário para o botão Compartilhar e para o sistema de Conexões.
+          </div>
+          <div class="task-files">
+            <h5>Arquivos afetados</h5>
+            <ul>
+              <li class="file-create">frontend: pages/AthletePublicProfile.tsx (CREATE)</li>
+              <li class="file-modify">frontend: App.tsx (MODIFY — rota /athletes/:id)</li>
+              <li class="file-modify">backend: routes/athlete.ts (MODIFY — rota pública já existe, expandir)</li>
+            </ul>
           </div>
         </div>
 
         <div class="task-card">
           <div class="task-header">
-            <span class="task-id">8.1</span
-            ><span class="task-title">Mobile Audit Completo</span
-            ><span class="badge badge-p0">P0</span
-            ><span class="badge badge-design">DESIGN</span
-            ><span class="badge badge-hours">6h</span>
+            <span class="task-id">8.P2</span>
+            <span class="task-title">Botão Compartilhar Perfil (Web Share API)</span>
+            <span class="badge badge-p2">P2</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">3h</span>
           </div>
-          <div class="task-deps">
-            <strong>Dependências:</strong> Sprint 7 concluída
-          </div>
+          <div class="task-deps"><strong>Dependências:</strong> 8.P1</div>
           <div class="task-objective">
-            Testar todas as páginas em dispositivos reais e emuladores (375px,
-            390px, 414px). Documentar todos os problemas com screenshot.
-            Priorizar por impacto no atleta vs clube. Conduzir com agente UI
-            Specialist.
+            Botão "Compartilhar perfil" no AthleteProfile usa Web Share API (navigator.share).
+            Link aponta para /athletes/:id. Fallback: copiar URL para clipboard.
+            Também adicionar no header da página pública.
           </div>
         </div>
 
         <div class="task-card">
           <div class="task-header">
-            <span class="task-id">8.2</span
-            ><span class="task-title">TournamentProfile Mobile</span
-            ><span class="badge badge-p0">P0</span
-            ><span class="badge badge-dev">DEV</span
-            ><span class="badge badge-hours">8h</span>
+            <span class="task-id">8.P3</span>
+            <span class="task-title">Upload de Patrocinadores (S3/Storage)</span>
+            <span class="badge badge-p2">P2</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">10h</span>
           </div>
-          <div class="task-deps"><strong>Dependências:</strong> 8.1</div>
+          <div class="task-deps"><strong>Dependências:</strong> Sprint 7 concluída</div>
           <div class="task-objective">
-            Prioridade máxima — é a página que o atleta acessa pelo link do
-            WhatsApp. Formulário de inscrição, tabela de grupos e bracket devem
-            funcionar perfeitamente no mobile.
+            Atleta faz upload de logos de patrocinadores. Model AthleteSponsors no schema
+            (athleteId, name, logoUrl, order). Upload via S3/Cloudflare R2.
+            Exibir logos no AthleteProfile (seção Patrocinadores tem placeholder).
+          </div>
+          <div class="task-files">
+            <h5>Arquivos afetados</h5>
+            <ul>
+              <li class="file-modify">backend: prisma/schema.prisma (MODIFY — model AthleteSponsors)</li>
+              <li class="file-create">backend: routes/athlete-sponsors.ts (CREATE)</li>
+              <li class="file-modify">frontend: pages/AthleteSettings.tsx (MODIFY — seção upload)</li>
+              <li class="file-modify">frontend: pages/AthleteProfile.tsx (MODIFY — exibir logos)</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ── BLOCO 4: FEED SOCIAL ── -->
+        <div class="task-card">
+          <div class="task-header">
+            <span class="task-id">8.F1</span>
+            <span class="task-title">Sistema de Conexões (AthleteFriendship)</span>
+            <span class="badge badge-p2">P2</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">8h</span>
+          </div>
+          <div class="task-deps"><strong>Dependências:</strong> 8.P1</div>
+          <div class="task-objective">
+            Model AthleteFriendship no schema (followerId, followingId, createdAt).
+            Endpoints: POST /athlete/follow/:id, DELETE /athlete/follow/:id,
+            GET /athlete/connections. Exibir contador real no hero card do AthleteProfile
+            (placeholder "Conexões — em breve" já existe).
+          </div>
+          <div class="task-files">
+            <h5>Arquivos afetados</h5>
+            <ul>
+              <li class="file-modify">backend: prisma/schema.prisma (MODIFY — model AthleteFriendship)</li>
+              <li class="file-create">backend: routes/athlete-social.ts (CREATE)</li>
+              <li class="file-modify">frontend: pages/AthleteProfile.tsx (MODIFY — contador real)</li>
+            </ul>
           </div>
         </div>
 
         <div class="task-card">
           <div class="task-header">
-            <span class="task-id">8.3</span
-            ><span class="task-title">AthleteDashboard + Profile Mobile</span
-            ><span class="badge badge-p1">P1</span
-            ><span class="badge badge-dev">DEV</span
-            ><span class="badge badge-hours">8h</span>
+            <span class="task-id">8.F2</span>
+            <span class="task-title">Feed Social — Posts + Atividade</span>
+            <span class="badge badge-p2">P2</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">14h</span>
           </div>
-          <div class="task-deps"><strong>Dependências:</strong> 8.1</div>
+          <div class="task-deps"><strong>Dependências:</strong> 8.F1</div>
           <div class="task-objective">
-            Dashboard e perfil do atleta responsivos. Trophy room, badges e
-            ranking legíveis no mobile. Botão de compartilhamento de conquistas
-            mobile-first.
+            Model AthletePost (athleteId, content, imageUrl, leagueId?, tournamentId?, createdAt).
+            Endpoint GET /athlete/feed: agrega posts de conexões + resultados de torneios + badges desbloqueados.
+            FeedPage.tsx no BottomNav (substituir "Torneios" por "Feed" ou adicionar ícone).
+            Clubes também podem postar marcando uma liga (8.F3 da LeagueProfile).
+          </div>
+          <div class="task-files">
+            <h5>Arquivos afetados</h5>
+            <ul>
+              <li class="file-modify">backend: prisma/schema.prisma (MODIFY — model AthletePost)</li>
+              <li class="file-create">backend: routes/athlete-feed.ts (CREATE)</li>
+              <li class="file-create">frontend: pages/FeedPage.tsx (CREATE)</li>
+              <li class="file-modify">frontend: pages/AthleteDashboard.tsx (MODIFY — BottomNav)</li>
+              <li class="file-modify">frontend: pages/AthleteProfile.tsx (MODIFY — BottomNav)</li>
+              <li class="file-modify">frontend: pages/AthleteSettings.tsx (MODIFY — BottomNav)</li>
+            </ul>
           </div>
         </div>
 
+        <!-- ── BLOCO 5: LEAGUE PROFILE MELHORIAS ── -->
         <div class="task-card">
           <div class="task-header">
-            <span class="task-id">8.4</span
-            ><span class="task-title">ClubDashboard Mobile</span
-            ><span class="badge badge-p1">P1</span
-            ><span class="badge badge-dev">DEV</span
-            ><span class="badge badge-hours">8h</span>
+            <span class="task-id">8.L1</span>
+            <span class="task-title">LeagueProfile: Contador de Atletas + Aba Feed</span>
+            <span class="badge badge-p2">P2</span>
+            <span class="badge badge-dev">DEV</span>
+            <span class="badge badge-hours">5h</span>
           </div>
-          <div class="task-deps"><strong>Dependências:</strong> 8.1</div>
+          <div class="task-deps"><strong>Dependências:</strong> Sprint 7 concluída</div>
           <div class="task-objective">
-            Clube consegue ver lista de torneios, confirmar inscrições e ver
-            resumo financeiro no mobile. Navegação por abas adaptada para touch.
+            (1) Contador de atletas únicos no header da página pública — query LeaguePoints.athleteId distinct.
+            (2) Aba "Feed/Fotos" com empty state elegante (implementação real depende de 8.F2).
+            (3) Link para página pública da liga na Home header nav e seção "Ligas em destaque" na landing.
           </div>
-        </div>
-
-        <div class="task-card">
-          <div class="task-header">
-            <span class="task-id">8.5</span
-            ><span class="task-title"
-              >EditTournament Mobile (Versão Simplificada)</span
-            ><span class="badge badge-p1">P1</span
-            ><span class="badge badge-dev">DEV</span
-            ><span class="badge badge-hours">10h</span>
-          </div>
-          <div class="task-deps"><strong>Dependências:</strong> 8.1</div>
-          <div class="task-objective">
-            Versão mobile do EditTournament — foco nas ações mais usadas no dia
-            do torneio (confirmar inscrições, ver grupos, lançar placar).
-            Algumas abas complexas podem ser "desktop only" numa primeira
-            versão.
-          </div>
-        </div>
-
-        <div class="task-card">
-          <div class="task-header">
-            <span class="task-id">8.6</span
-            ><span class="task-title">Bracket View Mobile</span
-            ><span class="badge badge-p2">P2</span
-            ><span class="badge badge-dev">DEV</span
-            ><span class="badge badge-hours">8h</span>
-          </div>
-          <div class="task-deps"><strong>Dependências:</strong> 8.1</div>
-          <div class="task-objective">
-            Bracket horizontal com scroll lateral no mobile. Cards de jogo
-            touch-friendly. Placar legível. Considerado o componente mais
-            difícil de adaptar para mobile.
-          </div>
-        </div>
-
-        <div class="task-card">
-          <div class="task-header">
-            <span class="task-id">8.7</span
-            ><span class="task-title">PaymentModal Mobile</span
-            ><span class="badge badge-p2">P2</span
-            ><span class="badge badge-dev">DEV</span
-            ><span class="badge badge-hours">4h</span>
-          </div>
-          <div class="task-deps"><strong>Dependências:</strong> 8.1</div>
-          <div class="task-objective">
-            QR Code PIX exibido em tamanho adequado no mobile. Botão "Copiar
-            código PIX" em destaque (mais usado que QR no mobile). Polling de
-            confirmação funcional.
-          </div>
-        </div>
-
-        <div class="task-card">
-          <div class="task-header">
-            <span class="task-id">8.8</span
-            ><span class="task-title">Testes em Dispositivos Reais</span
-            ><span class="badge badge-p3">P3</span
-            ><span class="badge badge-dev">DEV</span
-            ><span class="badge badge-hours">4h</span>
-          </div>
-          <div class="task-deps">
-            <strong>Dependências:</strong> 8.2, 8.3, 8.4, 8.5
-          </div>
-          <div class="task-objective">
-            Testar em iPhone (Safari) e Android (Chrome). Verificar: touch
-            targets ≥ 44px, scroll suave, formulários sem zoom indesejado,
-            modais não saindo da tela.
+          <div class="task-files">
+            <h5>Arquivos afetados</h5>
+            <ul>
+              <li class="file-modify">backend: routes/leagues.ts (MODIFY — count distinct athleteId)</li>
+              <li class="file-modify">frontend: pages/LeagueProfile.tsx (MODIFY — contador + aba feed)</li>
+              <li class="file-modify">frontend: pages/Home.tsx (MODIFY — link ligas no nav)</li>
+            </ul>
           </div>
         </div>
 
         <div class="sprint-summary">
-          <div>
-            <div class="stat-value">8</div>
-            <div class="stat-label">Tasks</div>
-          </div>
-          <div>
-            <div class="stat-value">2</div>
-            <div class="stat-label">P0 Blockers</div>
-          </div>
-          <div>
-            <div class="stat-value">~56h</div>
-            <div class="stat-label">Horas DEV</div>
-          </div>
-          <div>
-            <div class="stat-value">~0h</div>
-            <div class="stat-label">Horas Negócio</div>
-          </div>
-          <div>
-            <div class="stat-value">~56h</div>
-            <div class="stat-label">Total</div>
-          </div>
+          <div><div class="stat-value">10</div><div class="stat-label">Tasks</div></div>
+          <div><div class="stat-value">2</div><div class="stat-label">P0 Bugs</div></div>
+          <div><div class="stat-value">~72h</div><div class="stat-label">Total</div></div>
+          <div><div class="stat-value">3</div><div class="stat-label">Novos models</div></div>
+          <div><div class="stat-value">5</div><div class="stat-label">Novos arquivos</div></div>
         </div>
       </section>
 
