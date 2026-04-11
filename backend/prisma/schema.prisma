@@ -94,6 +94,12 @@ model Club {
   matchDuration    Int            @default(60)
   defaultStartTime String         @default("08:00")
   defaultEndTime   String         @default("20:00")
+  // Sprint 7B — perfil público
+  sports           Sport[]        @default([])
+  description      String?
+  amenities        String[]       @default([])
+  businessHours    Json?          // { "seg": "08:00-22:00", ... }
+  instructors      ClubInstructor[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   tournaments      Tournament[]
@@ -101,6 +107,20 @@ model Club {
   leagueMemberships LeagueMember[]
 
   @@map("clubs")
+}
+
+model ClubInstructor {
+  id        String   @id @default(cuid())
+  clubId    String
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  name      String
+  photoUrl  String?
+  sports    Sport[]  @default([])
+  bio       String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("club_instructors")
 }
 
 model Athlete {

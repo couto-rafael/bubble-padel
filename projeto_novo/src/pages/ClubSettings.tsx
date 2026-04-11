@@ -20,6 +20,16 @@ const SIDEBAR = [
     icon: "M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a2 2 0 012-2h2a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6zM14 13a2 2 0 012-2h2a2 2 0 012 2v6a2 2 0 01-2 2h-2a2 2 0 01-2-2v-6z",
   },
   {
+    key: "esportes",
+    label: "Esportes & Horários",
+    icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+  },
+  {
+    key: "professores",
+    label: "Professores",
+    icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z",
+  },
+  {
     key: "financeiro",
     label: "Financeiro",
     icon: "M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H9a3 3 0 00-3 3v8a3 3 0 003 3z",
@@ -46,6 +56,32 @@ const SIDEBAR = [
   },
 ] as const;
 type SidebarKey = (typeof SIDEBAR)[number]["key"];
+
+const SPORTS_LIST = [
+  { key: "PADEL", label: "Padel", icon: "🎾" },
+  { key: "BEACH_TENNIS", label: "Beach Tennis", icon: "🏖️" },
+  { key: "TENIS", label: "Tênis", icon: "🎾" },
+  { key: "PICKLEBALL", label: "Pickleball", icon: "🏓" },
+] as const;
+
+const WEEKDAYS = [
+  { key: "seg", label: "Segunda" },
+  { key: "ter", label: "Terça" },
+  { key: "qua", label: "Quarta" },
+  { key: "qui", label: "Quinta" },
+  { key: "sex", label: "Sexta" },
+  { key: "sab", label: "Sábado" },
+  { key: "dom", label: "Domingo" },
+] as const;
+type WeekdayKey = (typeof WEEKDAYS)[number]["key"];
+
+interface Instructor {
+  id: string;
+  name: string;
+  bio: string;
+  sports: string[];
+  photoUrl: string;
+}
 
 const EXTRAS_LIST = [
   { key: "estacionamento", label: "Estacionamento", icon: "🚗" },
@@ -161,6 +197,20 @@ const ClubSettings = () => {
     creditCard: false,
     debitCard: false,
   });
+  const [clubSports, setClubSports] = useState<string[]>([]);
+  const [businessHours, setBusinessHours] = useState<
+    Record<WeekdayKey, string>
+  >({
+    seg: "",
+    ter: "",
+    qua: "",
+    qui: "",
+    sex: "",
+    sab: "",
+    dom: "",
+  });
+  const [instructors, setInstructors] = useState<Instructor[]>([]);
+
   const [contaForm, setContaForm] = useState({
     senhaAtual: "",
     novaSenha: "",
@@ -681,6 +731,262 @@ const ClubSettings = () => {
                         </button>
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ESPORTES & HORÁRIOS */}
+              {activeTab === "esportes" && (
+                <div>
+                  <h2 className="text-[18px] font-extrabold text-gray-900 tracking-tight mb-5">
+                    Esportes & Horários de Funcionamento
+                  </h2>
+
+                  {/* Esportes disponíveis */}
+                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sm:p-6 mb-5">
+                    <h3 className="text-[13px] font-bold text-gray-900 mb-1">
+                      Esportes Disponíveis no Clube
+                    </h3>
+                    <p className="text-xs text-gray-500 mb-4">
+                      Selecione os esportes que o seu clube oferece — aparece no
+                      perfil público.
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {SPORTS_LIST.map(({ key, label, icon }) => {
+                        const selected = clubSports.includes(key);
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => {
+                              setClubSports((prev) =>
+                                prev.includes(key)
+                                  ? prev.filter((s) => s !== key)
+                                  : [...prev, key],
+                              );
+                              markDirty();
+                            }}
+                            className={`flex flex-col items-center gap-2 p-4 rounded-xl border-[1.5px] transition-all ${selected ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"}`}
+                          >
+                            <span className="text-2xl">{icon}</span>
+                            <span className="text-[12px] font-bold">
+                              {label}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Horários de funcionamento */}
+                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sm:p-6">
+                    <h3 className="text-[13px] font-bold text-gray-900 mb-1">
+                      Horário de Funcionamento
+                    </h3>
+                    <p className="text-xs text-gray-500 mb-4">
+                      Ex: "08:00–22:00" ou deixe em branco para dias fechados.
+                    </p>
+                    <div className="space-y-3">
+                      {WEEKDAYS.map(({ key, label }) => (
+                        <div key={key} className="flex items-center gap-3">
+                          <span className="text-[13px] font-semibold text-gray-600 w-20 flex-shrink-0">
+                            {label}
+                          </span>
+                          <input
+                            type="text"
+                            placeholder="Fechado"
+                            value={businessHours[key]}
+                            onChange={(e) => {
+                              setBusinessHours((prev) => ({
+                                ...prev,
+                                [key]: e.target.value,
+                              }));
+                              markDirty();
+                            }}
+                            className="flex-1 px-3.5 py-2 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all placeholder:text-gray-300 placeholder:font-normal"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end mt-5">
+                    <button
+                      onClick={handleSaveAll}
+                      disabled={saving}
+                      className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"} disabled:opacity-50`}
+                    >
+                      {saving
+                        ? "Salvando..."
+                        : saveSuccess
+                          ? "✓ Salvo!"
+                          : "Salvar"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* PROFESSORES */}
+              {activeTab === "professores" && (
+                <div>
+                  <h2 className="text-[18px] font-extrabold text-gray-900 tracking-tight mb-5">
+                    Professores
+                  </h2>
+                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sm:p-6">
+                    <div className="flex items-center justify-between mb-5">
+                      <div>
+                        <p className="text-[13px] font-bold text-gray-900">
+                          Equipe de Professores
+                        </p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Aparecem no perfil público do clube.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setInstructors((prev) => [
+                            ...prev,
+                            {
+                              id: Date.now().toString(),
+                              name: "",
+                              bio: "",
+                              sports: [],
+                              photoUrl: "",
+                            },
+                          ]);
+                          markDirty();
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-colors"
+                      >
+                        + Adicionar Professor
+                      </button>
+                    </div>
+
+                    {instructors.length === 0 ? (
+                      <div className="flex flex-col items-center py-12 text-center">
+                        <span className="text-4xl mb-3 opacity-40">👨‍🏫</span>
+                        <p className="text-[14px] font-bold text-gray-700 mb-1">
+                          Nenhum professor cadastrado
+                        </p>
+                        <p className="text-[12px] text-gray-400">
+                          Adicione os professores disponíveis no seu clube
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {instructors.map((inst, idx) => (
+                          <div
+                            key={inst.id}
+                            className="border border-gray-200 rounded-xl p-4 space-y-3"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-[12px] font-bold text-gray-400 uppercase tracking-wide">
+                                Professor {idx + 1}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setInstructors((prev) =>
+                                    prev.filter((i) => i.id !== inst.id),
+                                  );
+                                  markDirty();
+                                }}
+                                className="text-red-400 hover:text-red-600 text-xs font-bold transition-colors"
+                              >
+                                Remover
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div>
+                                <label className={LABEL_CLS}>Nome</label>
+                                <input
+                                  value={inst.name}
+                                  onChange={(e) => {
+                                    setInstructors((prev) =>
+                                      prev.map((i) =>
+                                        i.id === inst.id
+                                          ? { ...i, name: e.target.value }
+                                          : i,
+                                      ),
+                                    );
+                                    markDirty();
+                                  }}
+                                  placeholder="Nome do professor"
+                                  className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all placeholder:text-gray-400 placeholder:font-normal"
+                                />
+                              </div>
+                              <div>
+                                <label className={LABEL_CLS}>Esportes</label>
+                                <div className="flex gap-2 flex-wrap mt-1">
+                                  {SPORTS_LIST.map(({ key, label }) => (
+                                    <button
+                                      key={key}
+                                      type="button"
+                                      onClick={() => {
+                                        setInstructors((prev) =>
+                                          prev.map((i) =>
+                                            i.id === inst.id
+                                              ? {
+                                                  ...i,
+                                                  sports: i.sports.includes(key)
+                                                    ? i.sports.filter(
+                                                        (s) => s !== key,
+                                                      )
+                                                    : [...i.sports, key],
+                                                }
+                                              : i,
+                                          ),
+                                        );
+                                        markDirty();
+                                      }}
+                                      className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-all ${inst.sports.includes(key) ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}
+                                    >
+                                      {label}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                            <div>
+                              <label className={LABEL_CLS}>
+                                Bio / Especialidade
+                              </label>
+                              <textarea
+                                value={inst.bio}
+                                onChange={(e) => {
+                                  setInstructors((prev) =>
+                                    prev.map((i) =>
+                                      i.id === inst.id
+                                        ? { ...i, bio: e.target.value }
+                                        : i,
+                                    ),
+                                  );
+                                  markDirty();
+                                }}
+                                rows={2}
+                                placeholder="Ex: Especialista em Beach Tennis, 10 anos de experiência..."
+                                className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all placeholder:text-gray-400 placeholder:font-normal resize-none"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {instructors.length > 0 && (
+                      <div className="flex justify-end mt-5 pt-4 border-t border-gray-100">
+                        <button
+                          onClick={handleSaveAll}
+                          disabled={saving}
+                          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"} disabled:opacity-50`}
+                        >
+                          {saving
+                            ? "Salvando..."
+                            : saveSuccess
+                              ? "✓ Salvo!"
+                              : "Salvar"}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
