@@ -426,6 +426,40 @@ const ClubSettings = () => {
       <DashboardHeader activePage="dashboard" />
       <main className="pt-20 min-h-screen">
         <div className="max-w-7xl mx-auto px-6 py-4 sm:py-8">
+          {/* Page header */}
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h1 className="text-[22px] font-extrabold text-gray-900 tracking-tight">
+                Configurações
+              </h1>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Gerencie o perfil e as informações do seu clube
+              </p>
+            </div>
+            {club?.id && (
+              <a
+                href={`/clubs/${club.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 rounded-xl font-bold text-sm transition-colors shadow-sm"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
+                Ver perfil público
+              </a>
+            )}
+          </div>
           {showWelcomeBanner && (
             <div className="mb-6 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-start gap-4">
