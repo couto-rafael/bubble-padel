@@ -13,14 +13,14 @@ const TermsPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#050f1a] text-white">
+    <div className="min-h-screen bg-[#0a0e1a] text-white">
       {/* Nav */}
-      <nav className="border-b border-white/10 px-6 py-4">
+      <nav className="border-b border-white/[0.08] px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center">
               <svg
-                className="w-5 h-5 text-[#050f1a]"
+                className="w-5 h-5 text-[#0a0e1a]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -59,9 +59,9 @@ const TermsPage = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                 activeTab === tab.id
-                  ? "bg-[#00ff88] text-[#050f1a]"
+                  ? "bg-[#00ff88] text-[#0a0e1a]"
                   : "text-gray-400 hover:text-white"
               }`}
             >
@@ -286,7 +286,7 @@ const TermsPage = () => {
               <Section title="3. Para Que Usamos os Dados">
                 <table className="w-full text-sm border-collapse">
                   <thead>
-                    <tr className="border-b border-white/10">
+                    <tr className="border-b border-white/[0.08]">
                       <th className="text-left py-2 pr-4 text-gray-400 font-semibold">
                         Finalidade
                       </th>
@@ -342,7 +342,7 @@ const TermsPage = () => {
               <Section title="5. Compartilhamento de Dados">
                 <table className="w-full text-sm border-collapse">
                   <thead>
-                    <tr className="border-b border-white/10">
+                    <tr className="border-b border-white/[0.08]">
                       <th className="text-left py-2 pr-4 text-gray-400 font-semibold">
                         Empresa
                       </th>
@@ -407,7 +407,7 @@ const TermsPage = () => {
         </div>
 
         {/* Footer */}
-        <div className="mt-16 pt-8 border-t border-white/10 text-center text-sm text-gray-500">
+        <div className="mt-16 pt-8 border-t border-white/[0.08] text-center text-sm text-gray-500">
           <p>Bubble Padel · Versão 1.0 · Março 2026</p>
           <p className="mt-1">
             Dúvidas?{" "}
@@ -433,7 +433,7 @@ const Section = ({
   children: React.ReactNode;
 }) => (
   <div>
-    <h2 className="text-lg font-bold text-white mb-3 pb-2 border-b border-white/10">
+    <h2 className="text-lg font-bold text-white mb-3 pb-2 border-b border-white/[0.08]">
       {title}
     </h2>
     <div className="text-gray-300 leading-relaxed space-y-3 text-sm">

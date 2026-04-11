@@ -419,17 +419,196 @@ athleteRoutes.get(
         (a, b) => (a.rankPosition ?? 999) - (b.rankPosition ?? 999),
       );
 
+      // ── Match stats (vitórias/derrotas/parceiros/adversários) ──────────────
+      const userRecord = await prisma.user.findUnique({
+        where: { id: req.userId },
+        select: { email: true },
+      });
+      const userEmail = userRecord?.email ?? "";
+
+      const myTeams = await prisma.team.findMany({
+        where: {
+          OR: [{ player1Email: userEmail }, { player2Email: userEmail }],
+        },
+        select: {
+          id: true,
+          category: true,
+          tournamentId: true,
+          player1Name: true,
+          player1Email: true,
+          player2Name: true,
+          player2Email: true,
+        },
+      });
+
+      const myTeamIds = myTeams.map((t) => t.id);
+
+      // Group matches
+      const groupMatches = await prisma.match.findMany({
+        where: {
+          OR: [{ team1Id: { in: myTeamIds } }, { team2Id: { in: myTeamIds } }],
+          played: true,
+        },
+        select: { team1Id: true, team2Id: true, score1: true, score2: true },
+      });
+
+      // Playoff matches
+      const playoffMatches = await prisma.playoffMatch.findMany({
+        where: {
+          OR: [{ team1Id: { in: myTeamIds } }, { team2Id: { in: myTeamIds } }],
+          played: true,
+        },
+        select: {
+          team1Id: true,
+          team2Id: true,
+          score1: true,
+          score2: true,
+          winnerId: true,
+          isBye: true,
+        },
+      });
+
+      // Build team map: id → partner name
+      const teamMap = new Map(
+        myTeams.map((t) => [
+          t.id,
+          {
+            partner:
+              t.player1Email === userEmail ? t.player2Name : t.player1Name,
+            partnerEmail:
+              t.player1Email === userEmail ? t.player2Email : t.player1Email,
+            category: t.category,
+          },
+        ]),
+      );
+
+      // Count wins/losses per match type
+      let wins = 0;
+      let losses = 0;
+      const partnerStats = new Map<
+        string,
+        { name: string; wins: number; losses: number }
+      >();
+      const opponentStats = new Map<
+        string,
+        { name: string; matches: number }
+      >();
+      const categoryStats = new Map<string, { wins: number; losses: number }>();
+
+      const processMatch = (
+        team1Id: string | null,
+        team2Id: string | null,
+        score1: number | null,
+        score2: number | null,
+        winnerId?: string | null,
+      ) => {
+        const isTeam1 = team1Id ? myTeamIds.includes(team1Id) : false;
+        const isTeam2 = team2Id ? myTeamIds.includes(team2Id) : false;
+        if (!isTeam1 && !isTeam2) return;
+
+        const myTeamId = isTeam1 ? team1Id! : team2Id!;
+        const oppTeamId = isTeam1 ? team2Id : team1Id;
+        const myScore = isTeam1 ? (score1 ?? 0) : (score2 ?? 0);
+        const oppScore = isTeam1 ? (score2 ?? 0) : (score1 ?? 0);
+
+        const won = winnerId ? winnerId === myTeamId : myScore > oppScore;
+
+        if (won) wins++;
+        else losses++;
+
+        // Partner stats
+        const info = teamMap.get(myTeamId);
+        if (info) {
+          const p = partnerStats.get(info.partnerEmail) ?? {
+            name: info.partner,
+            wins: 0,
+            losses: 0,
+          };
+          if (won) p.wins++;
+          else p.losses++;
+          partnerStats.set(info.partnerEmail, p);
+
+          const cat = categoryStats.get(info.category) ?? {
+            wins: 0,
+            losses: 0,
+          };
+          if (won) cat.wins++;
+          else cat.losses++;
+          categoryStats.set(info.category, cat);
+        }
+
+        // Opponent stats
+        if (oppTeamId) {
+          const key = oppTeamId;
+          const opp = opponentStats.get(key) ?? { name: oppTeamId, matches: 0 };
+          opp.matches++;
+          opponentStats.set(key, opp);
+        }
+      };
+
+      for (const m of groupMatches) {
+        processMatch(m.team1Id, m.team2Id, m.score1, m.score2);
+      }
+      for (const m of playoffMatches) {
+        if ((m as any).isBye) continue;
+        processMatch(m.team1Id, m.team2Id, m.score1, m.score2, m.winnerId);
+      }
+
+      const topPartners = Array.from(partnerStats.entries())
+        .map(([email, s]) => ({
+          name: s.name,
+          wins: s.wins,
+          losses: s.losses,
+          total: s.wins + s.losses,
+          winRate:
+            s.wins + s.losses > 0
+              ? Math.round((s.wins / (s.wins + s.losses)) * 100)
+              : 0,
+        }))
+        .sort((a, b) => b.winRate - a.winRate || b.total - a.total)
+        .slice(0, 5);
+
+      const byCategory = Array.from(categoryStats.entries())
+        .map(([cat, s]) => ({
+          category: cat,
+          wins: s.wins,
+          losses: s.losses,
+          total: s.wins + s.losses,
+          winRate:
+            s.wins + s.losses > 0
+              ? Math.round((s.wins / (s.wins + s.losses)) * 100)
+              : 0,
+        }))
+        .sort((a, b) => b.total - a.total);
+
+      const totalMatches = wins + losses;
+      const winRate =
+        totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0;
+
+      const matchStats = {
+        wins,
+        losses,
+        totalMatches,
+        winRate,
+        topPartners,
+        byCategory,
+      };
+
       return res.json({
         data: {
           trophies,
           achievements,
           leagueStandings,
+          matchStats,
           summary: {
             totalTrophies: trophies.length,
             totalTitles: trophies.filter((t) => t.placement === "CHAMPION")
               .length,
             totalAchievementsUnlocked: achievements.unlocked.length,
             totalAchievementsAvailable: Object.keys(ACHIEVEMENT_META).length,
+            wins,
+            losses,
+            winRate,
           },
         },
       });

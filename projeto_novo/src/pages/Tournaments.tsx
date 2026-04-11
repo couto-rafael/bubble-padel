@@ -200,7 +200,7 @@ const Tournaments = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0e27] text-white">
+    <div className="min-h-screen bg-[#0a0e1a] text-white">
       {/* Auth Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
@@ -208,13 +208,13 @@ const Tournaments = () => {
       />
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e27]/95 backdrop-blur-sm border-b border-white/5">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e1a]/95 backdrop-blur-sm border-b border-white/[0.07]">
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <Link to="/" className="flex items-center gap-2">
               <div className="w-10 h-10 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center">
                 <svg
-                  className="w-6 h-6 text-[#0a0e27]"
+                  className="w-6 h-6 text-[#0a0e1a]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -254,7 +254,7 @@ const Tournaments = () => {
                 <div className="flex items-center gap-3">
                   <Link
                     to={isAthlete ? "/athlete/dashboard" : "/dashboard"}
-                    className="px-6 py-2.5 bg-white/10 border border-white/20 text-white rounded-lg font-semibold text-sm hover:bg-white/20 transition-all"
+                    className="px-6 py-2.5 bg-white/10 border border-white/20 text-white rounded-xl font-semibold text-sm hover:bg-white/20 transition-all"
                   >
                     {currentUser.name?.split(" ")[0] ?? "Painel"}
                   </Link>
@@ -271,7 +271,7 @@ const Tournaments = () => {
               ) : (
                 <button
                   onClick={() => setIsAuthModalOpen(true)}
-                  className="px-6 py-2.5 bg-[#00ff88] text-[#0a0e27] rounded-lg font-semibold text-sm hover:bg-[#00dd77] transition-all"
+                  className="px-6 py-2.5 bg-[#00ff88] text-[#0a0e1a] rounded-xl font-bold text-sm hover:bg-[#00ff99] transition-all"
                 >
                   Entrar
                 </button>
@@ -299,7 +299,7 @@ const Tournaments = () => {
       {/* Filter Bar */}
       <section className="pb-8 px-4 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 overflow-hidden">
+          <div className="bg-white/[0.04] rounded-xl border border-white/[0.08] overflow-hidden">
             {/* Mobile Filter Toggle Button */}
             <button
               onClick={() => setFiltersExpanded(!filtersExpanded)}
@@ -326,7 +326,7 @@ const Tournaments = () => {
                     cityFilters.length +
                     statusFilters.length >
                     0 && (
-                    <span className="ml-2 px-2 py-0.5 bg-[#00ff88] text-[#0a0e27] rounded-full text-xs font-bold">
+                    <span className="ml-2 px-2 py-0.5 bg-[#00ff88] text-[#0a0e1a] rounded-full text-xs font-bold">
                       {sportFilters.length +
                         stateFilters.length +
                         cityFilters.length +
@@ -386,7 +386,7 @@ const Tournaments = () => {
                         if (searchQuery === "") setSearchExpanded(false);
                       }}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-12 pr-4 py-3 bg-[#0a0e27] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88]/50 transition-colors"
+                      className="w-full pl-12 pr-4 py-3 bg-[#0a0e1a] border border-white/[0.08] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88]/50 transition-colors"
                     />
                   </div>
                 </div>
@@ -402,7 +402,7 @@ const Tournaments = () => {
                         e.target.value,
                       )
                     }
-                    className="w-full px-4 py-3 bg-[#0a0e27] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88]/50 transition-colors appearance-none cursor-pointer"
+                    className="w-full px-4 py-3 bg-[#0a0e1a] border border-white/[0.08] rounded-lg text-white focus:outline-none focus:border-[#00ff88]/50 transition-colors appearance-none cursor-pointer"
                   >
                     <option value="" disabled>
                       {getFilterLabel(sportFilters, "Esporte")}
@@ -453,7 +453,7 @@ const Tournaments = () => {
                         e.target.value,
                       )
                     }
-                    className="w-full px-4 py-3 bg-[#0a0e27] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88]/50 transition-colors appearance-none cursor-pointer"
+                    className="w-full px-4 py-3 bg-[#0a0e1a] border border-white/[0.08] rounded-lg text-white focus:outline-none focus:border-[#00ff88]/50 transition-colors appearance-none cursor-pointer"
                   >
                     <option value="" disabled>
                       {getFilterLabel(stateFilters, "Estado")}
@@ -500,7 +500,7 @@ const Tournaments = () => {
                     onChange={(e) =>
                       toggleFilter(cityFilters, setCityFilters, e.target.value)
                     }
-                    className="w-full px-4 py-3 bg-[#0a0e27] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88]/50 transition-colors appearance-none cursor-pointer"
+                    className="w-full px-4 py-3 bg-[#0a0e1a] border border-white/[0.08] rounded-lg text-white focus:outline-none focus:border-[#00ff88]/50 transition-colors appearance-none cursor-pointer"
                   >
                     <option value="" disabled>
                       {getFilterLabel(cityFilters, "Cidade")}
@@ -550,7 +550,7 @@ const Tournaments = () => {
                         e.target.value,
                       )
                     }
-                    className="w-full px-4 py-3 bg-[#0a0e27] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88]/50 transition-colors appearance-none cursor-pointer"
+                    className="w-full px-4 py-3 bg-[#0a0e1a] border border-white/[0.08] rounded-lg text-white focus:outline-none focus:border-[#00ff88]/50 transition-colors appearance-none cursor-pointer"
                   >
                     <option value="" disabled>
                       {getFilterLabel(statusFilters, "Status")}
@@ -738,7 +738,7 @@ const Tournaments = () => {
           ) : filteredTournaments.length === 0 ? (
             /* Empty State */
             <div className="text-center py-20">
-              <div className="w-20 h-20 bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-white/[0.04] rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <svg
                   className="w-10 h-10 text-gray-500"
                   fill="none"
@@ -766,7 +766,7 @@ const Tournaments = () => {
                 <div
                   key={tournament.id}
                   onClick={() => navigate(`/tournaments/${tournament.id}`)}
-                  className="cursor-pointer group bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10 hover:border-[#00ff88]/30 transition-all hover:scale-[1.02]"
+                  className="cursor-pointer group bg-white/[0.04] p-6 rounded-xl border border-white/[0.08] hover:border-[#00ff88]/30 transition-all hover:scale-[1.02]"
                 >
                   {/* Badges */}
                   <div className="flex items-center gap-2 mb-4">
@@ -874,7 +874,7 @@ const Tournaments = () => {
                           `/tournaments/${tournament.id}?tab=participants`,
                         );
                       }}
-                      className="py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-lg font-semibold text-sm transition-all border border-white/10 hover:border-white/20"
+                      className="py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl font-semibold text-sm transition-all border border-white/[0.08] hover:border-white/20"
                     >
                       Inscritos
                     </button>
@@ -883,7 +883,7 @@ const Tournaments = () => {
                         e.stopPropagation();
                         navigate(`/tournaments/${tournament.id}?tab=info`);
                       }}
-                      className="py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-lg font-semibold text-sm transition-all border border-white/10 hover:border-white/20"
+                      className="py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl font-semibold text-sm transition-all border border-white/[0.08] hover:border-white/20"
                     >
                       Informações
                     </button>
@@ -893,7 +893,7 @@ const Tournaments = () => {
                   {tournament.status === "Inscrições Abertas" && isClub ? (
                     <button
                       onClick={(e) => e.stopPropagation()}
-                      className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold cursor-not-allowed"
+                      className="w-full py-3 bg-white/5 border border-white/[0.08] text-gray-400 rounded-xl font-bold cursor-not-allowed"
                     >
                       Inscrição exclusiva para atletas
                     </button>
@@ -904,7 +904,7 @@ const Tournaments = () => {
                         e.stopPropagation();
                         setIsAuthModalOpen(true);
                       }}
-                      className="w-full py-3 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold transition-all hover:scale-[1.02] shadow-lg"
+                      className="w-full py-3 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e1a] rounded-xl font-bold transition-all hover:scale-[1.02] shadow-lg"
                     >
                       Inscrever-se
                     </button>
@@ -915,35 +915,35 @@ const Tournaments = () => {
                         e.stopPropagation();
                         navigate(`/tournaments/${tournament.id}?register=true`);
                       }}
-                      className="w-full py-3 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold transition-all hover:scale-[1.02] shadow-lg"
+                      className="w-full py-3 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e1a] rounded-xl font-bold transition-all hover:scale-[1.02] shadow-lg"
                     >
                       Inscrever-se
                     </button>
                   ) : tournament.status === "Inscrições Encerradas" ? (
                     <button
                       onClick={(e) => e.stopPropagation()}
-                      className="w-full py-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg font-bold cursor-default"
+                      className="w-full py-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl font-bold cursor-default"
                     >
                       Inscrições Encerradas
                     </button>
                   ) : tournament.status === "Em Breve" ? (
                     <button
                       onClick={(e) => e.stopPropagation()}
-                      className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold cursor-default"
+                      className="w-full py-3 bg-white/5 border border-white/[0.08] text-gray-400 rounded-xl font-bold cursor-default"
                     >
                       Inscrições Em Breve
                     </button>
                   ) : tournament.status === "Em Andamento" ? (
                     <button
                       onClick={(e) => e.stopPropagation()}
-                      className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold cursor-default"
+                      className="w-full py-3 bg-white/5 border border-white/[0.08] text-gray-400 rounded-xl font-bold cursor-default"
                     >
                       Torneio em Andamento
                     </button>
                   ) : (
                     <button
                       onClick={(e) => e.stopPropagation()}
-                      className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold cursor-default"
+                      className="w-full py-3 bg-white/5 border border-white/[0.08] text-gray-400 rounded-xl font-bold cursor-default"
                     >
                       Torneio Finalizado
                     </button>

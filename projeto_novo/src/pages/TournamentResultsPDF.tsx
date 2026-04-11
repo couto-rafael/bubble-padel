@@ -111,7 +111,7 @@ export default function TournamentResultsPDF() {
         </div>
         <button
           onClick={() => window.print()}
-          className="flex items-center gap-2 px-4 py-2 bg-[#050f1a] text-white rounded-lg text-sm font-semibold hover:bg-gray-800 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[#0a0e1a] text-white rounded-lg text-sm font-semibold hover:bg-gray-800 transition-colors"
         >
           <svg
             className="w-4 h-4"
@@ -189,7 +189,7 @@ export default function TournamentResultsPDF() {
                 <div className="space-y-3">
                   {/* Campeão */}
                   {cat.champion && (
-                    <div className="flex items-center gap-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                    <div className="flex items-center gap-4 p-4 bg-amber-50 border border-amber-200 rounded-2xl">
                       <div className="text-3xl">🏆</div>
                       <div>
                         <p className="text-xs font-bold text-amber-600 uppercase tracking-wide mb-0.5">
@@ -205,7 +205,7 @@ export default function TournamentResultsPDF() {
 
                   {/* Vice */}
                   {cat.vice && (
-                    <div className="flex items-center gap-4 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                    <div className="flex items-center gap-4 p-4 bg-gray-50 border border-gray-200 rounded-2xl">
                       <div className="text-3xl">🥈</div>
                       <div>
                         <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-0.5">
@@ -220,7 +220,7 @@ export default function TournamentResultsPDF() {
 
                   {/* Semi-finalistas */}
                   {cat.semiFinalists.length > 0 && (
-                    <div className="p-4 bg-gray-50 border border-gray-100 rounded-xl">
+                    <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl">
                       <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">
                         🥉 Semi-finalistas
                       </p>

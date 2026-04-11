@@ -38,7 +38,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0e27] text-white">
+    <div className="min-h-screen bg-[#0a0e1a] text-white">
       {/* Auth Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
@@ -46,13 +46,13 @@ const Contact = () => {
       />
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e27]/95 backdrop-blur-sm border-b border-white/5">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e1a]/95 backdrop-blur-sm border-b border-white/[0.07]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <Link to="/" className="flex items-center gap-2">
               <div className="w-10 h-10 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center">
                 <svg
-                  className="w-6 h-6 text-[#0a0e27]"
+                  className="w-6 h-6 text-[#0a0e1a]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -87,7 +87,7 @@ const Contact = () => {
               </Link>
               <button
                 onClick={() => setIsAuthModalOpen(true)}
-                className="px-6 py-2.5 bg-[#00ff88] text-[#0a0e27] rounded-lg font-semibold text-sm hover:bg-[#00dd77] transition-all"
+                className="px-6 py-2.5 bg-[#00ff88] text-[#0a0e1a] rounded-xl font-bold text-sm hover:bg-[#00ff99] transition-all"
               >
                 Entrar
               </button>
@@ -101,7 +101,7 @@ const Contact = () => {
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-16 px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0e27] via-[#0f1540] to-[#0a0e27]"></div>
+        <div className="absolute inset-0 bg-[#0a0e1a]"></div>
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-20 right-20 w-96 h-96 bg-[#00ff88] rounded-full blur-[120px]"></div>
           <div className="absolute bottom-20 left-20 w-96 h-96 bg-[#00ccff] rounded-full blur-[120px]"></div>
@@ -125,7 +125,7 @@ const Contact = () => {
             {/* Contact Information */}
             <div className="lg:col-span-1 space-y-6">
               {/* Contact Cards */}
-              <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10">
+              <div className="bg-white/[0.04] p-6 rounded-xl border border-white/[0.08]">
                 <div className="w-12 h-12 bg-gradient-to-br from-[#00ff88]/20 to-[#00ccff]/20 rounded-lg flex items-center justify-center mb-4 text-[#00ff88]">
                   <svg
                     className="w-6 h-6"
@@ -153,7 +153,7 @@ const Contact = () => {
                 </p>
               </div>
 
-              <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10">
+              <div className="bg-white/[0.04] p-6 rounded-xl border border-white/[0.08]">
                 <div className="w-12 h-12 bg-gradient-to-br from-[#00ff88]/20 to-[#00ccff]/20 rounded-lg flex items-center justify-center mb-4 text-[#00ff88]">
                   <svg
                     className="w-6 h-6"
@@ -181,7 +181,7 @@ const Contact = () => {
                 </p>
               </div>
 
-              <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10">
+              <div className="bg-white/[0.04] p-6 rounded-xl border border-white/[0.08]">
                 <div className="w-12 h-12 bg-gradient-to-br from-[#00ff88]/20 to-[#00ccff]/20 rounded-lg flex items-center justify-center mb-4 text-[#00ff88]">
                   <svg
                     className="w-6 h-6"
@@ -213,7 +213,7 @@ const Contact = () => {
                 </p>
               </div>
 
-              <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10">
+              <div className="bg-white/[0.04] p-6 rounded-xl border border-white/[0.08]">
                 <div className="w-12 h-12 bg-gradient-to-br from-[#00ff88]/20 to-[#00ccff]/20 rounded-lg flex items-center justify-center mb-4 text-[#00ff88]">
                   <svg
                     className="w-6 h-6"
@@ -244,7 +244,7 @@ const Contact = () => {
               </div>
 
               {/* Social Media */}
-              <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10">
+              <div className="bg-white/[0.04] p-6 rounded-xl border border-white/[0.08]">
                 <h3 className="text-lg font-bold mb-4">Redes Sociais</h3>
                 <div className="flex gap-4">
                   <a
@@ -301,14 +301,14 @@ const Contact = () => {
 
             {/* Contact Form */}
             <div className="lg:col-span-2">
-              <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-8 rounded-xl border border-white/10">
+              <div className="bg-white/[0.04] p-8 rounded-xl border border-white/[0.08]">
                 <h2 className="text-3xl font-bold mb-6">Envie sua Mensagem</h2>
 
                 {formSubmitted ? (
                   <div className="bg-[#00ff88]/20 border border-[#00ff88]/30 rounded-lg p-6 text-center">
                     <div className="w-16 h-16 bg-[#00ff88] rounded-full flex items-center justify-center mx-auto mb-4">
                       <svg
-                        className="w-8 h-8 text-[#0a0e27]"
+                        className="w-8 h-8 text-[#0a0e1a]"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -345,7 +345,7 @@ const Contact = () => {
                           value={formData.name}
                           onChange={handleChange}
                           required
-                          className="w-full px-4 py-3 bg-[#0a0e27] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88]/50 transition-colors"
+                          className="w-full px-4 py-3 bg-[#0a0e1a] border border-white/[0.08] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88]/50 transition-colors"
                           placeholder="Seu nome"
                         />
                       </div>
@@ -364,7 +364,7 @@ const Contact = () => {
                           value={formData.email}
                           onChange={handleChange}
                           required
-                          className="w-full px-4 py-3 bg-[#0a0e27] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88]/50 transition-colors"
+                          className="w-full px-4 py-3 bg-[#0a0e1a] border border-white/[0.08] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88]/50 transition-colors"
                           placeholder="seu@email.com"
                         />
                       </div>
@@ -384,7 +384,7 @@ const Contact = () => {
                           name="phone"
                           value={formData.phone}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 bg-[#0a0e27] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88]/50 transition-colors"
+                          className="w-full px-4 py-3 bg-[#0a0e1a] border border-white/[0.08] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88]/50 transition-colors"
                           placeholder="(11) 99999-9999"
                         />
                       </div>
@@ -402,7 +402,7 @@ const Contact = () => {
                           value={formData.subject}
                           onChange={handleChange}
                           required
-                          className="w-full px-4 py-3 bg-[#0a0e27] border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#00ff88]/50 transition-colors appearance-none cursor-pointer"
+                          className="w-full px-4 py-3 bg-[#0a0e1a] border border-white/[0.08] rounded-lg text-white focus:outline-none focus:border-[#00ff88]/50 transition-colors appearance-none cursor-pointer"
                         >
                           <option value="">Selecione um assunto</option>
                           <option value="duvidas">
@@ -430,14 +430,14 @@ const Contact = () => {
                         onChange={handleChange}
                         required
                         rows={6}
-                        className="w-full px-4 py-3 bg-[#0a0e27] border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88]/50 transition-colors resize-none"
+                        className="w-full px-4 py-3 bg-[#0a0e1a] border border-white/[0.08] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[#00ff88]/50 transition-colors resize-none"
                         placeholder="Escreva sua mensagem aqui..."
                       ></textarea>
                     </div>
 
                     <button
                       type="submit"
-                      className="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold text-lg transition-all hover:scale-[1.02] shadow-lg hover:shadow-[0_0_30px_rgba(0,255,136,0.4)]"
+                      className="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e1a] rounded-xl font-bold text-lg transition-all hover:scale-[1.02] shadow-lg hover:shadow-[0_0_30px_rgba(0,255,136,0.4)]"
                     >
                       Enviar Mensagem
                     </button>
@@ -450,7 +450,7 @@ const Contact = () => {
               </div>
 
               {/* FAQ Quick Links */}
-              <div className="mt-8 bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10">
+              <div className="mt-8 bg-white/[0.04] p-6 rounded-xl border border-white/[0.08]">
                 <h3 className="text-xl font-bold mb-4">Perguntas Frequentes</h3>
                 <div className="space-y-3">
                   <a
@@ -485,14 +485,14 @@ const Contact = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#050817] border-t border-white/5 py-12 px-6 lg:px-8 mt-20">
+      <footer className="bg-[#0a0e1a] border-t border-white/[0.07] py-12 px-6 lg:px-8 mt-20">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center">
                   <svg
-                    className="w-5 h-5 text-[#0a0e27]"
+                    className="w-5 h-5 text-[#0a0e1a]"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -598,7 +598,7 @@ const Contact = () => {
             </div>
           </div>
 
-          <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="border-t border-white/[0.07] pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-500">
               © 2026 Bubble. Todos os direitos reservados.
             </p>

@@ -112,16 +112,36 @@ function getInitials(name: string) {
 const AthleteDashboard: React.FC = () => {
   const [profile, setProfile] = useState<AthleteProfile | null>(null);
   const [entries, setEntries] = useState<TournamentEntry[]>([]);
+  const [stats, setStats] = useState<{
+    wins: number;
+    losses: number;
+    winRate: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const pathLocation = useLocation();
 
   useEffect(() => {
-    Promise.all([fetchProfile(), fetchTournaments()])
-      .then(([p, t]) => {
+    const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
+    const token = localStorage.getItem("auth_token") ?? "";
+    const headers = { Authorization: `Bearer ${token}` };
+    Promise.all([
+      fetchProfile(),
+      fetchTournaments(),
+      fetch(`${API_URL}/athlete/stats`, { headers })
+        .then((r) => r.json())
+        .catch(() => null),
+    ])
+      .then(([p, t, s]) => {
         setProfile(p);
         setEntries(t);
+        if (s?.data?.summary)
+          setStats({
+            wins: s.data.summary.wins ?? 0,
+            losses: s.data.summary.losses ?? 0,
+            winRate: s.data.summary.winRate ?? 0,
+          });
       })
       .catch((err) => setError(err.message ?? "Erro ao carregar dados"))
       .finally(() => setLoading(false));
@@ -204,7 +224,8 @@ const AthleteDashboard: React.FC = () => {
         </div>
 
         {/* ── Stat Cards ────────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        {/* Stat Cards — torneios */}
+        <div className="grid grid-cols-3 gap-3 mb-4">
           {[
             {
               label: "Inscrições",
@@ -248,6 +269,55 @@ const AthleteDashboard: React.FC = () => {
             </div>
           ))}
         </div>
+
+        {/* Stat Cards — performance (aparece após stats carregarem) */}
+        {stats && (
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            {[
+              {
+                label: "Vitórias",
+                value: stats.wins,
+                color: "text-emerald-600",
+                bg: "bg-emerald-50",
+                icon: "🏅",
+              },
+              {
+                label: "Derrotas",
+                value: stats.losses,
+                color: "text-red-500",
+                bg: "bg-red-50",
+                icon: "📉",
+              },
+              {
+                label: "Win Rate",
+                value: `${stats.winRate}%`,
+                color:
+                  stats.winRate >= 50 ? "text-emerald-600" : "text-amber-600",
+                bg: stats.winRate >= 50 ? "bg-emerald-50" : "bg-amber-50",
+                icon: "📊",
+              },
+            ].map(({ label, value, color, bg, icon }) => (
+              <div
+                key={label}
+                className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm"
+              >
+                <div
+                  className={`w-8 h-8 ${bg} rounded-lg flex items-center justify-center text-sm mb-3`}
+                >
+                  {icon}
+                </div>
+                <p
+                  className={`text-[22px] font-extrabold tracking-tight leading-none mb-1 ${color}`}
+                >
+                  {value}
+                </p>
+                <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                  {label}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* ── Lista de torneios ─────────────────────────────────────────────── */}

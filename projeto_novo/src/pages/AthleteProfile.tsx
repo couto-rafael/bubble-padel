@@ -87,6 +87,21 @@ interface LeagueStanding {
   }>;
 }
 
+interface PartnerStat {
+  name: string;
+  wins: number;
+  losses: number;
+  total: number;
+  winRate: number;
+}
+interface CategoryStat {
+  category: string;
+  wins: number;
+  losses: number;
+  total: number;
+  winRate: number;
+}
+
 interface AthleteStats {
   trophies: AthleteTrophy[];
   achievements: {
@@ -95,11 +110,22 @@ interface AthleteStats {
     locked: Achievement[];
   };
   leagueStandings: LeagueStanding[];
+  matchStats?: {
+    wins: number;
+    losses: number;
+    totalMatches: number;
+    winRate: number;
+    topPartners: PartnerStat[];
+    byCategory: CategoryStat[];
+  };
   summary: {
     totalTrophies: number;
     totalTitles: number;
     totalAchievementsUnlocked: number;
     totalAchievementsAvailable: number;
+    wins?: number;
+    losses?: number;
+    winRate?: number;
   };
 }
 
@@ -699,33 +725,155 @@ const AthleteProfile: React.FC = () => {
               </div>
             </div>
 
-            {/* Estatísticas detalhadas — placeholder Sprint 7.S1 */}
-            <div className="bg-gradient-to-br from-[#0a0e1a] to-[#141824] border border-white/[0.08] rounded-2xl p-5">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-[14px] font-extrabold text-[#f0f4ff] tracking-tight">
-                  Estatísticas Detalhadas
-                </h2>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#00e87a]/10 text-[#00e87a] border border-[#00e87a]/20">
-                  Em breve
-                </span>
-              </div>
-              <p className="text-[12px] text-[#6b7a99] mb-4 font-normal leading-relaxed">
-                Vitórias, derrotas, % de aproveitamento, melhores parceiros e
-                adversários mais frequentes.
-              </p>
-              <div className="grid grid-cols-3 gap-3">
-                {["Vitórias", "Derrotas", "% Aproveit."].map((label) => (
-                  <div
-                    key={label}
-                    className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-3 text-center"
-                  >
-                    <div className="h-5 bg-white/[0.06] rounded-md mb-2 animate-pulse" />
-                    <p className="text-[10px] font-semibold text-[#6b7a99] uppercase tracking-wide">
-                      {label}
-                    </p>
+            {/* Estatísticas Detalhadas — Sprint 7.S1 */}
+            <div className="bg-gradient-to-br from-[#0a0e1a] to-[#141824] border border-white/[0.08] rounded-2xl p-5 space-y-5">
+              <h2 className="text-[14px] font-extrabold text-[#f0f4ff] tracking-tight">
+                Estatísticas Detalhadas
+              </h2>
+
+              {/* Win/Loss counters */}
+              {stats?.matchStats ? (
+                <>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      {
+                        label: "Vitórias",
+                        value: stats.matchStats.wins,
+                        color: "text-[#00e87a]",
+                      },
+                      {
+                        label: "Derrotas",
+                        value: stats.matchStats.losses,
+                        color: "text-red-400",
+                      },
+                      {
+                        label: "Win Rate",
+                        value: `${stats.matchStats.winRate}%`,
+                        color:
+                          stats.matchStats.winRate >= 50
+                            ? "text-[#00e87a]"
+                            : "text-amber-400",
+                      },
+                    ].map(({ label, value, color }) => (
+                      <div
+                        key={label}
+                        className="bg-white/[0.05] border border-white/[0.06] rounded-xl p-3 text-center"
+                      >
+                        <p
+                          className={`text-[22px] font-black leading-none mb-1 ${color}`}
+                        >
+                          {value}
+                        </p>
+                        <p className="text-[10px] font-bold text-[#6b7a99] uppercase tracking-wide">
+                          {label}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+
+                  {/* Win rate bar */}
+                  {stats.matchStats.totalMatches > 0 && (
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] text-[#6b7a99] mb-1.5">
+                        <span>
+                          {stats.matchStats.wins}V / {stats.matchStats.losses}D
+                        </span>
+                        <span>{stats.matchStats.totalMatches} partidas</span>
+                      </div>
+                      <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#00e87a] rounded-full transition-all"
+                          style={{ width: `${stats.matchStats.winRate}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Por categoria */}
+                  {stats.matchStats.byCategory.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-bold text-[#6b7a99] uppercase tracking-widest mb-2">
+                        Por Categoria
+                      </p>
+                      <div className="space-y-2">
+                        {stats.matchStats.byCategory.map((cat) => (
+                          <div
+                            key={cat.category}
+                            className="flex items-center justify-between text-[12px]"
+                          >
+                            <span className="text-[#9ba5be] font-medium truncate max-w-[120px]">
+                              {cat.category}
+                            </span>
+                            <div className="flex items-center gap-3">
+                              <span className="text-[#00e87a] font-bold">
+                                {cat.wins}V
+                              </span>
+                              <span className="text-red-400 font-bold">
+                                {cat.losses}D
+                              </span>
+                              <span
+                                className={`font-extrabold text-[11px] ${cat.winRate >= 50 ? "text-[#00e87a]" : "text-amber-400"}`}
+                              >
+                                {cat.winRate}%
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Melhores parceiros */}
+                  {stats.matchStats.topPartners.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-bold text-[#6b7a99] uppercase tracking-widest mb-2">
+                        Melhores Parceiros
+                      </p>
+                      <div className="space-y-2">
+                        {stats.matchStats.topPartners.slice(0, 3).map((p) => (
+                          <div
+                            key={p.name}
+                            className="flex items-center justify-between"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-full bg-[#00e87a]/20 flex items-center justify-center text-[11px] font-black text-[#00e87a] flex-shrink-0">
+                                {p.name.slice(0, 1).toUpperCase()}
+                              </div>
+                              <span className="text-[12px] font-semibold text-[#cdd5e0] truncate max-w-[110px]">
+                                {p.name}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-[11px]">
+                              <span className="text-[#6b7a99]">
+                                {p.total} jogos
+                              </span>
+                              <span
+                                className={`font-extrabold ${p.winRate >= 50 ? "text-[#00e87a]" : "text-amber-400"}`}
+                              >
+                                {p.winRate}%
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="grid grid-cols-3 gap-3">
+                  {["Vitórias", "Derrotas", "% Aproveit."].map((label) => (
+                    <div
+                      key={label}
+                      className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-3 text-center animate-pulse"
+                    >
+                      <div className="h-5 bg-white/[0.06] rounded-md mb-2" />
+                      <p className="text-[10px] font-semibold text-[#6b7a99] uppercase tracking-wide">
+                        {label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">

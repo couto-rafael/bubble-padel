@@ -8,7 +8,7 @@ const Home = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#0a0e27] text-white font-sans antialiased">
+    <div className="min-h-screen bg-[#0a0e1a] text-white font-sans antialiased">
       {/* Auth Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}
@@ -16,13 +16,13 @@ const Home = () => {
       />
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e27]/95 backdrop-blur-sm border-b border-white/5">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e1a]/95 backdrop-blur-sm border-b border-white/[0.07]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <Link to="/" className="flex items-center gap-2">
               <div className="w-10 h-10 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center">
                 <svg
-                  className="w-6 h-6 text-[#0a0e27]"
+                  className="w-6 h-6 text-[#0a0e1a]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -35,7 +35,9 @@ const Home = () => {
                   />
                 </svg>
               </div>
-              <span className="text-2xl font-bold tracking-tight">Bubble</span>
+              <span className="text-[20px] font-extrabold tracking-tight">
+                Bubble
+              </span>
             </Link>
 
             {/* Desktop Menu */}
@@ -66,7 +68,7 @@ const Home = () => {
               </Link>
               <button
                 onClick={() => setIsAuthModalOpen(true)}
-                className="px-6 py-2.5 bg-[#00ff88] text-[#0a0e27] rounded-lg font-semibold text-sm hover:bg-[#00dd77] transition-all hover:scale-105"
+                className="px-6 py-2.5 bg-[#00ff88] text-[#0a0e1a] rounded-xl font-bold text-sm hover:bg-[#00ff99] transition-all"
               >
                 Entrar
               </button>
@@ -80,15 +82,15 @@ const Home = () => {
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0e27] via-[#0f1540] to-[#0a0e27]"></div>
+        <div className="absolute inset-0 bg-[#0a0e1a]"></div>
         <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-20 right-20 w-96 h-96 bg-[#00ff88] rounded-full blur-[120px]"></div>
-          <div className="absolute bottom-20 left-20 w-96 h-96 bg-[#00ccff] rounded-full blur-[120px]"></div>
+          <div className="absolute top-20 right-20 w-96 h-96 bg-[#00ff88] rounded-full blur-[100px] opacity-60"></div>
+          <div className="absolute bottom-20 left-20 w-96 h-96 bg-[#00ccff] rounded-full blur-[100px] opacity-60"></div>
         </div>
 
         <div className="relative max-w-7xl mx-auto">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full mb-8 animate-fade-in">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/[0.08] rounded-full mb-8 animate-fade-in">
               <span className="w-2 h-2 bg-[#00ff88] rounded-full animate-pulse"></span>
               <span className="text-sm text-gray-300">
                 Mais de 500 clubes de padel confiam na gente
@@ -109,7 +111,7 @@ const Home = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button className="group px-8 py-4 bg-[#00ff88] text-[#0a0e27] rounded-xl font-bold text-lg hover:bg-[#00dd77] transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(0,255,136,0.4)] flex items-center gap-2">
+              <button className="group px-8 py-4 bg-[#00ff88] text-[#0a0e1a] rounded-xl font-bold text-lg hover:bg-[#00dd77] transition-all hover:shadow-[0_0_40px_rgba(0,255,136,0.4)] flex items-center gap-2">
                 Criar Seu Primeiro Torneio
                 <svg
                   className="w-5 h-5 group-hover:translate-x-1 transition-transform"
@@ -134,7 +136,7 @@ const Home = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-b from-[#0a0e27] to-[#0f1540]">
+      <section className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-b from-[#0a0e1a] to-[#0f1540]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8 md:mb-16">
             <h2 className="text-2xl md:text-4xl lg:text-5xl font-black mb-4">
@@ -213,13 +215,13 @@ const Home = () => {
             ].map((item, index) => (
               <div key={index} className="relative group">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#00ff88]/10 to-[#00ccff]/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all"></div>
-                <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-5 md:p-8 rounded-2xl border border-white/10 hover:border-[#00ff88]/30 transition-all">
+                <div className="relative bg-white/[0.04] p-5 md:p-8 rounded-2xl border border-white/[0.08] hover:border-[#00ff88]/30 transition-all">
                   {/* Mobile: horizontal layout — número + ícone na mesma linha */}
                   <div className="flex items-center gap-4 mb-3 md:block">
                     <div className="text-[#00ff88]/40 text-3xl md:text-6xl font-black md:mb-4 leading-none">
                       {item.step}
                     </div>
-                    <div className="w-10 h-10 md:w-16 md:h-16 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-xl flex items-center justify-center md:mb-6 text-[#0a0e27] flex-shrink-0">
+                    <div className="w-10 h-10 md:w-16 md:h-16 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-xl flex items-center justify-center md:mb-6 text-[#0a0e1a] flex-shrink-0">
                       {item.icon}
                     </div>
                   </div>
@@ -239,7 +241,7 @@ const Home = () => {
       {/* Features */}
       <section
         id="features"
-        className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-[#0a0e27]"
+        className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-[#0a0e1a]"
       >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8 md:mb-16">
@@ -376,7 +378,7 @@ const Home = () => {
             ].map((feature, index) => (
               <div
                 key={index}
-                className="group bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-4 md:p-6 rounded-xl border border-white/5 hover:border-[#00ff88]/30 transition-all hover:scale-[1.02]"
+                className="group bg-white/[0.04] p-4 md:p-6 rounded-xl border border-white/[0.07] hover:border-[#00ff88]/30 transition-all hover:scale-[1.02]"
               >
                 <div className="flex items-center gap-3 mb-2 md:block">
                   <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-[#00ff88]/20 to-[#00ccff]/20 rounded-lg flex items-center justify-center md:mb-4 text-[#00ff88] group-hover:scale-110 transition-transform flex-shrink-0">
@@ -396,7 +398,7 @@ const Home = () => {
       </section>
 
       {/* Who Is It For */}
-      <section className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-b from-[#0a0e27] to-[#0f1540]">
+      <section className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-b from-[#0a0e1a] to-[#0f1540]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8 md:mb-16">
             <h2 className="text-2xl md:text-4xl lg:text-5xl font-black mb-4">
@@ -410,11 +412,11 @@ const Home = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-br from-[#00ff88]/10 to-transparent rounded-2xl blur-2xl"></div>
-              <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-5 md:p-10 rounded-2xl border border-white/10 hover:border-[#00ff88]/30 transition-all">
+              <div className="relative bg-white/[0.04] p-5 md:p-10 rounded-2xl border border-white/[0.08] hover:border-[#00ff88]/30 transition-all">
                 <div className="flex items-center gap-4 mb-4 md:block">
                   <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-2xl flex items-center justify-center md:mb-6 flex-shrink-0">
                     <svg
-                      className="w-6 h-6 md:w-8 md:h-8 text-[#0a0e27]"
+                      className="w-6 h-6 md:w-8 md:h-8 text-[#0a0e1a]"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -472,11 +474,11 @@ const Home = () => {
 
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-br from-[#00ccff]/10 to-transparent rounded-2xl blur-2xl"></div>
-              <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-5 md:p-10 rounded-2xl border border-white/10 hover:border-[#00ccff]/30 transition-all">
+              <div className="relative bg-white/[0.04] p-5 md:p-10 rounded-2xl border border-white/[0.08] hover:border-[#00ccff]/30 transition-all">
                 <div className="flex items-center gap-4 mb-4 md:block">
                   <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-[#00ccff] to-[#0099cc] rounded-2xl flex items-center justify-center md:mb-6 flex-shrink-0">
                     <svg
-                      className="w-6 h-6 md:w-8 md:h-8 text-[#0a0e27]"
+                      className="w-6 h-6 md:w-8 md:h-8 text-[#0a0e1a]"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -535,7 +537,7 @@ const Home = () => {
       </section>
 
       {/* Social Proof */}
-      <section className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-[#0a0e27]">
+      <section className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-[#0a0e1a]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8 md:mb-16">
             <h2 className="text-2xl md:text-4xl lg:text-5xl font-black mb-4">
@@ -552,7 +554,7 @@ const Home = () => {
               (name, index) => (
                 <div
                   key={index}
-                  className="bg-gradient-to-br from-[#1a1f4a]/30 to-[#0f1540]/30 p-4 md:p-8 rounded-xl border border-white/5 flex items-center justify-center"
+                  className="bg-gradient-to-br from-[#1a1f4a]/30 to-[#0f1540]/30 p-4 md:p-8 rounded-xl border border-white/[0.07] flex items-center justify-center"
                 >
                   <div className="text-gray-500 font-bold text-lg">{name}</div>
                 </div>
@@ -584,7 +586,7 @@ const Home = () => {
             ].map((testimonial, index) => (
               <div
                 key={index}
-                className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-8 rounded-xl border border-white/10"
+                className="bg-white/[0.04] p-8 rounded-xl border border-white/[0.08]"
               >
                 <div className="text-[#00ff88] mb-4">
                   <svg
@@ -613,7 +615,7 @@ const Home = () => {
       {/* Pricing */}
       <section
         id="pricing"
-        className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-b from-[#0a0e27] to-[#0f1540]"
+        className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-b from-[#0a0e1a] to-[#0f1540]"
       >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8 md:mb-16">
@@ -631,7 +633,7 @@ const Home = () => {
           <div className="max-w-4xl mx-auto mb-16">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-[#00ff88]/20 to-[#00ccff]/20 rounded-3xl blur-2xl"></div>
-              <div className="relative bg-gradient-to-br from-[#1a1f4a] to-[#0f1540] p-6 md:p-12 lg:p-16 rounded-3xl border-2 border-[#00ff88]/50 shadow-[0_0_60px_rgba(0,255,136,0.3)]">
+              <div className="relative bg-white/[0.04] p-6 md:p-12 lg:p-16 rounded-3xl border-2 border-[#00ff88]/50 shadow-[0_0_60px_rgba(0,255,136,0.3)]">
                 <div className="text-center">
                   {/* Big ZERO */}
                   <div className="mb-6 md:mb-8">
@@ -663,7 +665,7 @@ const Home = () => {
                     </p>
                   </div>
 
-                  <button className="px-12 py-5 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-xl font-black text-xl transition-all hover:scale-105 shadow-lg hover:shadow-[0_0_40px_rgba(0,255,136,0.5)]">
+                  <button className="px-12 py-5 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e1a] rounded-xl font-black text-xl transition-all shadow-lg hover:shadow-[0_0_40px_rgba(0,255,136,0.5)]">
                     Começar Gratuitamente
                   </button>
                 </div>
@@ -797,7 +799,7 @@ const Home = () => {
               ].map((feature, index) => (
                 <div
                   key={index}
-                  className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-4 md:p-6 rounded-xl border border-white/10"
+                  className="bg-white/[0.04] p-4 md:p-6 rounded-xl border border-white/[0.08]"
                 >
                   <div className="flex items-center gap-3 mb-2 md:block">
                     <div className="w-9 h-9 md:w-12 md:h-12 bg-gradient-to-br from-[#00ff88]/20 to-[#00ccff]/20 rounded-lg flex items-center justify-center md:mb-4 text-[#00ff88] flex-shrink-0">
@@ -815,7 +817,7 @@ const Home = () => {
 
           {/* FAQ About Pricing */}
           <div className="max-w-3xl mx-auto mt-16">
-            <div className="bg-gradient-to-br from-[#1a1f4a]/30 to-[#0f1540]/30 p-8 rounded-xl border border-white/10">
+            <div className="bg-gradient-to-br from-[#1a1f4a]/30 to-[#0f1540]/30 p-8 rounded-xl border border-white/[0.08]">
               <h3 className="text-xl font-bold mb-6 text-center">
                 Perguntas Sobre Preços
               </h3>
@@ -867,7 +869,7 @@ const Home = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-[#0a0e27] relative overflow-hidden">
+      <section className="py-12 md:py-20 px-4 md:px-6 lg:px-8 bg-[#0a0e1a] relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#00ff88]/5 to-[#00ccff]/5"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(800px,100vw)] h-[min(800px,100vw)] bg-[#00ff88] rounded-full blur-[150px] opacity-10"></div>
 
@@ -883,7 +885,7 @@ const Home = () => {
             Bubble. Seu primeiro torneio está a apenas alguns minutos de
             distância.
           </p>
-          <button className="group px-10 py-5 bg-[#00ff88] text-[#0a0e27] rounded-xl font-bold text-xl hover:bg-[#00dd77] transition-all hover:scale-105 hover:shadow-[0_0_50px_rgba(0,255,136,0.5)] flex items-center gap-3 mx-auto">
+          <button className="group px-10 py-5 bg-[#00ff88] text-[#0a0e1a] rounded-xl font-bold text-xl hover:bg-[#00dd77] transition-all hover:shadow-[0_0_50px_rgba(0,255,136,0.5)] flex items-center gap-3 mx-auto">
             Criar Seu Torneio Agora
             <svg
               className="w-6 h-6 group-hover:translate-x-1 transition-transform"
