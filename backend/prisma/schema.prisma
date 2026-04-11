@@ -94,13 +94,20 @@ model Club {
   matchDuration    Int            @default(60)
   defaultStartTime String         @default("08:00")
   defaultEndTime   String         @default("20:00")
-  // Sprint 7B — perfil público
+  // Sprint 7B — endereço completo
+  cep              String?
+  street           String?
+  addressNumber    String?
+  neighborhood     String?
+  // perfil público
   coverUrl         String?
   slogan           String?
   description      String?
   sports           Sport[]        @default([])
   amenities        String[]       @default([])
   businessHours    Json?
+  paymentMethods   Json?
+  pixKeys          Json?
   whatsappNumber   String?
   instagramUrl     String?
   youtubeUrl       String?

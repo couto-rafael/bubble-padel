@@ -143,6 +143,25 @@ function formatDate(dateStr?: string): string {
   }
 }
 
+// ── Mask formatters ──────────────────────────────────────────────────────────
+function maskCNPJ(v: string): string {
+  const d = v.replace(/\D/g, "").slice(0, 14);
+  return d
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+}
+
+function maskPhone(v: string): string {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 10)
+    return d
+      .replace(/^(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3")
+      .replace(/-$/, "");
+  return d.replace(/^(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3").replace(/-$/, "");
+}
+
 const Toggle = ({
   checked,
   onChange,
@@ -226,6 +245,10 @@ const ClubSettings = () => {
   const [logoUrl, setLogoUrl] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
 
+  const [deletedInstructorIds, setDeletedInstructorIds] = useState<string[]>(
+    [],
+  );
+
   const [contaForm, setContaForm] = useState({
     senhaAtual: "",
     novaSenha: "",
@@ -243,8 +266,8 @@ const ClubSettings = () => {
       name: club?.name || user?.name || prev.name,
       cnpj: club?.cnpj || prev.cnpj,
       phone: club?.phone ?? prev.phone,
-      slogan: prev.slogan,
-      description: prev.description,
+      slogan: (club as any)?.slogan ?? prev.slogan,
+      description: (club as any)?.description ?? prev.description,
     }));
     if (club?.courts) setCourts(club.courts);
     if ((club as any)?.sports) setClubSports((club as any).sports);
@@ -266,12 +289,28 @@ const ClubSettings = () => {
       twitterUrl: (club as any)?.twitterUrl ?? "",
       threadsUrl: (club as any)?.threadsUrl ?? "",
     });
-    if (club?.city || club?.state) {
-      setEndereco((p) => ({
-        ...p,
-        cidade: club?.city ?? p.cidade,
-        estado: club?.state ?? p.estado,
-      }));
+    setEndereco((p) => ({
+      cep: (club as any)?.cep ?? p.cep,
+      rua: (club as any)?.street ?? p.rua,
+      numero: (club as any)?.addressNumber ?? p.numero,
+      bairro: (club as any)?.neighborhood ?? p.bairro,
+      cidade: club?.city ?? p.cidade,
+      estado: club?.state ?? p.estado,
+    }));
+    if ((club as any)?.amenities?.length) {
+      const am = (club as any).amenities as string[];
+      setExtras(
+        EXTRAS_LIST.reduce(
+          (acc, e) => ({ ...acc, [e.key]: am.includes(e.key) }),
+          {} as ExtrasState,
+        ),
+      );
+    }
+    if ((club as any)?.paymentMethods) {
+      setPaymentMethods((club as any).paymentMethods);
+    }
+    if ((club as any)?.pixKeys) {
+      setPixKeys((club as any).pixKeys);
     }
   }, [club, user]);
 
@@ -296,21 +335,79 @@ const ClubSettings = () => {
   };
 
   const handleSaveAll = async () => {
+    const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
+    const token = localStorage.getItem("auth_token") ?? "";
+    const h = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    };
+
+    // Save club profile (all flat fields)
     await updateClub({
       name: perfil.name,
       cnpj: perfil.cnpj,
       phone: perfil.phone,
       city: endereco.cidade,
       state: endereco.estado,
+      cep: endereco.cep,
+      street: endereco.rua,
+      addressNumber: endereco.numero,
+      neighborhood: endereco.bairro,
       courts,
       slogan: perfil.slogan,
       description: perfil.description,
       logoUrl: logoUrl || undefined,
       coverUrl: coverUrl || undefined,
       sports: clubSports,
+      amenities: EXTRAS_LIST.filter((e) => extras[e.key]).map((e) => e.key),
       businessHours,
+      paymentMethods,
+      pixKeys,
       ...socialLinks,
     } as any);
+
+    // Sync instructors separately
+    for (const id of deletedInstructorIds) {
+      await fetch(`${API_URL}/club/instructors/${id}`, {
+        method: "DELETE",
+        headers: h,
+      }).catch(() => {});
+    }
+    setDeletedInstructorIds([]);
+
+    const newInstructors: Instructor[] = [];
+    for (const inst of instructors) {
+      if (/^\d{10,}$/.test(inst.id)) {
+        // new (temp id from Date.now())
+        const r = await fetch(`${API_URL}/club/instructors`, {
+          method: "POST",
+          headers: h,
+          body: JSON.stringify({
+            name: inst.name,
+            bio: inst.bio,
+            sports: inst.sports,
+            photoUrl: inst.photoUrl || null,
+            order: 0,
+          }),
+        });
+        const j = await r.json();
+        newInstructors.push({ ...inst, id: j.data?.id ?? inst.id });
+      } else {
+        await fetch(`${API_URL}/club/instructors/${inst.id}`, {
+          method: "PATCH",
+          headers: h,
+          body: JSON.stringify({
+            name: inst.name,
+            bio: inst.bio,
+            sports: inst.sports,
+            photoUrl: inst.photoUrl || null,
+          }),
+        }).catch(() => {});
+        newInstructors.push(inst);
+      }
+    }
+    setInstructors(newInstructors);
+
     setIsDirty(false);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 3000);
@@ -490,10 +587,10 @@ const ClubSettings = () => {
                         <input
                           value={perfil[field as keyof typeof perfil]}
                           onChange={(e) => {
-                            setPerfil((p) => ({
-                              ...p,
-                              [field]: e.target.value,
-                            }));
+                            let val = e.target.value;
+                            if (field === "cnpj") val = maskCNPJ(val);
+                            else if (field === "phone") val = maskPhone(val);
+                            setPerfil((p) => ({ ...p, [field]: val }));
                             markDirty();
                           }}
                           placeholder={placeholder}
@@ -945,6 +1042,11 @@ const ClubSettings = () => {
                               </span>
                               <button
                                 onClick={() => {
+                                  if (!/^\d{10,}$/.test(inst.id))
+                                    setDeletedInstructorIds((prev) => [
+                                      ...prev,
+                                      inst.id,
+                                    ]);
                                   setInstructors((prev) =>
                                     prev.filter((i) => i.id !== inst.id),
                                   );
@@ -1503,6 +1605,25 @@ const ClubSettings = () => {
                           : saveSuccess
                             ? "✓ Salvo!"
                             : "Salvar"}
+                      </button>
+                      <button
+                        onClick={() => setActiveTab("notificacoes")}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-bold transition-colors"
+                      >
+                        Próximo: Notificações
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
                       </button>
                     </div>
                   </div>
