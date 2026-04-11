@@ -30,6 +30,11 @@ const SIDEBAR = [
     icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z",
   },
   {
+    key: "contato",
+    label: "Contato & Redes",
+    icon: "M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z",
+  },
+  {
     key: "financeiro",
     label: "Financeiro",
     icon: "M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H9a3 3 0 00-3 3v8a3 3 0 003 3z",
@@ -197,6 +202,7 @@ const ClubSettings = () => {
     creditCard: false,
     debitCard: false,
   });
+  // Sprint 7B — novos campos
   const [clubSports, setClubSports] = useState<string[]>([]);
   const [businessHours, setBusinessHours] = useState<
     Record<WeekdayKey, string>
@@ -210,6 +216,15 @@ const ClubSettings = () => {
     dom: "",
   });
   const [instructors, setInstructors] = useState<Instructor[]>([]);
+  const [socialLinks, setSocialLinks] = useState({
+    whatsappNumber: "",
+    instagramUrl: "",
+    youtubeUrl: "",
+    twitterUrl: "",
+    threadsUrl: "",
+  });
+  const [logoUrl, setLogoUrl] = useState("");
+  const [coverUrl, setCoverUrl] = useState("");
 
   const [contaForm, setContaForm] = useState({
     senhaAtual: "",
@@ -232,6 +247,25 @@ const ClubSettings = () => {
       description: prev.description,
     }));
     if (club?.courts) setCourts(club.courts);
+    if ((club as any)?.sports) setClubSports((club as any).sports);
+    if ((club as any)?.businessHours)
+      setBusinessHours((club as any).businessHours);
+    if ((club as any)?.instructors)
+      setInstructors(
+        (club as any).instructors.map((i: any) => ({
+          ...i,
+          photoUrl: i.photoUrl ?? "",
+        })),
+      );
+    if ((club as any)?.logoUrl) setLogoUrl((club as any).logoUrl ?? "");
+    if ((club as any)?.coverUrl) setCoverUrl((club as any).coverUrl ?? "");
+    setSocialLinks({
+      whatsappNumber: (club as any)?.whatsappNumber ?? "",
+      instagramUrl: (club as any)?.instagramUrl ?? "",
+      youtubeUrl: (club as any)?.youtubeUrl ?? "",
+      twitterUrl: (club as any)?.twitterUrl ?? "",
+      threadsUrl: (club as any)?.threadsUrl ?? "",
+    });
     if (club?.city || club?.state) {
       setEndereco((p) => ({
         ...p,
@@ -269,6 +303,13 @@ const ClubSettings = () => {
       city: endereco.cidade,
       state: endereco.estado,
       courts,
+      slogan: perfil.slogan,
+      description: perfil.description,
+      logoUrl: logoUrl || undefined,
+      coverUrl: coverUrl || undefined,
+      sports: clubSports,
+      businessHours,
+      ...socialLinks,
     } as any);
     setIsDirty(false);
     setSaveSuccess(true);
@@ -711,10 +752,10 @@ const ClubSettings = () => {
                       </button>
                       <div>
                         <button
-                          onClick={() => setActiveTab("financeiro")}
+                          onClick={() => setActiveTab("esportes")}
                           className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-bold transition-colors"
                         >
-                          Próximo: Financeiro
+                          Próximo: Esportes & Horários
                           <svg
                             className="w-4 h-4"
                             fill="none"
@@ -742,14 +783,13 @@ const ClubSettings = () => {
                     Esportes & Horários de Funcionamento
                   </h2>
 
-                  {/* Esportes disponíveis */}
+                  {/* Esportes */}
                   <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sm:p-6 mb-5">
                     <h3 className="text-[13px] font-bold text-gray-900 mb-1">
-                      Esportes Disponíveis no Clube
+                      Esportes Disponíveis
                     </h3>
                     <p className="text-xs text-gray-500 mb-4">
-                      Selecione os esportes que o seu clube oferece — aparece no
-                      perfil público.
+                      Aparecem no perfil público do clube.
                     </p>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {SPORTS_LIST.map(({ key, label, icon }) => {
@@ -778,13 +818,14 @@ const ClubSettings = () => {
                     </div>
                   </div>
 
-                  {/* Horários de funcionamento */}
-                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sm:p-6">
+                  {/* Horários */}
+                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sm:p-6 mb-5">
                     <h3 className="text-[13px] font-bold text-gray-900 mb-1">
                       Horário de Funcionamento
                     </h3>
                     <p className="text-xs text-gray-500 mb-4">
-                      Ex: "08:00–22:00" ou deixe em branco para dias fechados.
+                      Formato: "08:00-22:00". Deixe em branco para dias
+                      fechados.
                     </p>
                     <div className="space-y-3">
                       {WEEKDAYS.map(({ key, label }) => (
@@ -810,7 +851,7 @@ const ClubSettings = () => {
                     </div>
                   </div>
 
-                  <div className="flex justify-end mt-5">
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                     <button
                       onClick={handleSaveAll}
                       disabled={saving}
@@ -822,6 +863,25 @@ const ClubSettings = () => {
                           ? "✓ Salvo!"
                           : "Salvar"}
                     </button>
+                    <button
+                      onClick={() => setActiveTab("professores")}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-bold transition-colors"
+                    >
+                      Próximo: Professores
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               )}
@@ -832,7 +892,7 @@ const ClubSettings = () => {
                   <h2 className="text-[18px] font-extrabold text-gray-900 tracking-tight mb-5">
                     Professores
                   </h2>
-                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sm:p-6">
+                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sm:p-6 mb-5">
                     <div className="flex items-center justify-between mb-5">
                       <div>
                         <p className="text-[13px] font-bold text-gray-900">
@@ -858,18 +918,18 @@ const ClubSettings = () => {
                         }}
                         className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-colors"
                       >
-                        + Adicionar Professor
+                        + Adicionar
                       </button>
                     </div>
 
                     {instructors.length === 0 ? (
-                      <div className="flex flex-col items-center py-12 text-center">
+                      <div className="flex flex-col items-center py-10 text-center">
                         <span className="text-4xl mb-3 opacity-40">👨‍🏫</span>
                         <p className="text-[14px] font-bold text-gray-700 mb-1">
                           Nenhum professor cadastrado
                         </p>
                         <p className="text-[12px] text-gray-400">
-                          Adicione os professores disponíveis no seu clube
+                          Adicione os professores disponíveis no clube
                         </p>
                       </div>
                     ) : (
@@ -900,6 +960,7 @@ const ClubSettings = () => {
                                 <label className={LABEL_CLS}>Nome</label>
                                 <input
                                   value={inst.name}
+                                  placeholder="Nome do professor"
                                   onChange={(e) => {
                                     setInstructors((prev) =>
                                       prev.map((i) =>
@@ -910,40 +971,57 @@ const ClubSettings = () => {
                                     );
                                     markDirty();
                                   }}
-                                  placeholder="Nome do professor"
                                   className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all placeholder:text-gray-400 placeholder:font-normal"
                                 />
                               </div>
                               <div>
-                                <label className={LABEL_CLS}>Esportes</label>
-                                <div className="flex gap-2 flex-wrap mt-1">
-                                  {SPORTS_LIST.map(({ key, label }) => (
-                                    <button
-                                      key={key}
-                                      type="button"
-                                      onClick={() => {
-                                        setInstructors((prev) =>
-                                          prev.map((i) =>
-                                            i.id === inst.id
-                                              ? {
-                                                  ...i,
-                                                  sports: i.sports.includes(key)
-                                                    ? i.sports.filter(
-                                                        (s) => s !== key,
-                                                      )
-                                                    : [...i.sports, key],
-                                                }
-                                              : i,
-                                          ),
-                                        );
-                                        markDirty();
-                                      }}
-                                      className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-all ${inst.sports.includes(key) ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}
-                                    >
-                                      {label}
-                                    </button>
-                                  ))}
-                                </div>
+                                <label className={LABEL_CLS}>Foto (URL)</label>
+                                <input
+                                  value={inst.photoUrl}
+                                  placeholder="https://..."
+                                  onChange={(e) => {
+                                    setInstructors((prev) =>
+                                      prev.map((i) =>
+                                        i.id === inst.id
+                                          ? { ...i, photoUrl: e.target.value }
+                                          : i,
+                                      ),
+                                    );
+                                    markDirty();
+                                  }}
+                                  className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all placeholder:text-gray-400 placeholder:font-normal"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className={LABEL_CLS}>Esportes</label>
+                              <div className="flex gap-2 flex-wrap mt-1">
+                                {SPORTS_LIST.map(({ key, label }) => (
+                                  <button
+                                    key={key}
+                                    type="button"
+                                    onClick={() => {
+                                      setInstructors((prev) =>
+                                        prev.map((i) =>
+                                          i.id === inst.id
+                                            ? {
+                                                ...i,
+                                                sports: i.sports.includes(key)
+                                                  ? i.sports.filter(
+                                                      (s) => s !== key,
+                                                    )
+                                                  : [...i.sports, key],
+                                              }
+                                            : i,
+                                        ),
+                                      );
+                                      markDirty();
+                                    }}
+                                    className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-all ${inst.sports.includes(key) ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-500 hover:border-gray-300"}`}
+                                  >
+                                    {label}
+                                  </button>
+                                ))}
                               </div>
                             </div>
                             <div>
@@ -952,6 +1030,8 @@ const ClubSettings = () => {
                               </label>
                               <textarea
                                 value={inst.bio}
+                                rows={2}
+                                placeholder="Ex: Especialista em Beach Tennis, 10 anos de experiência..."
                                 onChange={(e) => {
                                   setInstructors((prev) =>
                                     prev.map((i) =>
@@ -962,8 +1042,6 @@ const ClubSettings = () => {
                                   );
                                   markDirty();
                                 }}
-                                rows={2}
-                                placeholder="Ex: Especialista em Beach Tennis, 10 anos de experiência..."
                                 className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all placeholder:text-gray-400 placeholder:font-normal resize-none"
                               />
                             </div>
@@ -971,22 +1049,154 @@ const ClubSettings = () => {
                         ))}
                       </div>
                     )}
+                  </div>
 
-                    {instructors.length > 0 && (
-                      <div className="flex justify-end mt-5 pt-4 border-t border-gray-100">
-                        <button
-                          onClick={handleSaveAll}
-                          disabled={saving}
-                          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"} disabled:opacity-50`}
-                        >
-                          {saving
-                            ? "Salvando..."
-                            : saveSuccess
-                              ? "✓ Salvo!"
-                              : "Salvar"}
-                        </button>
-                      </div>
-                    )}
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <button
+                      onClick={handleSaveAll}
+                      disabled={saving}
+                      className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"} disabled:opacity-50`}
+                    >
+                      {saving
+                        ? "Salvando..."
+                        : saveSuccess
+                          ? "✓ Salvo!"
+                          : "Salvar"}
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("contato")}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-bold transition-colors"
+                    >
+                      Próximo: Contato & Redes
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* CONTATO & REDES SOCIAIS */}
+              {activeTab === "contato" && (
+                <div>
+                  <h2 className="text-[18px] font-extrabold text-gray-900 tracking-tight mb-5">
+                    Contato & Redes Sociais
+                  </h2>
+                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sm:p-6 space-y-4 mb-5">
+                    <p className="text-[12px] text-gray-500">
+                      Essas informações aparecem no perfil público do clube.
+                    </p>
+
+                    <div>
+                      <label className={LABEL_CLS}>
+                        WhatsApp (número público)
+                      </label>
+                      <input
+                        value={socialLinks.whatsappNumber}
+                        onChange={(e) => {
+                          setSocialLinks((p) => ({
+                            ...p,
+                            whatsappNumber: e.target.value,
+                          }));
+                          markDirty();
+                        }}
+                        placeholder="5511999999999 (com código do país, sem + ou espaços)"
+                        className={INPUT_CLS}
+                      />
+                    </div>
+
+                    <div className="pt-2 border-t border-gray-100">
+                      <p className="text-[12px] font-bold text-gray-500 mb-3">
+                        Redes Sociais
+                      </p>
+                      {[
+                        {
+                          key: "instagramUrl",
+                          label: "Instagram",
+                          icon: "📸",
+                          placeholder: "https://instagram.com/seuperfil",
+                        },
+                        {
+                          key: "youtubeUrl",
+                          label: "YouTube",
+                          icon: "▶️",
+                          placeholder: "https://youtube.com/@seuperfil",
+                        },
+                        {
+                          key: "twitterUrl",
+                          label: "Twitter / X",
+                          icon: "𝕏",
+                          placeholder: "https://x.com/seuperfil",
+                        },
+                        {
+                          key: "threadsUrl",
+                          label: "Threads",
+                          icon: "🧵",
+                          placeholder: "https://threads.net/@seuperfil",
+                        },
+                      ].map(({ key, label, icon, placeholder }) => (
+                        <div key={key} className="mb-3">
+                          <label className={LABEL_CLS}>
+                            {icon} {label}
+                          </label>
+                          <input
+                            value={socialLinks[key as keyof typeof socialLinks]}
+                            onChange={(e) => {
+                              setSocialLinks((p) => ({
+                                ...p,
+                                [key]: e.target.value,
+                              }));
+                              markDirty();
+                            }}
+                            placeholder={placeholder}
+                            className={INPUT_CLS}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                    <button
+                      onClick={handleSaveAll}
+                      disabled={saving}
+                      className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${saveSuccess ? "bg-emerald-50 border border-emerald-300 text-emerald-600" : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"} disabled:opacity-50`}
+                    >
+                      {saving
+                        ? "Salvando..."
+                        : saveSuccess
+                          ? "✓ Salvo!"
+                          : "Salvar"}
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("financeiro")}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-bold transition-colors"
+                    >
+                      Próximo: Financeiro
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               )}

@@ -95,10 +95,17 @@ model Club {
   defaultStartTime String         @default("08:00")
   defaultEndTime   String         @default("20:00")
   // Sprint 7B — perfil público
-  sports           Sport[]        @default([])
+  coverUrl         String?
+  slogan           String?
   description      String?
+  sports           Sport[]        @default([])
   amenities        String[]       @default([])
-  businessHours    Json?          // { "seg": "08:00-22:00", ... }
+  businessHours    Json?
+  whatsappNumber   String?
+  instagramUrl     String?
+  youtubeUrl       String?
+  twitterUrl       String?
+  threadsUrl       String?
   instructors      ClubInstructor[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
