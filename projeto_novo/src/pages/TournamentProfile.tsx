@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { Link, useParams, useSearchParams, useLocation } from "react-router-dom";
 import AuthModal from "../components/AuthModal";
 import { PaymentModal } from "../components/PaymentModal";
 import MobileMenu from "../components/MobileMenu";
@@ -147,6 +147,7 @@ const TournamentProfile = () => {
   const currentUser = AuthService.getCurrentUser();
   const isAthlete = currentUser?.type?.toUpperCase() === "ATHLETE";
   const isClub = currentUser?.type?.toUpperCase() === "CLUB";
+  const { pathname } = useLocation();
 
   // Formulário de inscrição
   const [showRegisterForm, setShowRegisterForm] = useState(false);
@@ -459,7 +460,7 @@ const TournamentProfile = () => {
               )}
             </div>
 
-            <MobileMenu onLoginClick={() => setIsAuthModalOpen(true)} />
+            <MobileMenu onLoginClick={() => setIsAuthModalOpen(true)} currentUser={currentUser} />
           </div>
         </div>
       </nav>
@@ -2534,7 +2535,7 @@ const TournamentProfile = () => {
 
       {/* ── CTA Mobile Fixo ─────────────────────────────────────────────── */}
       {isOpen && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-[#0a0e1a]/95 backdrop-blur-xl border-t border-white/10 px-4 py-3">
+        <div className={`fixed ${isAthlete ? "bottom-14" : "bottom-0"} left-0 right-0 z-40 md:hidden bg-[#0a0e1a]/95 backdrop-blur-xl border-t border-white/10 px-4 py-3`}>
           {registerSuccess ? (
             <div className="w-full py-3 bg-green-600/20 border border-green-500/30 text-green-300 rounded-xl font-bold text-sm text-center">
               ✓ Inscrição realizada! Aguarde confirmação.
@@ -2567,6 +2568,39 @@ const TournamentProfile = () => {
           <p>&copy; 2026 Bubble. Todos os direitos reservados.</p>
         </div>
       </footer>
+
+      {/* ── Bottom Nav — Mobile Atleta ──────────────────────────────────────── */}
+      {isAthlete && (
+        <div className="fixed bottom-0 left-0 right-0 md:hidden bg-[#0a0e1a]/95 backdrop-blur-xl border-t border-white/[0.08] pb-safe z-50">
+          <div className="flex">
+            <Link
+              to="/athlete/dashboard"
+              className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-bold transition-colors ${pathname === "/athlete/dashboard" ? "text-[#00e87a]" : "text-[#6b7a99]"}`}
+            >
+              <span className="text-xl leading-none">🏠</span>Início
+            </Link>
+            <Link
+              to="/tournaments"
+              className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-bold transition-colors ${pathname === "/tournaments" ? "text-[#00e87a]" : "text-[#6b7a99]"}`}
+            >
+              <span className="text-xl leading-none">🎾</span>Torneios
+            </Link>
+            <Link
+              to="/athlete/profile"
+              state={{ tab: "trophies" }}
+              className="flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-bold text-[#6b7a99] transition-colors"
+            >
+              <span className="text-xl leading-none">🏆</span>Troféus
+            </Link>
+            <Link
+              to="/athlete/profile"
+              className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-bold transition-colors ${pathname === "/athlete/profile" ? "text-[#00e87a]" : "text-[#6b7a99]"}`}
+            >
+              <span className="text-xl leading-none">👤</span>Perfil
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

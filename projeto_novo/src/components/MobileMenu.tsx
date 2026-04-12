@@ -1,12 +1,15 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
+import { AuthService } from "../services/api";
 
 interface MobileMenuProps {
   onLoginClick: () => void;
+  currentUser?: { name: string; type: string } | null;
 }
 
-const MobileMenu: React.FC<MobileMenuProps> = ({ onLoginClick }) => {
+const MobileMenu: React.FC<MobileMenuProps> = ({ onLoginClick, currentUser }) => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
@@ -235,30 +238,48 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ onLoginClick }) => {
                     </a>
                   </div>
 
-                  {/* Login Button Inside Navigation */}
+                  {/* Auth Section */}
                   <div className="pt-4">
-                    <button
-                      onClick={() => {
-                        closeMenu();
-                        onLoginClick();
-                      }}
-                      className="w-full py-3 px-4 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold transition-all shadow-lg flex items-center justify-center gap-2"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
+                    {currentUser ? (
+                      <div className="space-y-2">
+                        <Link
+                          to={currentUser.type?.toUpperCase() === "ATHLETE" ? "/athlete/dashboard" : "/dashboard"}
+                          onClick={closeMenu}
+                          className="w-full py-3 px-4 bg-white/10 border border-white/20 text-white rounded-lg font-bold transition-all flex items-center justify-center gap-2 text-sm"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                          </svg>
+                          {currentUser.name?.split(" ")[0] ?? "Painel"}
+                        </Link>
+                        <button
+                          onClick={async () => {
+                            closeMenu();
+                            await AuthService.logout();
+                            navigate("/");
+                          }}
+                          className="w-full py-3 px-4 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold transition-all flex items-center justify-center gap-2 text-sm hover:text-white hover:bg-white/10"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                          Sair
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          closeMenu();
+                          onLoginClick();
+                        }}
+                        className="w-full py-3 px-4 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e27] rounded-lg font-bold transition-all shadow-lg flex items-center justify-center gap-2"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
-                        />
-                      </svg>
-                      Entrar
-                    </button>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                        </svg>
+                        Entrar
+                      </button>
+                    )}
                   </div>
                 </nav>
 
