@@ -1338,6 +1338,8 @@ const TournamentProfile = () => {
                       player2Name: string;
                       category: string;
                       status: string;
+                      player1AthleteId?: string | null;
+                      player2AthleteId?: string | null;
                     }) => (
                       <div
                         key={participant.id}
@@ -1362,8 +1364,17 @@ const TournamentProfile = () => {
                             </div>
                             <div>
                               <h3 className="font-semibold">
-                                {participant.player1Name} /{" "}
-                                {participant.player2Name}
+                                {participant.player1AthleteId ? (
+                                  <Link to={`/athletes/${participant.player1AthleteId}`} className="hover:text-[#00ff88] transition-colors">
+                                    {participant.player1Name}
+                                  </Link>
+                                ) : participant.player1Name}
+                                {" / "}
+                                {participant.player2AthleteId ? (
+                                  <Link to={`/athletes/${participant.player2AthleteId}`} className="hover:text-[#00ff88] transition-colors">
+                                    {participant.player2Name}
+                                  </Link>
+                                ) : participant.player2Name}
                               </h3>
                               <p className="text-gray-400 text-sm">
                                 Categoria: {participant.category}
@@ -1536,7 +1547,17 @@ const TournamentProfile = () => {
                                       {ti + 1}
                                     </div>
                                     <div className="text-white truncate">
-                                      {team.player1Name} / {team.player2Name}
+                                      {team.player1AthleteId ? (
+                                        <Link to={`/athletes/${team.player1AthleteId}`} className="hover:text-[#00ff88] transition-colors">
+                                          {team.player1Name}
+                                        </Link>
+                                      ) : team.player1Name}
+                                      {" / "}
+                                      {team.player2AthleteId ? (
+                                        <Link to={`/athletes/${team.player2AthleteId}`} className="hover:text-[#00ff88] transition-colors">
+                                          {team.player2Name}
+                                        </Link>
+                                      ) : team.player2Name}
                                     </div>
                                     <div className="text-center w-12 font-bold text-green-400">
                                       {team.wins}

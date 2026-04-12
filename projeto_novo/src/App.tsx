@@ -27,6 +27,7 @@ import PaymentPage from "./pages/PaymentPage";
 import TournamentResultsPDF from "./pages/TournamentResultsPDF";
 import LeagueProfile from "./pages/LeagueProfile";
 import LeaguesDashboard from "./pages/LeaguesDashboard";
+import PublicAthleteProfile from "./pages/PublicAthleteProfile";
 
 import { ToastProvider } from "./components/Toast";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -95,6 +96,7 @@ const App = () => {
                 <Route path="/athlete/settings" element={<AthleteSettings />} />
 
                 {/* Público */}
+                <Route path="/athletes/:id" element={<PublicAthleteProfile />} />
                 <Route path="/leagues/:id" element={<LeagueProfile />} />
                 <Route path="/termos" element={<TermsPage />} />
                 <Route

@@ -646,7 +646,9 @@ publicTournamentRoutes.get("/:id", async (req, res, next) => {
           select: {
             id: true,
             player1Name: true,
+            player1Email: true,
             player2Name: true,
+            player2Email: true,
             category: true,
             status: true,
           },
@@ -691,10 +693,58 @@ publicTournamentRoutes.get("/:id", async (req, res, next) => {
       })),
     }));
 
+    // Resolve athlete IDs (email → athleteId) para links públicos
+    const allEmails = new Set<string>();
+    (tournament.teams as any[]).forEach((t) => {
+      if (t.player1Email) allEmails.add(t.player1Email);
+      if (t.player2Email) allEmails.add(t.player2Email);
+    });
+    (tournament.groups as any[]).forEach((g) =>
+      (g.teams as any[]).forEach((gt) => {
+        if (gt.team.player1Email) allEmails.add(gt.team.player1Email);
+        if (gt.team.player2Email) allEmails.add(gt.team.player2Email);
+      }),
+    );
+    const emailToAthleteId: Record<string, string | null> = {};
+    if (allEmails.size > 0) {
+      const users = await prisma.user.findMany({
+        where: { email: { in: [...allEmails] } },
+        select: { email: true, athlete: { select: { id: true } } },
+      });
+      (users as any[]).forEach((u) => {
+        emailToAthleteId[u.email] = u.athlete?.id ?? null;
+      });
+    }
+
+    const teamsClean = (tournament.teams as any[]).map((t) => ({
+      id: t.id,
+      player1Name: t.player1Name,
+      player2Name: t.player2Name,
+      category: t.category,
+      status: t.status,
+      player1AthleteId: emailToAthleteId[t.player1Email] ?? null,
+      player2AthleteId: emailToAthleteId[t.player2Email] ?? null,
+    }));
+
+    const groupsClean = groupsWithSchedule.map((g: any) => ({
+      ...g,
+      teams: (g.teams as any[]).map((gt) => ({
+        ...gt,
+        team: {
+          id: gt.team.id,
+          player1Name: gt.team.player1Name,
+          player2Name: gt.team.player2Name,
+          player1AthleteId: emailToAthleteId[gt.team.player1Email] ?? null,
+          player2AthleteId: emailToAthleteId[gt.team.player2Email] ?? null,
+        },
+      })),
+    }));
+
     return res.json({
       data: {
         ...tournament,
-        groups: groupsWithSchedule,
+        teams: teamsClean,
+        groups: groupsClean,
         playoffBrackets: tournament.playoffs,
       },
     });

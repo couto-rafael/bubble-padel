@@ -508,6 +508,8 @@ export interface PublicTournament {
     player2Name: string;
     category: string;
     status: string;
+    player1AthleteId?: string | null;
+    player2AthleteId?: string | null;
   }>;
   groups?: Array<{
     id: string;
@@ -518,6 +520,8 @@ export interface PublicTournament {
         id: string;
         player1Name: string;
         player2Name: string;
+        player1AthleteId?: string | null;
+        player2AthleteId?: string | null;
       };
     }>;
     matches: Array<{
@@ -581,5 +585,28 @@ export const PublicTournamentService = {
       body: JSON.stringify(data),
     });
     return handleResponse<{ id: string }>(res);
+  },
+};
+
+// ─── Public Athlete Service ───────────────────────────────────────────────────
+
+export interface PublicAthlete {
+  id: string;
+  fullName: string;
+  nickname?: string | null;
+  city?: string | null;
+  state?: string | null;
+  avatarUrl?: string | null;
+  sports: string[];
+  rackets: string[];
+  instagramUrl?: string | null;
+  twitterUrl?: string | null;
+  createdAt: string;
+}
+
+export const PublicAthleteService = {
+  get: async (id: string): Promise<PublicAthlete> => {
+    const res = await fetch(`${API_URL}/public/athletes/${id}`);
+    return handleResponse<PublicAthlete>(res);
   },
 };
