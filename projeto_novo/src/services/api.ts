@@ -610,3 +610,36 @@ export const PublicAthleteService = {
     return handleResponse<PublicAthlete>(res);
   },
 };
+
+// ─── Athlete View Service (autenticado — ver perfil de outro atleta) ──────────
+
+export interface AthleteViewEntry {
+  id: string;
+  player1Name: string;
+  player2Name: string;
+  category: string;
+  status: string;
+  registrationDate: string;
+  tournament: {
+    id: string;
+    name: string;
+    sport: string;
+    status: string;
+    startDate: string;
+    endDate: string;
+    club: { name: string; city: string };
+  };
+}
+
+export interface AthleteView extends PublicAthlete {
+  tournaments: AthleteViewEntry[];
+}
+
+export const AthleteViewService = {
+  get: async (id: string): Promise<AthleteView> => {
+    const res = await fetch(`${API_URL}/athlete/view/${id}`, {
+      headers: authHeaders(),
+    });
+    return handleResponse<AthleteView>(res);
+  },
+};

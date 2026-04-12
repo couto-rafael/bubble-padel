@@ -1365,13 +1365,19 @@ const TournamentProfile = () => {
                             <div>
                               <h3 className="font-semibold">
                                 {participant.player1AthleteId ? (
-                                  <Link to={`/athletes/${participant.player1AthleteId}`} className="hover:text-[#00ff88] transition-colors">
+                                  <Link
+                                    to={currentUser ? `/athlete/${participant.player1AthleteId}` : `/athletes/${participant.player1AthleteId}`}
+                                    className="hover:text-[#00ff88] transition-colors"
+                                  >
                                     {participant.player1Name}
                                   </Link>
                                 ) : participant.player1Name}
                                 {" / "}
                                 {participant.player2AthleteId ? (
-                                  <Link to={`/athletes/${participant.player2AthleteId}`} className="hover:text-[#00ff88] transition-colors">
+                                  <Link
+                                    to={currentUser ? `/athlete/${participant.player2AthleteId}` : `/athletes/${participant.player2AthleteId}`}
+                                    className="hover:text-[#00ff88] transition-colors"
+                                  >
                                     {participant.player2Name}
                                   </Link>
                                 ) : participant.player2Name}
@@ -1548,13 +1554,19 @@ const TournamentProfile = () => {
                                     </div>
                                     <div className="text-white truncate">
                                       {team.player1AthleteId ? (
-                                        <Link to={`/athletes/${team.player1AthleteId}`} className="hover:text-[#00ff88] transition-colors">
+                                        <Link
+                                          to={currentUser ? `/athlete/${team.player1AthleteId}` : `/athletes/${team.player1AthleteId}`}
+                                          className="hover:text-[#00ff88] transition-colors"
+                                        >
                                           {team.player1Name}
                                         </Link>
                                       ) : team.player1Name}
                                       {" / "}
                                       {team.player2AthleteId ? (
-                                        <Link to={`/athletes/${team.player2AthleteId}`} className="hover:text-[#00ff88] transition-colors">
+                                        <Link
+                                          to={currentUser ? `/athlete/${team.player2AthleteId}` : `/athletes/${team.player2AthleteId}`}
+                                          className="hover:text-[#00ff88] transition-colors"
+                                        >
                                           {team.player2Name}
                                         </Link>
                                       ) : team.player2Name}

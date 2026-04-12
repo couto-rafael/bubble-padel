@@ -716,28 +716,37 @@ publicTournamentRoutes.get("/:id", async (req, res, next) => {
       });
     }
 
-    const teamsClean = (tournament.teams as any[]).map((t) => ({
-      id: t.id,
-      player1Name: t.player1Name,
-      player2Name: t.player2Name,
-      category: t.category,
-      status: t.status,
-      player1AthleteId: emailToAthleteId[t.player1Email] ?? null,
-      player2AthleteId: emailToAthleteId[t.player2Email] ?? null,
-    }));
+    const teamsClean = (tournament.teams as any[]).map((t) => {
+      const p1Id = emailToAthleteId[t.player1Email] ?? null;
+      const p2Id = emailToAthleteId[t.player2Email] ?? null;
+      return {
+        id: t.id,
+        player1Name: t.player1Name,
+        player2Name: t.player2Name,
+        category: t.category,
+        status: t.status,
+        player1AthleteId: p1Id,
+        // Null quando o mesmo email foi usado nos dois slots (registro solo)
+        player2AthleteId: p2Id && p2Id !== p1Id ? p2Id : null,
+      };
+    });
 
     const groupsClean = groupsWithSchedule.map((g: any) => ({
       ...g,
-      teams: (g.teams as any[]).map((gt) => ({
-        ...gt,
-        team: {
-          id: gt.team.id,
-          player1Name: gt.team.player1Name,
-          player2Name: gt.team.player2Name,
-          player1AthleteId: emailToAthleteId[gt.team.player1Email] ?? null,
-          player2AthleteId: emailToAthleteId[gt.team.player2Email] ?? null,
-        },
-      })),
+      teams: (g.teams as any[]).map((gt) => {
+        const p1Id = emailToAthleteId[gt.team.player1Email] ?? null;
+        const p2Id = emailToAthleteId[gt.team.player2Email] ?? null;
+        return {
+          ...gt,
+          team: {
+            id: gt.team.id,
+            player1Name: gt.team.player1Name,
+            player2Name: gt.team.player2Name,
+            player1AthleteId: p1Id,
+            player2AthleteId: p2Id && p2Id !== p1Id ? p2Id : null,
+          },
+        };
+      }),
     }));
 
     return res.json({

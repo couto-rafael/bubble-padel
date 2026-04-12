@@ -28,6 +28,7 @@ import TournamentResultsPDF from "./pages/TournamentResultsPDF";
 import LeagueProfile from "./pages/LeagueProfile";
 import LeaguesDashboard from "./pages/LeaguesDashboard";
 import PublicAthleteProfile from "./pages/PublicAthleteProfile";
+import AthleteProfileById from "./pages/AthleteProfileById";
 
 import { ToastProvider } from "./components/Toast";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -94,6 +95,7 @@ const App = () => {
                 />
                 <Route path="/athlete/profile" element={<AthleteProfile />} />
                 <Route path="/athlete/settings" element={<AthleteSettings />} />
+                <Route path="/athlete/:id" element={<AthleteProfileById />} />
 
                 {/* Público */}
                 <Route path="/athletes/:id" element={<PublicAthleteProfile />} />

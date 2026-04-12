@@ -618,6 +618,90 @@ athleteRoutes.get(
   },
 );
 
+// ─── Ver perfil de outro atleta (autenticado) ────────────────────────────────
+
+athleteRoutes.get(
+  "/view/:id",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const athlete = await prisma.athlete.findUnique({
+        where: { id: req.params.id },
+        select: {
+          id: true,
+          fullName: true,
+          nickname: true,
+          city: true,
+          state: true,
+          avatarUrl: true,
+          sports: true,
+          rackets: true,
+          instagramUrl: true,
+          twitterUrl: true,
+          createdAt: true,
+          userId: true,
+        },
+      });
+      if (!athlete)
+        return res.status(404).json({ error: "Atleta não encontrado" });
+
+      const user = await prisma.user.findUnique({
+        where: { id: athlete.userId },
+        select: { email: true },
+      });
+      if (!user)
+        return res.status(404).json({ error: "Atleta não encontrado" });
+
+      const teams = await prisma.team.findMany({
+        where: {
+          OR: [{ player1Email: user.email }, { player2Email: user.email }],
+          status: "CONFIRMED",
+        },
+        select: {
+          id: true,
+          player1Name: true,
+          player2Name: true,
+          category: true,
+          status: true,
+          registrationDate: true,
+          tournament: {
+            select: {
+              id: true,
+              name: true,
+              sport: true,
+              status: true,
+              startDate: true,
+              endDate: true,
+              club: { select: { name: true, city: true } },
+            },
+          },
+        },
+        orderBy: { registrationDate: "desc" },
+        take: 20,
+      });
+
+      return res.json({
+        data: {
+          id: athlete.id,
+          fullName: athlete.fullName,
+          nickname: athlete.nickname,
+          city: athlete.city,
+          state: athlete.state,
+          avatarUrl: athlete.avatarUrl,
+          sports: athlete.sports,
+          rackets: athlete.rackets,
+          instagramUrl: athlete.instagramUrl,
+          twitterUrl: athlete.twitterUrl,
+          createdAt: athlete.createdAt,
+          tournaments: teams,
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 // ─── Rotas públicas ───────────────────────────────────────────────────────────
 
 export const publicAthleteRoutes = Router();
