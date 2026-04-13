@@ -287,7 +287,7 @@ const AthleteSettings: React.FC = () => {
     <div className="min-h-screen bg-[#f8f9fc] pb-24 md:pb-8">
       <AthleteHeader />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-12">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <Link
@@ -434,6 +434,75 @@ const AthleteSettings: React.FC = () => {
             </div>
           </div>
 
+          {/* ── Redes Sociais ─────────────────────────────────────────────── */}
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h2 className="text-[14px] font-extrabold text-gray-900 tracking-tight">
+                🌐 Redes Sociais
+              </h2>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
+                  Instagram
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-semibold">
+                    @
+                  </span>
+                  <input
+                    value={form.instagramUrl}
+                    maxLength={100}
+                    onChange={(e) => set("instagramUrl", e.target.value)}
+                    placeholder="seuhandle"
+                    className="w-full pl-8 pr-3.5 py-2.5 rounded-xl border-[1.5px] border-gray-200 text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
+                  Twitter / X
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-semibold">
+                    @
+                  </span>
+                  <input
+                    value={form.twitterUrl}
+                    maxLength={100}
+                    onChange={(e) => set("twitterUrl", e.target.value)}
+                    placeholder="seuhandle"
+                    className="w-full pl-8 pr-3.5 py-2.5 rounded-xl border-[1.5px] border-gray-200 text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Foto de perfil ────────────────────────────────────────────── */}
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h2 className="text-[14px] font-extrabold text-gray-900 tracking-tight">
+                📸 Foto de Perfil
+              </h2>
+            </div>
+            <div className="p-5">
+              <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
+                URL da foto
+              </label>
+              <input
+                value={form.avatarUrl}
+                type="url"
+                onChange={(e) => set("avatarUrl", e.target.value)}
+                placeholder="https://..."
+                className="w-full px-3.5 py-2.5 rounded-xl border-[1.5px] border-gray-200 text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
+              />
+              <p className="text-[11px] text-gray-400 mt-1.5">
+                Upload direto disponível em breve
+              </p>
+            </div>
+          </div>
+
           </div>{/* fim coluna esquerda */}
 
           {/* ── Coluna direita ────────────────────────────────────────────── */}
@@ -532,76 +601,6 @@ const AthleteSettings: React.FC = () => {
                   <option key={b} value={b} />
                 ))}
               </datalist>
-            </div>
-          </div>
-
-          {/* ── Redes Sociais ─────────────────────────────────────────────── */}
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h2 className="text-[14px] font-extrabold text-gray-900 tracking-tight">
-                🌐 Redes Sociais
-              </h2>
-            </div>
-            <div className="p-5 space-y-4">
-              <div>
-                <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
-                  Instagram
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-semibold">
-                    @
-                  </span>
-                  <input
-                    value={form.instagramUrl}
-                    maxLength={100}
-                    onChange={(e) => set("instagramUrl", e.target.value)}
-                    placeholder="seuhandle"
-                    className="w-full pl-8 pr-3.5 py-2.5 rounded-xl border-[1.5px] border-gray-200 text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
-                  Twitter / X
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-semibold">
-                    @
-                  </span>
-                  <input
-                    value={form.twitterUrl}
-                    maxLength={100}
-                    onChange={(e) => set("twitterUrl", e.target.value)}
-                    placeholder="seuhandle"
-                    className="w-full pl-8 pr-3.5 py-2.5 rounded-xl border-[1.5px] border-gray-200 text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Foto de perfil ────────────────────────────────────────────── */}
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h2 className="text-[14px] font-extrabold text-gray-900 tracking-tight">
-                📸 Foto de Perfil
-              </h2>
-            </div>
-            <div className="p-5">
-              <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
-                URL da foto
-              </label>
-              <input
-                value={form.avatarUrl}
-                type="url"
-                onChange={(e) => set("avatarUrl", e.target.value)}
-                placeholder="https://..."
-                className="w-full px-3.5 py-2.5 rounded-xl border-[1.5px] border-gray-200 text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
-              />
-              <p className="text-[11px] text-gray-400 mt-1.5">
-                Upload direto disponível em breve
-              </p>
             </div>
           </div>
 

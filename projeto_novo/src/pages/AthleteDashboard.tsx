@@ -203,7 +203,7 @@ const AthleteDashboard: React.FC = () => {
     <div className="min-h-screen bg-[#f8f9fc] pb-24 md:pb-8">
       <AthleteHeader />
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {/* ── Boas-vindas ───────────────────────────────────────────────────── */}
         <div className="mb-6 flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#00e87a] to-[#00b85f] flex items-center justify-center text-[#0a0e1a] text-base font-extrabold flex-shrink-0 shadow-[0_0_16px_rgba(0,232,122,0.25)]">

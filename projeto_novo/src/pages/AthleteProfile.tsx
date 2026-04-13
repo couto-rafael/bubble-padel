@@ -22,6 +22,13 @@ interface AthleteData {
   twitterUrl?: string | null;
 }
 
+interface Sponsor {
+  id: string;
+  name: string;
+  logoUrl?: string | null;
+  websiteUrl?: string | null;
+}
+
 interface TournamentEntry {
   id: string;
   player1Name: string;
@@ -157,6 +164,17 @@ async function getStats(): Promise<AthleteStats | null> {
     return (await res.json()).data ?? null;
   } catch {
     return null;
+  }
+}
+
+async function getSponsors(): Promise<Sponsor[]> {
+  try {
+    const res = await fetch(`${API_URL}/athlete/sponsors`, {
+      headers: authHeaders(),
+    });
+    return (await res.json()).data ?? [];
+  } catch {
+    return [];
   }
 }
 
@@ -406,6 +424,7 @@ const AthleteProfile: React.FC = () => {
   const [athlete, setAthlete] = useState<AthleteData | null>(null);
   const [tournaments, setTournaments] = useState<TournamentEntry[]>([]);
   const [stats, setStats] = useState<AthleteStats | null>(null);
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
     "overview" | "tournaments" | "trophies" | "leagues"
@@ -423,11 +442,12 @@ const AthleteProfile: React.FC = () => {
   }, [navState]);
 
   useEffect(() => {
-    Promise.all([getProfile(), getTournaments(), getStats()])
-      .then(([profile, tourns, athleteStats]) => {
+    Promise.all([getProfile(), getTournaments(), getStats(), getSponsors()])
+      .then(([profile, tourns, athleteStats, athleteSponsors]) => {
         setAthlete(profile);
         setTournaments(tourns);
         setStats(athleteStats);
+        setSponsors(athleteSponsors);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -515,7 +535,7 @@ const AthleteProfile: React.FC = () => {
     <div className="min-h-screen bg-[#f8f9fc] pb-24 md:pb-8">
       <AthleteHeader />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-5 pb-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-12">
         {/* ── Hero Card ─────────────────────────────────────────────────────── */}
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm mb-5">
           <div className="h-16 bg-gradient-to-r from-[#00e87a]/10 via-[#00c8ff]/5 to-[#00e87a]/10" />
@@ -946,20 +966,35 @@ const AthleteProfile: React.FC = () => {
               </div>
             )}
 
-            {/* Patrocinadores — placeholder Sprint 8 */}
-            <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-[14px] font-extrabold text-gray-900 tracking-tight">
-                  🏷️ Patrocinadores
-                </h2>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                  Em breve
-                </span>
+            {sponsors.length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-5 py-4 border-b border-gray-100">
+                  <h2 className="text-[14px] font-extrabold text-gray-900 tracking-tight">
+                    🏅 Patrocinadores
+                  </h2>
+                </div>
+                <div className="p-5 flex flex-wrap gap-3">
+                  {sponsors.map((sp) => (
+                    <div key={sp.id} className="flex items-center gap-2.5 px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl">
+                      {sp.logoUrl ? (
+                        <img src={sp.logoUrl} alt={sp.name} className="w-7 h-7 rounded-lg object-contain bg-white border border-gray-200 flex-shrink-0" />
+                      ) : (
+                        <div className="w-7 h-7 rounded-lg bg-gray-200 flex items-center justify-center text-sm flex-shrink-0">
+                          🏅
+                        </div>
+                      )}
+                      {sp.websiteUrl ? (
+                        <a href={sp.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-[13px] font-bold text-blue-600 hover:underline">
+                          {sp.name}
+                        </a>
+                      ) : (
+                        <span className="text-[13px] font-bold text-gray-800">{sp.name}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-              <p className="text-[12px] text-gray-400 font-normal">
-                Upload de logos de patrocinadores disponível em breve.
-              </p>
-            </div>
+            )}
 
             {(stats?.achievements.unlocked ?? []).length > 0 && (
               <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
