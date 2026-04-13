@@ -823,41 +823,6 @@ const AthleteProfile: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Melhores parceiros */}
-                  {stats.matchStats.topPartners.length > 0 && (
-                    <div>
-                      <p className="text-[11px] font-bold text-[#6b7a99] uppercase tracking-widest mb-2">
-                        Melhores Parceiros
-                      </p>
-                      <div className="space-y-2">
-                        {stats.matchStats.topPartners.slice(0, 3).map((p) => (
-                          <div
-                            key={p.name}
-                            className="flex items-center justify-between"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-full bg-[#00e87a]/20 flex items-center justify-center text-[11px] font-black text-[#00e87a] flex-shrink-0">
-                                {p.name.slice(0, 1).toUpperCase()}
-                              </div>
-                              <span className="text-[12px] font-semibold text-[#cdd5e0] truncate max-w-[110px]">
-                                {p.name}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 text-[11px]">
-                              <span className="text-[#6b7a99]">
-                                {p.total} jogos
-                              </span>
-                              <span
-                                className={`font-extrabold ${p.winRate >= 50 ? "text-[#00e87a]" : "text-amber-400"}`}
-                              >
-                                {p.winRate}%
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </>
               ) : (
                 <div className="grid grid-cols-3 gap-3">
@@ -936,6 +901,50 @@ const AthleteProfile: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Parceiros */}
+            {(stats?.matchStats?.topPartners ?? []).length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-5 py-4 border-b border-gray-100">
+                  <h2 className="text-[14px] font-extrabold text-gray-900 tracking-tight">
+                    🤝 Parceiros
+                  </h2>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {stats!.matchStats!.topPartners.map((p, i) => (
+                    <div key={p.name} className="px-5 py-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-9 h-9 rounded-full bg-[#00e87a]/10 border border-[#00e87a]/20 flex items-center justify-center text-[13px] font-extrabold text-[#00e87a] flex-shrink-0">
+                          {p.name.slice(0, 1).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-bold text-gray-900 truncate">{p.name}</p>
+                          <p className="text-[11px] text-gray-400 font-normal">
+                            {p.total} jogo{p.total !== 1 ? "s" : ""} · {p.wins}V {p.losses}D
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                          {i === 0 && (
+                            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-200">
+                              #1
+                            </span>
+                          )}
+                          <span className={`text-[14px] font-extrabold ${p.winRate >= 50 ? "text-[#00e87a]" : "text-amber-500"}`}>
+                            {p.winRate}%
+                          </span>
+                        </div>
+                      </div>
+                      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${p.winRate >= 50 ? "bg-[#00e87a]" : "bg-amber-400"}`}
+                          style={{ width: `${p.winRate}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Patrocinadores — placeholder Sprint 8 */}
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
