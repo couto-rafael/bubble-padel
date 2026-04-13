@@ -5,7 +5,9 @@
       "Bash(cmd.exe /c \"C:\\\\\\\\Users\\\\\\\\couto\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Programs\\\\\\\\Python\\\\\\\\Python312\\\\\\\\python.exe --version\")",
       "Bash(/c/Users/couto/AppData/Local/Programs/Python/Python312/python.exe -c 'import graphify; print\\('\\\\''graphify OK'\\\\''\\)')",
       "Bash(mkdir -p graphify-out)",
-      "Bash(/c/Users/couto/AppData/Local/Programs/Python/Python312/python.exe -c 'import sys; open\\('\\\\''graphify-out/.graphify_python'\\\\'', '\\\\''w'\\\\''\\).write\\(sys.executable\\)')"
+      "Bash(/c/Users/couto/AppData/Local/Programs/Python/Python312/python.exe -c 'import sys; open\\('\\\\''graphify-out/.graphify_python'\\\\'', '\\\\''w'\\\\''\\).write\\(sys.executable\\)')",
+      "Bash(npx tsc:*)",
+      "Bash(npx prisma:*)"
     ]
   }
 }
