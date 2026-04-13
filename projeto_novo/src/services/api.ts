@@ -631,8 +631,71 @@ export interface AthleteViewEntry {
   };
 }
 
+interface AthleteTrophyView {
+  id: string;
+  tournamentId: string;
+  tournamentName: string;
+  category: string;
+  placement: "CHAMPION" | "RUNNER_UP";
+  sport: string;
+  earnedAt: string;
+}
+
+interface AchievementView {
+  key: string;
+  name: string;
+  description: string;
+  icon: string;
+  category: string;
+  hasProgress: boolean;
+  tiers: Array<{ tier: string; threshold: number; label: string }>;
+  currentTier: string | null;
+  progress: number;
+  unlockedAt: string | null;
+  isUnlocked: boolean;
+  nextThreshold: number | null;
+  nextTierLabel: string | null;
+}
+
+interface LeagueStandingView {
+  league: { id: string; name: string; sport: string | null };
+  totalPoints: number;
+  rankPosition: number | null;
+  entries: Array<{
+    tournamentId: string;
+    category: string;
+    placement: string;
+    points: number;
+    earnedAt: string;
+  }>;
+}
+
 export interface AthleteView extends PublicAthlete {
   tournaments: AthleteViewEntry[];
+  trophies: AthleteTrophyView[];
+  achievements: {
+    unlocked: AchievementView[];
+    inProgress: AchievementView[];
+    locked: AchievementView[];
+  };
+  leagueStandings: LeagueStandingView[];
+  matchStats: {
+    wins: number;
+    losses: number;
+    totalMatches: number;
+    winRate: number;
+    topPartners: Array<{ name: string; wins: number; losses: number; total: number; winRate: number }>;
+    byCategory: Array<{ category: string; wins: number; losses: number; total: number; winRate: number }>;
+  };
+  summary: {
+    totalTrophies: number;
+    totalTitles: number;
+    totalAchievementsUnlocked: number;
+    totalAchievementsAvailable: number;
+    wins: number;
+    losses: number;
+    winRate: number;
+  };
 }
 
 export const AthleteViewService = {

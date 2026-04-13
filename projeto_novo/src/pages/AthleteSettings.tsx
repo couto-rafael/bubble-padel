@@ -233,7 +233,7 @@ const AthleteSettings: React.FC = () => {
     <div className="min-h-screen bg-[#f8f9fc] pb-24 md:pb-8">
       <AthleteHeader />
 
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 pt-6 pb-12">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-12">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <Link
@@ -265,6 +265,9 @@ const AthleteSettings: React.FC = () => {
         )}
 
         <form onSubmit={handleSave} className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+          {/* ── Coluna esquerda ───────────────────────────────────────────── */}
+          <div className="space-y-4">
           {/* ── Informações pessoais ──────────────────────────────────────── */}
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100">
@@ -377,6 +380,10 @@ const AthleteSettings: React.FC = () => {
             </div>
           </div>
 
+          </div>{/* fim coluna esquerda */}
+
+          {/* ── Coluna direita ────────────────────────────────────────────── */}
+          <div className="space-y-4">
           {/* ── Esportes ──────────────────────────────────────────────────── */}
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100">
@@ -543,6 +550,9 @@ const AthleteSettings: React.FC = () => {
               </p>
             </div>
           </div>
+
+          </div>{/* fim coluna direita */}
+          </div>{/* fim grid */}
 
           {/* ── Ações ─────────────────────────────────────────────────────── */}
           <div className="flex gap-3">
