@@ -777,6 +777,47 @@ publicLeagueRoutes.get("/:id", async (req, res, next) => {
       });
     }
 
+    // Feed de resultados — troféus dos torneios da liga
+    const tournamentIds = league.tournaments.map((lt) => lt.tournamentId);
+    const trophies = await prisma.athleteTrophy.findMany({
+      where: { tournamentId: { in: tournamentIds } },
+      include: { athlete: { select: { id: true, fullName: true, city: true } } },
+      orderBy: { earnedAt: "desc" },
+    });
+
+    // Agrupar por torneio
+    const feedMap = new Map<string, {
+      tournamentId: string;
+      tournamentName: string;
+      sport: string;
+      earnedAt: string;
+      results: Array<{ category: string; placement: string; athleteId: string; athleteName: string; athleteCity: string | null }>;
+    }>();
+
+    for (const t of trophies) {
+      if (!feedMap.has(t.tournamentId)) {
+        const lt = league.tournaments.find((l) => l.tournamentId === t.tournamentId);
+        feedMap.set(t.tournamentId, {
+          tournamentId: t.tournamentId,
+          tournamentName: lt?.tournament?.name ?? t.tournamentName,
+          sport: t.sport,
+          earnedAt: t.earnedAt.toISOString(),
+          results: [],
+        });
+      }
+      feedMap.get(t.tournamentId)!.results.push({
+        category: t.category,
+        placement: t.placement,
+        athleteId: t.athleteId,
+        athleteName: (t as any).athlete?.fullName ?? "—",
+        athleteCity: (t as any).athlete?.city ?? null,
+      });
+    }
+
+    const recentResults = Array.from(feedMap.values())
+      .sort((a, b) => new Date(b.earnedAt).getTime() - new Date(a.earnedAt).getTime())
+      .slice(0, 8);
+
     return res.json({
       data: {
         id: league.id,
@@ -793,6 +834,8 @@ publicLeagueRoutes.get("/:id", async (req, res, next) => {
         pointsRound16: league.pointsRound16,
         pointsRound32: league.pointsRound32,
         tournaments: league.tournaments,
+        totalAthletes: athleteIds.length,
+        recentResults,
         ranking: {
           categories: byCategory,
           availableCategories: Object.keys(byCategory).sort(),

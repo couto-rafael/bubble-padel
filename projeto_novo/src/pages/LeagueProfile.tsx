@@ -5,6 +5,22 @@ import { useParams, Link } from "react-router-dom";
 // TYPES
 // ─────────────────────────────────────────────────────────────────────────────
 
+interface FeedResult {
+  category: string;
+  placement: string;
+  athleteId: string;
+  athleteName: string;
+  athleteCity: string | null;
+}
+
+interface FeedEntry {
+  tournamentId: string;
+  tournamentName: string;
+  sport: string;
+  earnedAt: string;
+  results: FeedResult[];
+}
+
 interface LeaguePublic {
   id: string;
   name: string;
@@ -33,6 +49,8 @@ interface LeaguePublic {
       club: { name: string; city: string };
     };
   }>;
+  totalAthletes: number;
+  recentResults: FeedEntry[];
   ranking: {
     categories: Record<string, RankingEntry[]>;
     availableCategories: string[];
@@ -148,7 +166,7 @@ const LeagueProfile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "ranking" | "tournaments" | "points"
+    "ranking" | "tournaments" | "results" | "points"
   >("ranking");
   const [selectedCategory, setSelectedCategory] = useState("");
 
@@ -213,11 +231,15 @@ const LeagueProfile: React.FC = () => {
   const tabs = [
     {
       id: "ranking" as const,
-      label: `Ranking ${league.ranking.availableCategories.length > 0 ? `(${league.ranking.availableCategories.length} categorias)` : ""}`,
+      label: `Ranking${league.ranking.availableCategories.length > 0 ? ` (${league.ranking.availableCategories.length})` : ""}`,
     },
     {
       id: "tournaments" as const,
       label: `Torneios (${league.tournaments.length})`,
+    },
+    {
+      id: "results" as const,
+      label: `Resultados${league.recentResults.length > 0 ? ` (${league.recentResults.length})` : ""}`,
     },
     { id: "points" as const, label: "Pontuação" },
   ];
@@ -315,7 +337,7 @@ const LeagueProfile: React.FC = () => {
             </div>
 
             {/* Stats rápidas */}
-            <div className="flex gap-6">
+            <div className="flex gap-6 flex-wrap">
               <div className="text-center">
                 <div className="text-[26px] font-black text-white leading-none">
                   {league.tournaments.length}
@@ -324,6 +346,12 @@ const LeagueProfile: React.FC = () => {
               </div>
               <div className="text-center">
                 <div className="text-[26px] font-black text-[#00ff88] leading-none">
+                  {league.totalAthletes ?? 0}
+                </div>
+                <div className="text-xs text-gray-400 mt-0.5">Atletas</div>
+              </div>
+              <div className="text-center">
+                <div className="text-[26px] font-black text-[#00ccff] leading-none">
                   {league.ranking.availableCategories.length}
                 </div>
                 <div className="text-xs text-gray-400 mt-0.5">Categorias</div>
@@ -536,6 +564,97 @@ const LeagueProfile: React.FC = () => {
                       </div>
                     </div>
                   </Link>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        {/* Tab: Resultados */}
+        {activeTab === "results" && (
+          <div className="space-y-4">
+            {league.recentResults.length === 0 ? (
+              <div className="bg-white/5 border border-white/10 rounded-xl p-12 text-center text-gray-400">
+                <span className="text-4xl block mb-3">🏅</span>
+                <p className="font-medium text-gray-300">Nenhum resultado ainda</p>
+                <p className="text-sm mt-1">Os resultados aparecem após torneios serem concluídos.</p>
+              </div>
+            ) : (
+              league.recentResults.map((entry) => {
+                // Agrupar resultados por categoria
+                const byCategory: Record<string, { champion?: FeedResult; runnerUp?: FeedResult }> = {};
+                for (const r of entry.results) {
+                  if (!byCategory[r.category]) byCategory[r.category] = {};
+                  if (r.placement === "CHAMPION") byCategory[r.category].champion = r;
+                  if (r.placement === "RUNNER_UP") byCategory[r.category].runnerUp = r;
+                }
+                const categories = Object.keys(byCategory).sort();
+
+                return (
+                  <div key={entry.tournamentId} className="bg-white/[0.04] border border-white/[0.08] rounded-2xl overflow-hidden">
+                    {/* Cabeçalho do torneio */}
+                    <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-[#00ff88]/10 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
+                          {entry.sport?.toUpperCase() === "BEACH_TENNIS" ? "🏖️" : "🎾"}
+                        </div>
+                        <div>
+                          <Link
+                            to={`/tournaments/${entry.tournamentId}`}
+                            className="font-extrabold text-white text-[14px] hover:text-[#00ff88] transition-colors tracking-tight"
+                          >
+                            {entry.tournamentName}
+                          </Link>
+                          <p className="text-[11px] text-gray-500 mt-0.5">{normalizeSport(entry.sport)}</p>
+                        </div>
+                      </div>
+                      <span className="text-[11px] text-gray-500 font-medium flex-shrink-0">
+                        {formatDate(entry.earnedAt)}
+                      </span>
+                    </div>
+
+                    {/* Resultados por categoria */}
+                    <div className="divide-y divide-white/[0.04]">
+                      {categories.map((cat) => {
+                        const { champion, runnerUp } = byCategory[cat];
+                        return (
+                          <div key={cat} className="px-5 py-3.5">
+                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2.5">{cat}</p>
+                            <div className="space-y-1.5">
+                              {champion && (
+                                <div className="flex items-center gap-2.5">
+                                  <span className="text-base leading-none">🥇</span>
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <div className="w-6 h-6 bg-amber-500/20 rounded-full flex items-center justify-center text-[10px] font-bold text-amber-400 flex-shrink-0">
+                                      {getInitials(champion.athleteName)}
+                                    </div>
+                                    <span className="text-[13px] font-bold text-white truncate">{champion.athleteName}</span>
+                                    {champion.athleteCity && (
+                                      <span className="text-[11px] text-gray-500 truncate hidden sm:inline">{champion.athleteCity}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                              {runnerUp && (
+                                <div className="flex items-center gap-2.5">
+                                  <span className="text-base leading-none">🥈</span>
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <div className="w-6 h-6 bg-gray-500/20 rounded-full flex items-center justify-center text-[10px] font-bold text-gray-400 flex-shrink-0">
+                                      {getInitials(runnerUp.athleteName)}
+                                    </div>
+                                    <span className="text-[13px] font-semibold text-gray-300 truncate">{runnerUp.athleteName}</span>
+                                    {runnerUp.athleteCity && (
+                                      <span className="text-[11px] text-gray-500 truncate hidden sm:inline">{runnerUp.athleteCity}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 );
               })
             )}
