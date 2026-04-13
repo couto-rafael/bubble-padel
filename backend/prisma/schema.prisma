@@ -163,6 +163,9 @@ model Athlete {
   achievements AthleteAchievement[]
   leaguePoints LeaguePoints[]
 
+  // Sprint 9 — patrocinadores
+  sponsors     AthleteSponsor[]
+
   @@map("athletes")
 }
 
@@ -475,4 +478,20 @@ model AthleteAchievement {
 
   @@unique([athleteId, key])
   @@map("athlete_achievements")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ATHLETE SPONSORS (Sprint 9)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AthleteSponsor {
+  id         String   @id @default(cuid())
+  athleteId  String
+  athlete    Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  name       String
+  logoUrl    String?
+  websiteUrl String?
+  createdAt  DateTime @default(now())
+
+  @@map("athlete_sponsors")
 }

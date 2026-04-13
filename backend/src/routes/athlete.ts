@@ -949,6 +949,80 @@ athleteRoutes.get(
   },
 );
 
+// ─── Sponsors ────────────────────────────────────────────────────────────────
+
+const sponsorSchema = z.object({
+  name: z.string().min(1).max(80),
+  logoUrl: z.string().url().optional().nullable(),
+  websiteUrl: z.string().url().optional().nullable(),
+});
+
+athleteRoutes.get("/sponsors", requireAuth, async (req: AuthRequest, res, next) => {
+  try {
+    const athlete = await prisma.athlete.findUnique({
+      where: { userId: req.userId! },
+      select: { id: true },
+    });
+    if (!athlete) return res.status(404).json({ error: "Atleta não encontrado" });
+
+    const sponsors = await prisma.athleteSponsor.findMany({
+      where: { athleteId: athlete.id },
+      orderBy: { createdAt: "asc" },
+    });
+    return res.json({ data: sponsors });
+  } catch (err) {
+    next(err);
+  }
+});
+
+athleteRoutes.post("/sponsors", requireAuth, async (req: AuthRequest, res, next) => {
+  try {
+    const body = sponsorSchema.safeParse(req.body);
+    if (!body.success) return res.status(400).json({ error: body.error.flatten() });
+
+    const athlete = await prisma.athlete.findUnique({
+      where: { userId: req.userId! },
+      select: { id: true },
+    });
+    if (!athlete) return res.status(404).json({ error: "Atleta não encontrado" });
+
+    const count = await prisma.athleteSponsor.count({ where: { athleteId: athlete.id } });
+    if (count >= 10) return res.status(400).json({ error: "Máximo de 10 patrocinadores." });
+
+    const sponsor = await prisma.athleteSponsor.create({
+      data: {
+        athleteId: athlete.id,
+        name: body.data.name,
+        logoUrl: body.data.logoUrl ?? null,
+        websiteUrl: body.data.websiteUrl ?? null,
+      },
+    });
+    return res.status(201).json({ data: sponsor });
+  } catch (err) {
+    next(err);
+  }
+});
+
+athleteRoutes.delete("/sponsors/:id", requireAuth, async (req: AuthRequest, res, next) => {
+  try {
+    const athlete = await prisma.athlete.findUnique({
+      where: { userId: req.userId! },
+      select: { id: true },
+    });
+    if (!athlete) return res.status(404).json({ error: "Atleta não encontrado" });
+
+    const sponsor = await prisma.athleteSponsor.findFirst({
+      where: { id: req.params.id, athleteId: athlete.id },
+    });
+    if (!sponsor) return res.status(404).json({ error: "Patrocinador não encontrado" });
+
+    await prisma.athleteSponsor.delete({ where: { id: sponsor.id } });
+    return res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ─── Rotas públicas ───────────────────────────────────────────────────────────
 
 export const publicAthleteRoutes = Router();

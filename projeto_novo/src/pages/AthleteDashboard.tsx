@@ -7,9 +7,11 @@ import AthleteHeader from "../components/AthleteHeader";
 interface AthleteProfile {
   id: string;
   fullName: string;
+  phone?: string | null;
   city?: string;
   state?: string;
   avatarUrl?: string | null;
+  sports?: string[];
   createdAt: string;
   user?: { email: string };
 }
@@ -119,6 +121,7 @@ const AthleteDashboard: React.FC = () => {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const pathLocation = useLocation();
 
@@ -135,6 +138,7 @@ const AthleteDashboard: React.FC = () => {
     ])
       .then(([p, t, s]) => {
         setProfile(p);
+        setBannerDismissed(localStorage.getItem(`bubble_profile_banner_${p?.id}`) === "1");
         setEntries(t);
         if (s?.data?.summary)
           setStats({
@@ -222,6 +226,78 @@ const AthleteDashboard: React.FC = () => {
             </p>
           </div>
         </div>
+
+        {/* ── Banner pós-registro ───────────────────────────────────────────── */}
+        {(() => {
+          const profileItems = [
+            { label: "Foto de perfil", done: !!profile.avatarUrl },
+            { label: "Cidade", done: !!profile.city },
+            { label: "Telefone", done: !!profile.phone },
+            { label: "Esporte", done: (profile.sports?.length ?? 0) > 0 },
+          ];
+          const missing = profileItems.filter((i) => !i.done);
+          if (bannerDismissed || missing.length === 0) return null;
+          return (
+            <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4 relative">
+              <button
+                onClick={() => {
+                  localStorage.setItem(`bubble_profile_banner_${profile.id}`, "1");
+                  setBannerDismissed(true);
+                }}
+                className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center text-blue-400 hover:text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                aria-label="Dispensar"
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M1 1l10 10M11 1L1 11" />
+                </svg>
+              </button>
+              <div className="flex items-start gap-3 pr-8">
+                <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
+                  👤
+                </div>
+                <div className="flex-1">
+                  <p className="text-[14px] font-extrabold text-blue-900 mb-0.5 tracking-tight">
+                    Complete seu perfil
+                  </p>
+                  <p className="text-[12px] text-blue-600 mb-3 font-normal">
+                    {missing.length === 1
+                      ? "Falta apenas 1 item para o perfil completo."
+                      : `Faltam ${missing.length} itens para o perfil completo.`}
+                  </p>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {profileItems.map((item) => (
+                      <span
+                        key={item.label}
+                        className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full ${
+                          item.done
+                            ? "bg-green-100 text-green-700"
+                            : "bg-white border border-blue-200 text-blue-500"
+                        }`}
+                      >
+                        {item.done ? (
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1.5 5l2.5 2.5L8.5 2" />
+                          </svg>
+                        ) : (
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                            <circle cx="5" cy="5" r="4" />
+                          </svg>
+                        )}
+                        {item.label}
+                      </span>
+                    ))}
+                  </div>
+                  <Link
+                    to="/athlete/settings"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-[12px] font-extrabold hover:bg-blue-700 transition-colors"
+                  >
+                    Completar perfil →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── Stat Cards ────────────────────────────────────────────────────── */}
         {/* Stat Cards — torneios */}

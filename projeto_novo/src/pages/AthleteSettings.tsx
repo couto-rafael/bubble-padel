@@ -6,6 +6,13 @@ import AthleteHeader from "../components/AthleteHeader";
 
 type Sport = "PADEL" | "BEACH_TENNIS" | "TENIS" | "PICKLEBALL";
 
+interface Sponsor {
+  id: string;
+  name: string;
+  logoUrl?: string | null;
+  websiteUrl?: string | null;
+}
+
 interface IbgeCity {
   id: number;
   nome: string;
@@ -71,6 +78,10 @@ const AthleteSettings: React.FC = () => {
     twitterUrl: "",
     avatarUrl: "",
   });
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [sponsorForm, setSponsorForm] = useState({ name: "", logoUrl: "", websiteUrl: "" });
+  const [sponsorAdding, setSponsorAdding] = useState(false);
+  const [sponsorOpen, setSponsorOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [cityQuery, setCityQuery] = useState("");
@@ -85,9 +96,15 @@ const AthleteSettings: React.FC = () => {
   // ── Carregar dados atuais ──────────────────────────────────────────────────
 
   useEffect(() => {
-    fetch(`${API_URL}/athlete/profile`, { headers: authHeaders() })
-      .then((r) => r.json())
-      .then(({ data }) => {
+    Promise.all([
+      fetch(`${API_URL}/athlete/profile`, { headers: authHeaders() }).then((r) => r.json()),
+      fetch(`${API_URL}/athlete/sponsors`, { headers: authHeaders() })
+        .then((r) => r.json())
+        .catch(() => ({ data: [] })),
+    ])
+      .then(([profileJson, sponsorsJson]) => {
+        const data = profileJson.data;
+        setSponsors(sponsorsJson.data ?? []);
         setCityQuery(
           data.city && data.state
             ? `${data.city} — ${data.state}`
@@ -121,6 +138,43 @@ const AthleteSettings: React.FC = () => {
 
   const set = (field: keyof AthleteForm, value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
+
+  const addSponsor = async () => {
+    if (!sponsorForm.name.trim()) return;
+    setSponsorAdding(true);
+    try {
+      const res = await fetch(`${API_URL}/athlete/sponsors`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          name: sponsorForm.name.trim(),
+          logoUrl: sponsorForm.logoUrl.trim() || null,
+          websiteUrl: sponsorForm.websiteUrl.trim() || null,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      const json = await res.json();
+      setSponsors((s) => [...s, json.data]);
+      setSponsorForm({ name: "", logoUrl: "", websiteUrl: "" });
+      setSponsorOpen(false);
+    } catch {
+      setError("Erro ao adicionar patrocinador.");
+    } finally {
+      setSponsorAdding(false);
+    }
+  };
+
+  const removeSponsor = async (id: string) => {
+    try {
+      await fetch(`${API_URL}/athlete/sponsors/${id}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      setSponsors((s) => s.filter((sp) => sp.id !== id));
+    } catch {
+      setError("Erro ao remover patrocinador.");
+    }
+  };
 
   const toggleSport = (sport: Sport) => {
     setForm((f) => ({
@@ -548,6 +602,98 @@ const AthleteSettings: React.FC = () => {
               <p className="text-[11px] text-gray-400 mt-1.5">
                 Upload direto disponível em breve
               </p>
+            </div>
+          </div>
+
+          {/* ── Patrocinadores ────────────────────────────────────────────── */}
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h2 className="text-[14px] font-extrabold text-gray-900 tracking-tight">
+                  🏅 Patrocinadores
+                </h2>
+                <p className="text-[12px] text-gray-400 mt-0.5 font-normal">
+                  Máximo de 10 patrocinadores
+                </p>
+              </div>
+              {sponsors.length < 10 && (
+                <button
+                  type="button"
+                  onClick={() => setSponsorOpen((v) => !v)}
+                  className="text-[12px] font-bold text-blue-600 hover:text-blue-700 transition-colors"
+                >
+                  {sponsorOpen ? "Cancelar" : "+ Adicionar"}
+                </button>
+              )}
+            </div>
+            <div className="p-5 space-y-3">
+              {sponsors.length === 0 && !sponsorOpen && (
+                <p className="text-[13px] text-gray-400 text-center py-2">
+                  Nenhum patrocinador adicionado.
+                </p>
+              )}
+
+              {sponsors.map((sp) => (
+                <div key={sp.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                  {sp.logoUrl ? (
+                    <img src={sp.logoUrl} alt={sp.name} className="w-9 h-9 rounded-lg object-contain bg-white border border-gray-200 flex-shrink-0" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-lg flex-shrink-0">
+                      🏅
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-bold text-gray-900 truncate">{sp.name}</p>
+                    {sp.websiteUrl && (
+                      <p className="text-[11px] text-blue-500 truncate font-normal">{sp.websiteUrl}</p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeSponsor(sp.id)}
+                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors flex-shrink-0 text-xs font-bold"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+
+              {sponsorOpen && (
+                <div className="space-y-2 pt-1 border-t border-gray-100">
+                  <input
+                    value={sponsorForm.name}
+                    onChange={(e) => setSponsorForm((f) => ({ ...f, name: e.target.value }))}
+                    placeholder="Nome do patrocinador *"
+                    maxLength={80}
+                    className="w-full px-3.5 py-2.5 rounded-xl border-[1.5px] border-gray-200 text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
+                  />
+                  <input
+                    value={sponsorForm.logoUrl}
+                    onChange={(e) => setSponsorForm((f) => ({ ...f, logoUrl: e.target.value }))}
+                    placeholder="URL do logo (opcional)"
+                    type="url"
+                    className="w-full px-3.5 py-2.5 rounded-xl border-[1.5px] border-gray-200 text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
+                  />
+                  <input
+                    value={sponsorForm.websiteUrl}
+                    onChange={(e) => setSponsorForm((f) => ({ ...f, websiteUrl: e.target.value }))}
+                    placeholder="Website (opcional)"
+                    type="url"
+                    className="w-full px-3.5 py-2.5 rounded-xl border-[1.5px] border-gray-200 text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={addSponsor}
+                    disabled={sponsorAdding || !sponsorForm.name.trim()}
+                    className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-[13px] font-extrabold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {sponsorAdding && (
+                      <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
+                    )}
+                    Salvar patrocinador
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
