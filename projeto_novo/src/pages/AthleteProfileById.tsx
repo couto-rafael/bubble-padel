@@ -302,7 +302,7 @@ const AthleteProfileById: React.FC = () => {
     <div className="min-h-screen bg-[#f8f9fc] pb-24 md:pb-8">
       <AthleteHeader />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 pt-5 pb-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-12">
 
         {/* ── Voltar ──────────────────────────────────────────────────────── */}
         <button
@@ -596,6 +596,34 @@ const AthleteProfileById: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {(athlete.sponsors ?? []).length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-5 py-4 border-b border-gray-100">
+                  <h2 className="text-[14px] font-extrabold text-gray-900 tracking-tight">
+                    🏅 Patrocinadores
+                  </h2>
+                </div>
+                <div className="p-5 flex flex-wrap gap-3">
+                  {athlete.sponsors.map((sp) => (
+                    <div key={sp.id} className="flex items-center gap-2.5 px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl">
+                      {sp.logoUrl ? (
+                        <img src={sp.logoUrl} alt={sp.name} className="w-7 h-7 rounded-lg object-contain bg-white border border-gray-200 flex-shrink-0" />
+                      ) : (
+                        <div className="w-7 h-7 rounded-lg bg-gray-200 flex items-center justify-center text-sm flex-shrink-0">🏅</div>
+                      )}
+                      {sp.websiteUrl ? (
+                        <a href={sp.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-[13px] font-bold text-blue-600 hover:underline">
+                          {sp.name}
+                        </a>
+                      ) : (
+                        <span className="text-[13px] font-bold text-gray-800">{sp.name}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {(athlete.achievements?.unlocked ?? []).length > 0 && (
               <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">

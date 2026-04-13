@@ -672,6 +672,7 @@ interface LeagueStandingView {
 
 export interface AthleteView extends PublicAthlete {
   tournaments: AthleteViewEntry[];
+  sponsors: Array<{ id: string; name: string; logoUrl?: string | null; websiteUrl?: string | null }>;
   trophies: AthleteTrophyView[];
   achievements: {
     unlocked: AchievementView[];

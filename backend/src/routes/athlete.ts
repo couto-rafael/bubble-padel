@@ -932,6 +932,11 @@ athleteRoutes.get(
           achievements,
           leagueStandings,
           matchStats,
+          sponsors: await prisma.athleteSponsor.findMany({
+            where: { athleteId },
+            select: { id: true, name: true, logoUrl: true, websiteUrl: true },
+            orderBy: { createdAt: "asc" },
+          }),
           summary: {
             totalTrophies: trophies.length,
             totalTitles: trophies.filter((t) => t.placement === "CHAMPION").length,
