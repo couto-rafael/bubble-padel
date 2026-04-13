@@ -342,7 +342,7 @@ const EditTournament = () => {
   );
 
   const handleSaveEstrutura = async () => {
-    if (!tournament || !estruturaHasChanges || groupsGenerated) return;
+    if (!tournament || !estruturaHasChanges || groupsGenerated || isLocked) return;
     setEstruturaSaving(true);
     try {
       await updateTournament(tournament.id, {
@@ -470,6 +470,10 @@ const EditTournament = () => {
       </div>
     );
   }
+
+  const isLocked = ["ongoing", "completed"].includes(
+    tournament.status?.toLowerCase() ?? "",
+  );
 
   const tabs = [
     {
@@ -632,6 +636,18 @@ const EditTournament = () => {
             </div>
           </div>
 
+          {/* NOTICE — torneio bloqueado */}
+          {isLocked && (
+            <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3">
+              <svg className="w-4 h-4 text-amber-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+              </svg>
+              <p className="text-[13px] font-semibold text-amber-800">
+                Torneio {tournament.status?.toLowerCase() === "ongoing" ? "em andamento" : "finalizado"} — configurações bloqueadas. Grupos, Jogos e Playoffs permanecem acessíveis.
+              </p>
+            </div>
+          )}
+
           {/* TABS */}
           <div
             className="flex border-b border-gray-200 mb-6 overflow-x-auto"
@@ -684,6 +700,7 @@ const EditTournament = () => {
                       <input
                         type="text"
                         value={tournament.name}
+                        disabled={isLocked}
                         onChange={(e) =>
                           handleFieldChange(
                             "name",
@@ -691,7 +708,7 @@ const EditTournament = () => {
                             "o nome do torneio",
                           )
                         }
-                        className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all cursor-pointer hover:border-gray-300"
+                        className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all cursor-pointer hover:border-gray-300 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-default disabled:opacity-70"
                         placeholder="Clique para alterar"
                       />
                     </div>
@@ -710,6 +727,7 @@ const EditTournament = () => {
                       <input
                         type="text"
                         value={tournament.clubSede || ""}
+                        disabled={isLocked}
                         onChange={(e) =>
                           handleFieldChange(
                             "clubSede",
@@ -717,7 +735,7 @@ const EditTournament = () => {
                             "o clube sede",
                           )
                         }
-                        className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all cursor-pointer hover:border-gray-300"
+                        className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all cursor-pointer hover:border-gray-300 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-default disabled:opacity-70"
                         placeholder="Clique para alterar"
                       />
                     </div>
@@ -728,6 +746,7 @@ const EditTournament = () => {
                       <input
                         type="date"
                         value={tournament.startDate?.slice(0, 10) ?? ""}
+                        disabled={isLocked}
                         onChange={(e) =>
                           handleFieldChange(
                             "startDate",
@@ -735,8 +754,8 @@ const EditTournament = () => {
                             "a data de início",
                           )
                         }
-                        onClick={(e) => e.currentTarget.showPicker?.()}
-                        className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all cursor-pointer hover:border-gray-300"
+                        onClick={(e) => !isLocked && e.currentTarget.showPicker?.()}
+                        className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all cursor-pointer hover:border-gray-300 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-default disabled:opacity-70"
                       />
                     </div>
                     <div>
@@ -746,6 +765,7 @@ const EditTournament = () => {
                       <input
                         type="date"
                         value={tournament.endDate?.slice(0, 10) ?? ""}
+                        disabled={isLocked}
                         onChange={(e) =>
                           handleFieldChange(
                             "endDate",
@@ -753,8 +773,8 @@ const EditTournament = () => {
                             "a data de término",
                           )
                         }
-                        onClick={(e) => e.currentTarget.showPicker?.()}
-                        className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all cursor-pointer hover:border-gray-300"
+                        onClick={(e) => !isLocked && e.currentTarget.showPicker?.()}
+                        className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all cursor-pointer hover:border-gray-300 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-default disabled:opacity-70"
                       />
                     </div>
                   </div>
@@ -990,7 +1010,7 @@ const EditTournament = () => {
                       `Quadra ${prev.length + 1}`,
                     ])
                   }
-                  disabled={groupsGenerated}
+                  disabled={groupsGenerated || isLocked}
                   className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-semibold transition-colors mb-4 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <svg
@@ -1019,7 +1039,7 @@ const EditTournament = () => {
                         <input
                           type="text"
                           value={court}
-                          disabled={groupsGenerated}
+                          disabled={groupsGenerated || isLocked}
                           onChange={(e) => {
                             const updated = [...estruturaCourts];
                             updated[idx] = e.target.value;
@@ -1033,7 +1053,7 @@ const EditTournament = () => {
                               prev.filter((_, i) => i !== idx),
                             )
                           }
-                          disabled={groupsGenerated}
+                          disabled={groupsGenerated || isLocked}
                           className="p-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-400 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           <svg
@@ -1066,7 +1086,7 @@ const EditTournament = () => {
                     <input
                       type="number"
                       value={estruturaDuration}
-                      disabled={groupsGenerated}
+                      disabled={groupsGenerated || isLocked}
                       onChange={(e) => setEstruturaDuration(e.target.value)}
                       className="w-28 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
                     />
@@ -1103,7 +1123,7 @@ const EditTournament = () => {
                             <input
                               type="time"
                               value={s.startTime}
-                              disabled={groupsGenerated}
+                              disabled={groupsGenerated || isLocked}
                               onChange={(e) => {
                                 const updated = [...estruturaSchedules];
                                 updated[idx] = {
@@ -1118,7 +1138,7 @@ const EditTournament = () => {
                             <input
                               type="time"
                               value={s.endTime}
-                              disabled={groupsGenerated}
+                              disabled={groupsGenerated || isLocked}
                               onChange={(e) => {
                                 const updated = [...estruturaSchedules];
                                 updated[idx] = {
@@ -1213,6 +1233,7 @@ const EditTournament = () => {
               addTeam={addTeam}
               updateTeam={updateTeam}
               deleteTeam={deleteTeam}
+              readOnly={isLocked}
             />
           )}
           {/* TAB CONTENT - Categorias */}
@@ -1230,25 +1251,27 @@ const EditTournament = () => {
                     {(tournament.categories?.length || 0) !== 1 ? "s" : ""}
                   </p>
                 </div>
-                <button
-                  onClick={() => setIsAddCategoryModalOpen(true)}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2.5}
+                {!isLocked && (
+                  <button
+                    onClick={() => setIsAddCategoryModalOpen(true)}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
-                  Adicionar Categoria
-                </button>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                    Adicionar Categoria
+                  </button>
+                )}
               </div>
               {tournament.categories && tournament.categories.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1315,7 +1338,7 @@ const EditTournament = () => {
                           >
                             {cat}
                           </h4>
-                          <button
+                          {!isLocked && <button
                             onClick={() => handleDeleteCategory(cat)}
                             className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100 shrink-0"
                           >
@@ -1332,7 +1355,7 @@ const EditTournament = () => {
                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                               />
                             </svg>
-                          </button>
+                          </button>}
                         </div>
                         <div className="mt-4 mb-3 flex items-end gap-1.5">
                           <span className={`text-4xl font-black ${color.text}`}>

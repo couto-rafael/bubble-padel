@@ -15,6 +15,7 @@ interface Props {
   addTeam: (data: Partial<Team>) => Promise<any>;
   updateTeam: (id: string, data: Partial<Team>) => Promise<any>;
   deleteTeam: (id: string) => Promise<any>;
+  readOnly?: boolean;
 }
 
 // ─── RANDOM HELPERS (para geração de teste) ───────────────────────────────────
@@ -83,6 +84,7 @@ const TabInscricoes = ({
   addTeam,
   updateTeam,
   deleteTeam,
+  readOnly = false,
 }: Props) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("todas");
@@ -257,7 +259,7 @@ const TabInscricoes = ({
   return (
     <div className="space-y-6">
       {/* ── BULK ACTIONS ── */}
-      {(pendingCount > 0 || unpaidCount > 0) && (
+      {!readOnly && (pendingCount > 0 || unpaidCount > 0) && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex flex-wrap gap-3 items-center">
           <svg
             className="w-5 h-5 text-blue-500 flex-shrink-0"
@@ -401,12 +403,14 @@ const TabInscricoes = ({
             </select>
           </div>
 
-          <button
-            onClick={() => setIsAddTeamModalOpen(true)}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 shadow-sm hover:shadow transition-all whitespace-nowrap"
-          >
-            + Adicionar Dupla
-          </button>
+          {!readOnly && (
+            <button
+              onClick={() => setIsAddTeamModalOpen(true)}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 shadow-sm hover:shadow transition-all whitespace-nowrap"
+            >
+              + Adicionar Dupla
+            </button>
+          )}
         </div>
 
         {/* Contador + limpar + gerar */}
@@ -608,7 +612,7 @@ const TabInscricoes = ({
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex justify-center relative">
-                      <button
+                      {!readOnly && <button
                         onClick={(e) => {
                           const rect = (
                             e.currentTarget as HTMLElement
@@ -637,9 +641,9 @@ const TabInscricoes = ({
                             d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
                           />
                         </svg>
-                      </button>
+                      </button>}
 
-                      {openMenuId === team.id && (
+                      {!readOnly && openMenuId === team.id && (
                         <>
                           <div
                             className="fixed inset-0 z-10"
