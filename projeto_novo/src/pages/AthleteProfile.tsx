@@ -591,9 +591,9 @@ const AthleteProfile: React.FC = () => {
                 {athlete.bio}
               </p>
             )}
-            <div className="flex flex-wrap gap-3 text-[12px] text-gray-500 mb-3 font-normal">
-              {location !== "—" && <span>📍 {location}</span>}
-            </div>
+            {location !== "—" && (
+              <p className="text-[12px] text-gray-500 mb-3 font-normal">📍 {location}</p>
+            )}
 
             {/* Esportes / Raquete / Redes sociais */}
             {((athlete.sports && athlete.sports.length > 0) ||
@@ -693,10 +693,12 @@ const AthleteProfile: React.FC = () => {
                   color: "text-amber-600",
                 },
                 {
-                  value: "—",
+                  value: stats?.matchStats?.winRate != null
+                    ? `${stats.matchStats.winRate}%`
+                    : "—",
                   label: "% Aproveit.",
                   color: "text-blue-600",
-                  title: "Disponível em breve",
+                  title: stats?.matchStats?.winRate == null ? "Disponível após partidas" : undefined,
                 },
                 {
                   value: achievUnlocked,
@@ -739,6 +741,16 @@ const AthleteProfile: React.FC = () => {
         {/* ── Tab: Visão Geral ──────────────────────────────────────────────── */}
         {activeTab === "overview" && (
           <div className="space-y-4">
+            {/* Card Sobre — só aparece se bio preenchida */}
+            {athlete.bio && (
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+                <h2 className="text-[14px] font-extrabold text-gray-900 mb-2 tracking-tight">
+                  Sobre
+                </h2>
+                <p className="text-[13px] text-gray-600 leading-relaxed">{athlete.bio}</p>
+              </div>
+            )}
+
             <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
               <h2 className="text-[14px] font-extrabold text-gray-900 mb-4 tracking-tight">
                 Atividade — Últimos 3 Meses
