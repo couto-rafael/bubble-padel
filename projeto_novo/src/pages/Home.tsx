@@ -6,6 +6,17 @@ import Footer from "../components/Footer";
 
 const Home = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authDefaultView, setAuthDefaultView] = useState<"login" | "select-type" | "register-athlete" | "register-club">("login");
+
+  const openClubRegister = () => {
+    setAuthDefaultView("register-club");
+    setIsAuthModalOpen(true);
+  };
+
+  const openLogin = () => {
+    setAuthDefaultView("login");
+    setIsAuthModalOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0e1a] text-white font-sans antialiased">
@@ -13,6 +24,7 @@ const Home = () => {
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+        defaultView={authDefaultView}
       />
 
       {/* Navigation */}
@@ -67,7 +79,7 @@ const Home = () => {
                 Contato
               </Link>
               <button
-                onClick={() => setIsAuthModalOpen(true)}
+                onClick={openLogin}
                 className="px-6 py-2.5 bg-[#00ff88] text-[#0a0e1a] rounded-xl font-bold text-sm hover:bg-[#00ff99] transition-all"
               >
                 Entrar
@@ -75,7 +87,7 @@ const Home = () => {
             </div>
 
             {/* Mobile Menu */}
-            <MobileMenu onLoginClick={() => setIsAuthModalOpen(true)} />
+            <MobileMenu onLoginClick={openLogin} />
           </div>
         </div>
       </nav>
@@ -93,25 +105,25 @@ const Home = () => {
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/[0.08] rounded-full mb-8 animate-fade-in">
               <span className="w-2 h-2 bg-[#00ff88] rounded-full animate-pulse"></span>
               <span className="text-sm text-gray-300">
-                Mais de 500 clubes de padel confiam na gente
+                Novo · Grátis durante o lançamento
               </span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-black tracking-tight mb-6 leading-[1.1]">
-              Organize Torneios de Padel
+              Software de Torneio de Padel
               <span className="block bg-gradient-to-r from-[#00ff88] to-[#00ccff] bg-clip-text text-transparent mt-2">
-                Sem Complicação
+                Simples e Gratuito
               </span>
             </h1>
 
             <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
               Chega de planilhas e grupos de WhatsApp. Bubble é a plataforma
-              completa para criar, gerenciar e realizar torneios profissionais
-              de padel sem estresse.
+              completa para organizar torneios de padel e beach tennis com
+              grupos, chaves e resultados em tempo real.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button className="group px-8 py-4 bg-[#00ff88] text-[#0a0e1a] rounded-xl font-bold text-lg hover:bg-[#00dd77] transition-all hover:shadow-[0_0_40px_rgba(0,255,136,0.4)] flex items-center gap-2">
+              <button onClick={openClubRegister} className="group px-8 py-4 bg-[#00ff88] text-[#0a0e1a] rounded-xl font-bold text-lg hover:bg-[#00dd77] transition-all hover:shadow-[0_0_40px_rgba(0,255,136,0.4)] flex items-center gap-2">
                 Criar Seu Primeiro Torneio
                 <svg
                   className="w-5 h-5 group-hover:translate-x-1 transition-transform"
@@ -127,9 +139,9 @@ const Home = () => {
                   />
                 </svg>
               </button>
-              <button className="px-8 py-4 border-2 border-white/20 text-white rounded-xl font-bold text-lg hover:bg-white/5 transition-all hover:border-white/40">
+              <a href="#features" className="px-8 py-4 border-2 border-white/20 text-white rounded-xl font-bold text-lg hover:bg-white/5 transition-all hover:border-white/40">
                 Ver Como Funciona
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -541,54 +553,79 @@ const Home = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8 md:mb-16">
             <h2 className="text-2xl md:text-4xl lg:text-5xl font-black mb-4">
-              Feito Para Clubes de Padel Modernos
+              Seja um dos Primeiros
             </h2>
-            <p className="text-base md:text-xl text-gray-400">
-              Confiável pelos principais clubes do Brasil
+            <p className="text-base md:text-xl text-gray-400 max-w-2xl mx-auto">
+              O Bubble está em lançamento. Junte-se agora e ajude a moldar
+              a melhor plataforma de torneios de padel do Brasil.
             </p>
           </div>
 
-          {/* Logo Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 mb-8 md:mb-16">
-            {["Padel Pro", "Court Masters", "Racket Club", "Ace Courts"].map(
-              (name, index) => (
-                <div
-                  key={index}
-                  className="bg-gradient-to-br from-[#1a1f4a]/30 to-[#0f1540]/30 p-4 md:p-8 rounded-xl border border-white/[0.07] flex items-center justify-center"
-                >
-                  <div className="text-gray-500 font-bold text-lg">{name}</div>
-                </div>
-              ),
-            )}
+          {/* Early Adopter Benefits */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-12">
+            {[
+              {
+                icon: "🚀",
+                title: "Acesso Antecipado",
+                description:
+                  "Seja pioneiro. Use a plataforma completa sem custo enquanto lançamos.",
+              },
+              {
+                icon: "🎯",
+                title: "Influencie o Produto",
+                description:
+                  "Seu feedback define as próximas funcionalidades. Fale direto com a equipe.",
+              },
+              {
+                icon: "🔒",
+                title: "Grátis Para Sempre",
+                description:
+                  "Clubes que entrarem agora mantêm acesso gratuito quando lançarmos planos pagos.",
+              },
+            ].map((item, index) => (
+              <div
+                key={index}
+                className="bg-white/[0.04] p-6 md:p-8 rounded-xl border border-white/[0.08] text-center"
+              >
+                <div className="text-4xl mb-4">{item.icon}</div>
+                <h3 className="text-lg font-bold mb-2">{item.title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  {item.description}
+                </p>
+              </div>
+            ))}
           </div>
 
-          {/* Testimonials */}
+          {/* Placeholder testimonials */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             {[
               {
                 quote:
-                  "O Bubble transformou como organizamos torneios. O que levava dias agora leva minutos. Nossos membros adoram a experiência profissional.",
-                author: "Carlos Rodrigues",
-                role: "Diretor de Torneios, Madrid Padel Club",
+                  "Seu depoimento aqui. Organize seu primeiro torneio com o Bubble e conte sua experiência.",
+                author: "Você",
+                role: "Organizador de Torneios de Padel",
+                placeholder: true,
               },
               {
                 quote:
-                  "As atualizações em tempo real e o agendamento automatizado economizaram incontáveis horas. Os jogadores finalmente podem focar em jogar ao invés de perguntar sobre horários das partidas.",
-                author: "Sofia Martinez",
-                role: "Gerente de Clube, Barcelona Courts",
+                  "Seu depoimento aqui. Organize seu primeiro torneio com o Bubble e conte sua experiência.",
+                author: "Você",
+                role: "Gerente de Clube de Padel",
+                placeholder: true,
               },
               {
                 quote:
-                  "Dobramos nossa frequência de torneios desde que mudamos para o Bubble. A plataforma cuida de tudo perfeitamente, da inscrição aos resultados finais.",
-                author: "Miguel Santos",
-                role: "Organizador, Lisbon Padel League",
+                  "Seu depoimento aqui. Organize seu primeiro torneio com o Bubble e conte sua experiência.",
+                author: "Você",
+                role: "Diretor de Torneios",
+                placeholder: true,
               },
             ].map((testimonial, index) => (
               <div
                 key={index}
-                className="bg-white/[0.04] p-8 rounded-xl border border-white/[0.08]"
+                className="bg-white/[0.02] p-8 rounded-xl border border-dashed border-white/[0.12]"
               >
-                <div className="text-[#00ff88] mb-4">
+                <div className="text-[#00ff88]/40 mb-4">
                   <svg
                     className="w-8 h-8"
                     fill="currentColor"
@@ -597,12 +634,12 @@ const Home = () => {
                     <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
                   </svg>
                 </div>
-                <p className="text-gray-300 mb-6 leading-relaxed">
+                <p className="text-gray-500 italic mb-6 leading-relaxed">
                   {testimonial.quote}
                 </p>
                 <div>
-                  <div className="font-bold">{testimonial.author}</div>
-                  <div className="text-sm text-gray-500">
+                  <div className="font-bold text-gray-600">{testimonial.author}</div>
+                  <div className="text-sm text-gray-600">
                     {testimonial.role}
                   </div>
                 </div>
@@ -665,7 +702,7 @@ const Home = () => {
                     </p>
                   </div>
 
-                  <button className="px-12 py-5 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e1a] rounded-xl font-black text-xl transition-all shadow-lg hover:shadow-[0_0_40px_rgba(0,255,136,0.5)]">
+                  <button onClick={openClubRegister} className="px-12 py-5 bg-gradient-to-r from-[#00ff88] to-[#00dd77] hover:from-[#00dd77] hover:to-[#00cc66] text-[#0a0e1a] rounded-xl font-black text-xl transition-all shadow-lg hover:shadow-[0_0_40px_rgba(0,255,136,0.5)]">
                     Começar Gratuitamente
                   </button>
                 </div>
@@ -881,11 +918,11 @@ const Home = () => {
             </span>
           </h2>
           <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-            Junte-se a centenas de clubes e organizadores que já mudaram para o
-            Bubble. Seu primeiro torneio está a apenas alguns minutos de
-            distância.
+            Cadastre seu clube agora e organize seu primeiro torneio de padel
+            gratuitamente. Grupos, chaves e resultados em tempo real — sem
+            planilhas, sem WhatsApp.
           </p>
-          <button className="group px-10 py-5 bg-[#00ff88] text-[#0a0e1a] rounded-xl font-bold text-xl hover:bg-[#00dd77] transition-all hover:shadow-[0_0_50px_rgba(0,255,136,0.5)] flex items-center gap-3 mx-auto">
+          <button onClick={openClubRegister} className="group px-10 py-5 bg-[#00ff88] text-[#0a0e1a] rounded-xl font-bold text-xl hover:bg-[#00dd77] transition-all hover:shadow-[0_0_50px_rgba(0,255,136,0.5)] flex items-center gap-3 mx-auto">
             Criar Seu Torneio Agora
             <svg
               className="w-6 h-6 group-hover:translate-x-1 transition-transform"

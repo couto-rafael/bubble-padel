@@ -8,6 +8,7 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   returnUrl?: string;
+  defaultView?: "login" | "select-type" | "register-athlete" | "register-club";
 }
 
 type ModalView = "login" | "select-type" | "register-athlete" | "register-club";
@@ -156,9 +157,10 @@ const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
   returnUrl,
+  defaultView,
 }) => {
   const navigate = useNavigate();
-  const [view, setView] = useState<ModalView>("login");
+  const [view, setView] = useState<ModalView>(defaultView ?? "login");
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
