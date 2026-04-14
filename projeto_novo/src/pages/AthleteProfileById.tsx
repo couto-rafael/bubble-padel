@@ -317,7 +317,14 @@ const AthleteProfileById: React.FC = () => {
 
         {/* ── Hero Card ───────────────────────────────────────────────────── */}
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm mb-5">
-          <div className="h-16 bg-gradient-to-r from-[#00e87a]/10 via-[#00c8ff]/5 to-[#00e87a]/10" />
+          {/* Banner */}
+          <div className="h-24 relative overflow-hidden">
+            {athlete.bannerUrl ? (
+              <img src={athlete.bannerUrl} alt="Banner" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-r from-[#00e87a]/10 via-[#00c8ff]/5 to-[#00e87a]/10" />
+            )}
+          </div>
           <div className="px-5 pb-5">
             <div className="flex items-end justify-between -mt-9 mb-4">
               <div className="w-16 h-16 rounded-2xl border-[3px] border-white bg-gradient-to-br from-[#00e87a] to-[#00b85f] flex items-center justify-center overflow-hidden shadow-[0_0_16px_rgba(0,232,122,0.3)]">
@@ -327,7 +334,29 @@ const AthleteProfileById: React.FC = () => {
                   <span className="text-xl font-extrabold text-[#0a0e1a]">{getInitials(athlete.fullName)}</span>
                 )}
               </div>
-              {/* Sem botão Editar Perfil — view-only */}
+              {/* Botões — desktop (mobile fica abaixo da bio) */}
+              <div className="hidden sm:flex items-center gap-2">
+                <button
+                  disabled
+                  title="Em breve"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-[13px] font-bold text-gray-500 bg-white opacity-60 cursor-not-allowed"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  </svg>
+                  Conectar
+                </button>
+                <button
+                  disabled
+                  title="Em breve"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-[13px] font-bold text-gray-500 bg-white opacity-60 cursor-not-allowed"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  Mensagem
+                </button>
+              </div>
             </div>
 
             <h1 className="text-[22px] font-extrabold text-gray-900 tracking-tight mb-0.5">
@@ -336,9 +365,36 @@ const AthleteProfileById: React.FC = () => {
             {athlete.nickname && (
               <p className="text-[14px] font-semibold text-[#00e87a] mb-1.5">{athlete.nickname}</p>
             )}
+            {athlete.bio && (
+              <p className="text-[13px] text-gray-600 font-normal mb-2 leading-relaxed">{athlete.bio}</p>
+            )}
             {location !== "—" && (
               <p className="text-[12px] text-gray-500 mb-3 font-normal">📍 {location}</p>
             )}
+
+            {/* Botões — mobile (full width, abaixo da bio) */}
+            <div className="flex sm:hidden gap-2 mb-3">
+              <button
+                disabled
+                title="Em breve"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-[13px] font-bold text-gray-500 bg-white opacity-60 cursor-not-allowed"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                Conectar
+              </button>
+              <button
+                disabled
+                title="Em breve"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-[13px] font-bold text-gray-500 bg-white opacity-60 cursor-not-allowed"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                Mensagem
+              </button>
+            </div>
 
             {/* Esportes / Raquete / Redes sociais */}
             {((athlete.sports && athlete.sports.length > 0) ||

@@ -152,7 +152,12 @@ model Athlete {
   updatedAt    DateTime  @updatedAt
 
   // Sprint 7 — perfil Strava
+  firstName    String?           // Nome (separado do sobrenome)
+  lastName     String?           // Sobrenome
   nickname     String?           // Apelido/nome de guerra
+  bio          String?           // Bio pública (max 300 chars)
+  gender       String?           // MASCULINO | FEMININO | NAO_INFORMAR
+  bannerUrl    String?           // URL do banner do perfil
   sports       Sport[]           @default([])  // Esportes que pratica
   rackets      String[]          @default([])  // Marcas/modelos das raquetes
   instagramUrl String?           // Handle ou URL do Instagram

@@ -22,6 +22,7 @@ import EditTournament from "./pages/EditTournament";
 import AthleteDashboard from "./pages/AthleteDashboard";
 import AthleteProfile from "./pages/AthleteProfile";
 import AthleteSettings from "./pages/AthleteSettings";
+import AthleteEditProfile from "./pages/AthleteEditProfile";
 import TermsPage from "./pages/TermsPage";
 import PaymentPage from "./pages/PaymentPage";
 import TournamentResultsPDF from "./pages/TournamentResultsPDF";
@@ -94,6 +95,7 @@ const App = () => {
                   element={<AthleteDashboard />}
                 />
                 <Route path="/athlete/profile" element={<AthleteProfile />} />
+                <Route path="/athlete/profile/edit" element={<AthleteEditProfile />} />
                 <Route path="/athlete/settings" element={<AthleteSettings />} />
                 <Route path="/athlete/:id" element={<AthleteProfileById />} />
 

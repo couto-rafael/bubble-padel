@@ -7,11 +7,16 @@ import AthleteHeader from "../components/AthleteHeader";
 interface AthleteData {
   id: string;
   fullName: string;
+  firstName?: string | null;
+  lastName?: string | null;
   phone?: string;
   city?: string;
   state?: string;
   avatarUrl?: string | null;
+  bannerUrl?: string | null;
   birthDate?: string;
+  bio?: string | null;
+  gender?: string | null;
   createdAt: string;
   user?: { email: string };
   // Sprint 7 — perfil Strava
@@ -538,7 +543,18 @@ const AthleteProfile: React.FC = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-12">
         {/* ── Hero Card ─────────────────────────────────────────────────────── */}
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm mb-5">
-          <div className="h-16 bg-gradient-to-r from-[#00e87a]/10 via-[#00c8ff]/5 to-[#00e87a]/10" />
+          {/* Banner */}
+          <div className="h-24 relative overflow-hidden">
+            {athlete.bannerUrl ? (
+              <img
+                src={athlete.bannerUrl}
+                alt="Banner"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-r from-[#00e87a]/10 via-[#00c8ff]/5 to-[#00e87a]/10" />
+            )}
+          </div>
           <div className="px-5 pb-5">
             <div className="flex items-end justify-between -mt-9 mb-4">
               <div className="w-16 h-16 rounded-2xl border-[3px] border-white bg-gradient-to-br from-[#00e87a] to-[#00b85f] flex items-center justify-center overflow-hidden shadow-[0_0_16px_rgba(0,232,122,0.3)]">
@@ -555,7 +571,7 @@ const AthleteProfile: React.FC = () => {
                 )}
               </div>
               <Link
-                to="/athlete/settings"
+                to="/athlete/profile/edit"
                 className="px-3.5 py-1.5 border border-gray-200 rounded-xl text-[12px] font-bold text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 Editar Perfil
@@ -570,13 +586,13 @@ const AthleteProfile: React.FC = () => {
                 {athlete.nickname}
               </p>
             )}
+            {athlete.bio && (
+              <p className="text-[13px] text-gray-600 font-normal mb-2 leading-relaxed">
+                {athlete.bio}
+              </p>
+            )}
             <div className="flex flex-wrap gap-3 text-[12px] text-gray-500 mb-3 font-normal">
               {location !== "—" && <span>📍 {location}</span>}
-              {athlete.user?.email && (
-                <span className="hidden sm:inline">
-                  ✉️ {athlete.user.email}
-                </span>
-              )}
             </div>
 
             {/* Esportes / Raquete / Redes sociais */}

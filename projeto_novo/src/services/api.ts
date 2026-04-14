@@ -597,6 +597,8 @@ export interface PublicAthlete {
   city?: string | null;
   state?: string | null;
   avatarUrl?: string | null;
+  bannerUrl?: string | null;
+  bio?: string | null;
   sports: string[];
   rackets: string[];
   instagramUrl?: string | null;

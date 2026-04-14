@@ -9,11 +9,16 @@ export const athleteRoutes = Router();
 
 const updateSchema = z.object({
   fullName: z.string().min(2).optional(),
-  phone: z.string().optional(),
+  firstName: z.string().min(1).max(80).optional().nullable(),
+  lastName: z.string().min(1).max(80).optional().nullable(),
+  phone: z.string().max(20).optional().nullable(),
   city: z.string().optional(),
   state: z.string().optional(),
-  avatarUrl: z.string().optional(),
-  birthDate: z.string().optional(),
+  avatarUrl: z.string().optional().nullable(),
+  bannerUrl: z.string().optional().nullable(),
+  birthDate: z.string().optional().nullable(),
+  bio: z.string().max(300).optional().nullable(),
+  gender: z.enum(["MASCULINO", "FEMININO", "NAO_INFORMAR"]).optional().nullable(),
   // Sprint 7 — perfil Strava
   nickname: z.string().max(30).optional().nullable(),
   sports: z
@@ -230,11 +235,17 @@ athleteRoutes.patch(
   async (req: AuthRequest, res, next) => {
     try {
       const data = updateSchema.parse(req.body);
+      // Deriva fullName automaticamente se firstName/lastName foram enviados
+      const derivedFullName =
+        data.firstName !== undefined || data.lastName !== undefined
+          ? `${data.firstName ?? ""} ${data.lastName ?? ""}`.trim() || undefined
+          : undefined;
       const athlete = await prisma.athlete.update({
         where: { userId: req.userId },
         data: {
           ...data,
-          ...(data.birthDate && { birthDate: new Date(data.birthDate) }),
+          ...(derivedFullName && { fullName: derivedFullName }),
+          ...(data.birthDate ? { birthDate: new Date(data.birthDate) } : data.birthDate === null ? { birthDate: null } : {}),
         },
       });
       return res.json({ data: athlete });
@@ -634,6 +645,8 @@ athleteRoutes.get(
           city: true,
           state: true,
           avatarUrl: true,
+          bannerUrl: true,
+          bio: true,
           sports: true,
           rackets: true,
           instagramUrl: true,
