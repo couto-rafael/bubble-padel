@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AthleteHeader from "../components/AthleteHeader";
+import { uploadImage } from "../lib/supabaseClient";
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 
@@ -141,6 +142,11 @@ const AthleteEditProfile: React.FC = () => {
   const [cityTimer, setCityTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+  const [userId, setUserId] = useState<string>("");
 
   // ── Carregar dados ────────────────────────────────────────────────────────
 
@@ -153,6 +159,7 @@ const AthleteEditProfile: React.FC = () => {
     ])
       .then(([profileJson, sponsorsJson]) => {
         const d = profileJson.data;
+        setUserId(d.id ?? d.userId ?? "");
         setSponsors(sponsorsJson.data ?? []);
         setCityQuery(d.city && d.state ? `${d.city} — ${d.state}` : (d.city ?? ""));
 
@@ -266,6 +273,38 @@ const AthleteEditProfile: React.FC = () => {
     setForm((f) => ({ ...f, city: city.nome, state: city.uf }));
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    setError("");
+    try {
+      const url = await uploadImage("avatars", file, userId || "anonymous");
+      set("avatarUrl", url);
+    } catch (err: any) {
+      setError("Erro ao fazer upload da foto. Verifique o arquivo e tente novamente.");
+    } finally {
+      setUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = "";
+    }
+  };
+
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingBanner(true);
+    setError("");
+    try {
+      const url = await uploadImage("banners", file, userId || "anonymous");
+      set("bannerUrl", url);
+    } catch (err: any) {
+      setError("Erro ao fazer upload do banner. Verifique o arquivo e tente novamente.");
+    } finally {
+      setUploadingBanner(false);
+      if (bannerInputRef.current) bannerInputRef.current.value = "";
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -362,8 +401,30 @@ const AthleteEditProfile: React.FC = () => {
 
           {/* ── Foto + Banner ──────────────────────────────────────────────── */}
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-            {/* Banner */}
-            <div className="relative h-32 bg-gradient-to-r from-[#0a0e27] to-[#1a2040] group">
+
+            {/* Inputs ocultos */}
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
+            <input
+              ref={bannerInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleBannerUpload}
+            />
+
+            {/* Banner clicável */}
+            <button
+              type="button"
+              onClick={() => bannerInputRef.current?.click()}
+              disabled={uploadingBanner}
+              className="relative h-32 w-full bg-gradient-to-r from-[#0a0e27] to-[#1a2040] group block"
+            >
               {form.bannerUrl && (
                 <img
                   src={form.bannerUrl}
@@ -371,18 +432,27 @@ const AthleteEditProfile: React.FC = () => {
                   className="w-full h-full object-cover"
                 />
               )}
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30 cursor-pointer">
-                <span className="text-white text-xs font-bold bg-black/50 px-3 py-1.5 rounded-lg">
-                  Alterar banner
-                </span>
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                {uploadingBanner ? (
+                  <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <span className="text-white text-xs font-bold bg-black/50 px-3 py-1.5 rounded-lg">
+                    {form.bannerUrl ? "Alterar banner" : "Adicionar banner"} · clique para upload
+                  </span>
+                )}
               </div>
-            </div>
+            </button>
 
             {/* Avatar sobre o banner */}
             <div className="px-5 pb-5">
               <div className="flex items-end gap-4 -mt-10 mb-4">
                 <div className="relative group flex-shrink-0">
-                  <div className="w-20 h-20 rounded-2xl border-4 border-white shadow-md bg-gradient-to-br from-[#00e87a] to-[#00ccff] flex items-center justify-center overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                    className="w-20 h-20 rounded-2xl border-4 border-white shadow-md bg-gradient-to-br from-[#00e87a] to-[#00ccff] flex items-center justify-center overflow-hidden"
+                  >
                     {form.avatarUrl ? (
                       <img src={form.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
@@ -390,9 +460,13 @@ const AthleteEditProfile: React.FC = () => {
                         {getInitials(`${form.firstName} ${form.lastName}`) || "?"}
                       </span>
                     )}
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 rounded-2xl cursor-pointer">
-                    <span className="text-white text-lg">✏️</span>
+                  </button>
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 rounded-2xl pointer-events-none">
+                    {uploadingAvatar ? (
+                      <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <span className="text-white text-lg">✏️</span>
+                    )}
                   </div>
                 </div>
                 <div className="flex-1 min-w-0 pb-1">
@@ -404,31 +478,9 @@ const AthleteEditProfile: React.FC = () => {
                   )}
                 </div>
               </div>
-
-              {/* URLs de foto e banner */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className={labelCls}>URL da foto de perfil</label>
-                  <input
-                    value={form.avatarUrl}
-                    type="url"
-                    onChange={(e) => set("avatarUrl", e.target.value)}
-                    placeholder="https://..."
-                    className={inputCls}
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>URL do banner</label>
-                  <input
-                    value={form.bannerUrl}
-                    type="url"
-                    onChange={(e) => set("bannerUrl", e.target.value)}
-                    placeholder="https://..."
-                    className={inputCls}
-                  />
-                </div>
-              </div>
-              <p className="text-[11px] text-gray-400 mt-1.5">Upload direto disponível em breve</p>
+              <p className="text-[11px] text-gray-400">
+                Clique na foto ou no banner para fazer upload · JPG, PNG ou WebP · máx. 5 MB
+              </p>
             </div>
           </div>
 
