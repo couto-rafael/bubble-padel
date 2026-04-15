@@ -18,7 +18,10 @@ const updateSchema = z.object({
   bannerUrl: z.string().optional().nullable(),
   birthDate: z.string().optional().nullable(),
   bio: z.string().max(300).optional().nullable(),
-  gender: z.enum(["MASCULINO", "FEMININO", "NAO_INFORMAR"]).optional().nullable(),
+  gender: z
+    .enum(["MASCULINO", "FEMININO", "NAO_INFORMAR"])
+    .optional()
+    .nullable(),
   // Sprint 7 — perfil Strava
   nickname: z.string().max(30).optional().nullable(),
   sports: z
@@ -245,7 +248,11 @@ athleteRoutes.patch(
         data: {
           ...data,
           ...(derivedFullName && { fullName: derivedFullName }),
-          ...(data.birthDate ? { birthDate: new Date(data.birthDate) } : data.birthDate === null ? { birthDate: null } : {}),
+          ...(data.birthDate
+            ? { birthDate: new Date(data.birthDate) }
+            : data.birthDate === null
+              ? { birthDate: null }
+              : {}),
         },
       });
       return res.json({ data: athlete });
@@ -784,7 +791,11 @@ athleteRoutes.get(
           existing.entries.push(entry);
         } else {
           leagueMap.set(lp.leagueId, {
-            league: lp.league as { id: string; name: string; sport: string | null },
+            league: lp.league as {
+              id: string;
+              name: string;
+              sport: string | null;
+            },
             totalPoints: lp.points,
             entries: [entry],
             rankPosition: null,
@@ -853,8 +864,10 @@ athleteRoutes.get(
         myTeams.map((t) => [
           t.id,
           {
-            partner: t.player1Email === userEmail ? t.player2Name : t.player1Name,
-            partnerEmail: t.player1Email === userEmail ? t.player2Email : t.player1Email,
+            partner:
+              t.player1Email === userEmail ? t.player2Name : t.player1Name,
+            partnerEmail:
+              t.player1Email === userEmail ? t.player2Email : t.player1Email,
             category: t.category,
           },
         ]),
@@ -862,7 +875,10 @@ athleteRoutes.get(
 
       let wins = 0;
       let losses = 0;
-      const partnerStats = new Map<string, { name: string; wins: number; losses: number }>();
+      const partnerStats = new Map<
+        string,
+        { name: string; wins: number; losses: number }
+      >();
       const categoryStats = new Map<string, { wins: number; losses: number }>();
 
       const processMatch = (
@@ -883,11 +899,18 @@ athleteRoutes.get(
         else losses++;
         const info = teamMap.get(myTeamId);
         if (info) {
-          const p = partnerStats.get(info.partnerEmail) ?? { name: info.partner, wins: 0, losses: 0 };
+          const p = partnerStats.get(info.partnerEmail) ?? {
+            name: info.partner,
+            wins: 0,
+            losses: 0,
+          };
           if (won) p.wins++;
           else p.losses++;
           partnerStats.set(info.partnerEmail, p);
-          const cat = categoryStats.get(info.category) ?? { wins: 0, losses: 0 };
+          const cat = categoryStats.get(info.category) ?? {
+            wins: 0,
+            losses: 0,
+          };
           if (won) cat.wins++;
           else cat.losses++;
           categoryStats.set(info.category, cat);
@@ -908,7 +931,10 @@ athleteRoutes.get(
           wins: s.wins,
           losses: s.losses,
           total: s.wins + s.losses,
-          winRate: s.wins + s.losses > 0 ? Math.round((s.wins / (s.wins + s.losses)) * 100) : 0,
+          winRate:
+            s.wins + s.losses > 0
+              ? Math.round((s.wins / (s.wins + s.losses)) * 100)
+              : 0,
         }))
         .sort((a, b) => b.winRate - a.winRate || b.total - a.total)
         .slice(0, 5);
@@ -919,13 +945,24 @@ athleteRoutes.get(
           wins: s.wins,
           losses: s.losses,
           total: s.wins + s.losses,
-          winRate: s.wins + s.losses > 0 ? Math.round((s.wins / (s.wins + s.losses)) * 100) : 0,
+          winRate:
+            s.wins + s.losses > 0
+              ? Math.round((s.wins / (s.wins + s.losses)) * 100)
+              : 0,
         }))
         .sort((a, b) => b.total - a.total);
 
       const totalMatches = wins + losses;
-      const winRate = totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0;
-      const matchStats = { wins, losses, totalMatches, winRate, topPartners, byCategory };
+      const winRate =
+        totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0;
+      const matchStats = {
+        wins,
+        losses,
+        totalMatches,
+        winRate,
+        topPartners,
+        byCategory,
+      };
 
       return res.json({
         data: {
@@ -935,6 +972,7 @@ athleteRoutes.get(
           city: athlete.city,
           state: athlete.state,
           avatarUrl: athlete.avatarUrl,
+          bannerUrl: athlete.bannerUrl,
           sports: athlete.sports,
           rackets: athlete.rackets,
           instagramUrl: athlete.instagramUrl,
@@ -952,7 +990,8 @@ athleteRoutes.get(
           }),
           summary: {
             totalTrophies: trophies.length,
-            totalTitles: trophies.filter((t) => t.placement === "CHAMPION").length,
+            totalTitles: trophies.filter((t) => t.placement === "CHAMPION")
+              .length,
             totalAchievementsUnlocked: achievements.unlocked.length,
             totalAchievementsAvailable: Object.keys(ACHIEVEMENT_META).length,
             wins,
@@ -975,71 +1014,91 @@ const sponsorSchema = z.object({
   websiteUrl: z.string().url().optional().nullable(),
 });
 
-athleteRoutes.get("/sponsors", requireAuth, async (req: AuthRequest, res, next) => {
-  try {
-    const athlete = await prisma.athlete.findUnique({
-      where: { userId: req.userId! },
-      select: { id: true },
-    });
-    if (!athlete) return res.status(404).json({ error: "Atleta não encontrado" });
+athleteRoutes.get(
+  "/sponsors",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const athlete = await prisma.athlete.findUnique({
+        where: { userId: req.userId! },
+        select: { id: true },
+      });
+      if (!athlete)
+        return res.status(404).json({ error: "Atleta não encontrado" });
 
-    const sponsors = await prisma.athleteSponsor.findMany({
-      where: { athleteId: athlete.id },
-      orderBy: { createdAt: "asc" },
-    });
-    return res.json({ data: sponsors });
-  } catch (err) {
-    next(err);
-  }
-});
+      const sponsors = await prisma.athleteSponsor.findMany({
+        where: { athleteId: athlete.id },
+        orderBy: { createdAt: "asc" },
+      });
+      return res.json({ data: sponsors });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
-athleteRoutes.post("/sponsors", requireAuth, async (req: AuthRequest, res, next) => {
-  try {
-    const body = sponsorSchema.safeParse(req.body);
-    if (!body.success) return res.status(400).json({ error: body.error.flatten() });
+athleteRoutes.post(
+  "/sponsors",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const body = sponsorSchema.safeParse(req.body);
+      if (!body.success)
+        return res.status(400).json({ error: body.error.flatten() });
 
-    const athlete = await prisma.athlete.findUnique({
-      where: { userId: req.userId! },
-      select: { id: true },
-    });
-    if (!athlete) return res.status(404).json({ error: "Atleta não encontrado" });
+      const athlete = await prisma.athlete.findUnique({
+        where: { userId: req.userId! },
+        select: { id: true },
+      });
+      if (!athlete)
+        return res.status(404).json({ error: "Atleta não encontrado" });
 
-    const count = await prisma.athleteSponsor.count({ where: { athleteId: athlete.id } });
-    if (count >= 10) return res.status(400).json({ error: "Máximo de 10 patrocinadores." });
+      const count = await prisma.athleteSponsor.count({
+        where: { athleteId: athlete.id },
+      });
+      if (count >= 10)
+        return res.status(400).json({ error: "Máximo de 10 patrocinadores." });
 
-    const sponsor = await prisma.athleteSponsor.create({
-      data: {
-        athleteId: athlete.id,
-        name: body.data.name,
-        logoUrl: body.data.logoUrl ?? null,
-        websiteUrl: body.data.websiteUrl ?? null,
-      },
-    });
-    return res.status(201).json({ data: sponsor });
-  } catch (err) {
-    next(err);
-  }
-});
+      const sponsor = await prisma.athleteSponsor.create({
+        data: {
+          athleteId: athlete.id,
+          name: body.data.name,
+          logoUrl: body.data.logoUrl ?? null,
+          websiteUrl: body.data.websiteUrl ?? null,
+        },
+      });
+      return res.status(201).json({ data: sponsor });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
-athleteRoutes.delete("/sponsors/:id", requireAuth, async (req: AuthRequest, res, next) => {
-  try {
-    const athlete = await prisma.athlete.findUnique({
-      where: { userId: req.userId! },
-      select: { id: true },
-    });
-    if (!athlete) return res.status(404).json({ error: "Atleta não encontrado" });
+athleteRoutes.delete(
+  "/sponsors/:id",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const athlete = await prisma.athlete.findUnique({
+        where: { userId: req.userId! },
+        select: { id: true },
+      });
+      if (!athlete)
+        return res.status(404).json({ error: "Atleta não encontrado" });
 
-    const sponsor = await prisma.athleteSponsor.findFirst({
-      where: { id: req.params.id, athleteId: athlete.id },
-    });
-    if (!sponsor) return res.status(404).json({ error: "Patrocinador não encontrado" });
+      const sponsor = await prisma.athleteSponsor.findFirst({
+        where: { id: req.params.id, athleteId: athlete.id },
+      });
+      if (!sponsor)
+        return res.status(404).json({ error: "Patrocinador não encontrado" });
 
-    await prisma.athleteSponsor.delete({ where: { id: sponsor.id } });
-    return res.status(204).send();
-  } catch (err) {
-    next(err);
-  }
-});
+      await prisma.athleteSponsor.delete({ where: { id: sponsor.id } });
+      return res.status(204).send();
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 // ─── Rotas públicas ───────────────────────────────────────────────────────────
 
