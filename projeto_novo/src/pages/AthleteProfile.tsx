@@ -437,6 +437,7 @@ const AthleteProfile: React.FC = () => {
   const [achievementFilter, setAchievementFilter] = useState<
     "all" | "unlocked" | "inProgress"
   >("all");
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const { pathname, state: navState } = useLocation();
 
@@ -544,7 +545,7 @@ const AthleteProfile: React.FC = () => {
         {/* ── Hero Card ─────────────────────────────────────────────────────── */}
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm mb-5">
           {/* Banner */}
-          <div className="h-24 relative overflow-hidden">
+          <div className="h-28 md:h-32 relative overflow-hidden">
             {athlete.bannerUrl ? (
               <img
                 src={athlete.bannerUrl}
@@ -556,8 +557,13 @@ const AthleteProfile: React.FC = () => {
             )}
           </div>
           <div className="px-5 pb-5">
-            <div className="flex items-end justify-between -mt-9 mb-4">
-              <div className="w-16 h-16 rounded-2xl border-[3px] border-white bg-gradient-to-br from-[#00e87a] to-[#00b85f] flex items-center justify-center overflow-hidden shadow-[0_0_16px_rgba(0,232,122,0.3)]">
+            <div className="flex items-end justify-between -mt-10 mb-4 relative z-10">
+              <button
+                onClick={() =>
+                  athlete.avatarUrl && setLightboxUrl(athlete.avatarUrl)
+                }
+                className="w-20 h-20 md:w-24 md:h-24 rounded-2xl border-[3px] border-white bg-gradient-to-br from-[#00e87a] to-[#00b85f] flex items-center justify-center overflow-hidden shadow-[0_0_16px_rgba(0,232,122,0.3)] cursor-pointer hover:opacity-90 transition-opacity flex-shrink-0"
+              >
                 {athlete.avatarUrl ? (
                   <img
                     src={athlete.avatarUrl}
@@ -565,11 +571,11 @@ const AthleteProfile: React.FC = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="text-xl font-extrabold text-[#0a0e1a]">
+                  <span className="text-xl md:text-2xl font-extrabold text-[#0a0e1a]">
                     {getInitials(athlete.fullName)}
                   </span>
                 )}
-              </div>
+              </button>
               <Link
                 to="/athlete/profile/edit"
                 className="px-3.5 py-1.5 border border-gray-200 rounded-xl text-[12px] font-bold text-gray-600 hover:bg-gray-50 transition-colors"
@@ -592,7 +598,9 @@ const AthleteProfile: React.FC = () => {
               </p>
             )}
             {location !== "—" && (
-              <p className="text-[12px] text-gray-500 mb-3 font-normal">📍 {location}</p>
+              <p className="text-[12px] text-gray-500 mb-3 font-normal">
+                📍 {location}
+              </p>
             )}
 
             {/* Esportes / Raquete / Redes sociais */}
@@ -693,12 +701,16 @@ const AthleteProfile: React.FC = () => {
                   color: "text-amber-600",
                 },
                 {
-                  value: stats?.matchStats?.winRate != null
-                    ? `${stats.matchStats.winRate}%`
-                    : "—",
+                  value:
+                    stats?.matchStats?.winRate != null
+                      ? `${stats.matchStats.winRate}%`
+                      : "—",
                   label: "% Aproveit.",
                   color: "text-blue-600",
-                  title: stats?.matchStats?.winRate == null ? "Disponível após partidas" : undefined,
+                  title:
+                    stats?.matchStats?.winRate == null
+                      ? "Disponível após partidas"
+                      : undefined,
                 },
                 {
                   value: achievUnlocked,
@@ -747,7 +759,9 @@ const AthleteProfile: React.FC = () => {
                 <h2 className="text-[14px] font-extrabold text-gray-900 mb-2 tracking-tight">
                   Sobre
                 </h2>
-                <p className="text-[13px] text-gray-600 leading-relaxed">{athlete.bio}</p>
+                <p className="text-[13px] text-gray-600 leading-relaxed">
+                  {athlete.bio}
+                </p>
               </div>
             )}
 
@@ -870,7 +884,6 @@ const AthleteProfile: React.FC = () => {
                       </div>
                     </div>
                   )}
-
                 </>
               ) : (
                 <div className="grid grid-cols-3 gap-3">
@@ -966,9 +979,12 @@ const AthleteProfile: React.FC = () => {
                           {p.name.slice(0, 1).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[13px] font-bold text-gray-900 truncate">{p.name}</p>
+                          <p className="text-[13px] font-bold text-gray-900 truncate">
+                            {p.name}
+                          </p>
                           <p className="text-[11px] text-gray-400 font-normal">
-                            {p.total} jogo{p.total !== 1 ? "s" : ""} · {p.wins}V {p.losses}D
+                            {p.total} jogo{p.total !== 1 ? "s" : ""} · {p.wins}V{" "}
+                            {p.losses}D
                           </p>
                         </div>
                         <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -977,7 +993,9 @@ const AthleteProfile: React.FC = () => {
                               #1
                             </span>
                           )}
-                          <span className={`text-[14px] font-extrabold ${p.winRate >= 50 ? "text-[#00e87a]" : "text-amber-500"}`}>
+                          <span
+                            className={`text-[14px] font-extrabold ${p.winRate >= 50 ? "text-[#00e87a]" : "text-amber-500"}`}
+                          >
                             {p.winRate}%
                           </span>
                         </div>
@@ -1003,20 +1021,34 @@ const AthleteProfile: React.FC = () => {
                 </div>
                 <div className="p-5 flex flex-wrap gap-3">
                   {sponsors.map((sp) => (
-                    <div key={sp.id} className="flex items-center gap-2.5 px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl">
+                    <div
+                      key={sp.id}
+                      className="flex items-center gap-2.5 px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl"
+                    >
                       {sp.logoUrl ? (
-                        <img src={sp.logoUrl} alt={sp.name} className="w-7 h-7 rounded-lg object-contain bg-white border border-gray-200 flex-shrink-0" />
+                        <img
+                          src={sp.logoUrl}
+                          alt={sp.name}
+                          className="w-7 h-7 rounded-lg object-contain bg-white border border-gray-200 flex-shrink-0"
+                        />
                       ) : (
                         <div className="w-7 h-7 rounded-lg bg-gray-200 flex items-center justify-center text-sm flex-shrink-0">
                           🏅
                         </div>
                       )}
                       {sp.websiteUrl ? (
-                        <a href={sp.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-[13px] font-bold text-blue-600 hover:underline">
+                        <a
+                          href={sp.websiteUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[13px] font-bold text-blue-600 hover:underline"
+                        >
                           {sp.name}
                         </a>
                       ) : (
-                        <span className="text-[13px] font-bold text-gray-800">{sp.name}</span>
+                        <span className="text-[13px] font-bold text-gray-800">
+                          {sp.name}
+                        </span>
                       )}
                     </div>
                   ))}
@@ -1390,6 +1422,27 @@ const AthleteProfile: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      {/* ── Lightbox ──────────────────────────────────────────────────────── */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <img
+            src={lightboxUrl}
+            alt="Foto de perfil"
+            className="max-w-[90vw] max-h-[90vh] rounded-2xl shadow-2xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors text-xl leading-none"
+            onClick={() => setLightboxUrl(null)}
+          >
+            ×
+          </button>
+        </div>
+      )}
     </div>
   );
 };
