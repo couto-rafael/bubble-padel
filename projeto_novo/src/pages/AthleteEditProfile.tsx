@@ -146,7 +146,6 @@ const AthleteEditProfile: React.FC = () => {
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
-  const [userId, setUserId] = useState<string>("");
 
   // ── Carregar dados ────────────────────────────────────────────────────────
 
@@ -159,7 +158,6 @@ const AthleteEditProfile: React.FC = () => {
     ])
       .then(([profileJson, sponsorsJson]) => {
         const d = profileJson.data;
-        setUserId(d.id ?? d.userId ?? "");
         setSponsors(sponsorsJson.data ?? []);
         setCityQuery(d.city && d.state ? `${d.city} — ${d.state}` : (d.city ?? ""));
 
@@ -279,7 +277,7 @@ const AthleteEditProfile: React.FC = () => {
     setUploadingAvatar(true);
     setError("");
     try {
-      const url = await uploadImage("avatars", file, userId || "anonymous");
+      const url = await uploadImage("avatars", file);
       set("avatarUrl", url);
     } catch (err: any) {
       setError("Erro ao fazer upload da foto. Verifique o arquivo e tente novamente.");
@@ -295,7 +293,7 @@ const AthleteEditProfile: React.FC = () => {
     setUploadingBanner(true);
     setError("");
     try {
-      const url = await uploadImage("banners", file, userId || "anonymous");
+      const url = await uploadImage("banners", file);
       set("bannerUrl", url);
     } catch (err: any) {
       setError("Erro ao fazer upload do banner. Verifique o arquivo e tente novamente.");
