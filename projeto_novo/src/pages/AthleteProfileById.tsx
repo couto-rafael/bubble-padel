@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AthleteHeader from "../components/AthleteHeader";
+import SEOHead from "../components/SEOHead";
 import { AthleteViewService, type AthleteView } from "../services/api";
 
 // ─── TIPOS LOCAIS ─────────────────────────────────────────────────────────────
@@ -298,8 +299,22 @@ const AthleteProfileById: React.FC = () => {
     { id: "leagues" as const, label: `Ligas${leagueStandings.length > 0 ? ` (${leagueStandings.length})` : ""}` },
   ];
 
+  const sportsLabel = athlete.sports?.length
+    ? athlete.sports.join(", ")
+    : "Padel";
+
   return (
     <div className="min-h-screen bg-[#f8f9fc] pb-24 md:pb-8">
+      <SEOHead
+        title={`${athlete.fullName} — Perfil de Atleta`}
+        description={
+          athlete.bio
+            ? athlete.bio.slice(0, 160)
+            : `Perfil de ${athlete.fullName}, atleta de ${sportsLabel}${location !== "—" ? ` em ${location}` : ""}. Veja estatísticas e histórico de torneios no Bubble Padel.`
+        }
+        url={`https://bubblepadel.com/athlete/${id}`}
+        type="profile"
+      />
       <AthleteHeader />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-12">

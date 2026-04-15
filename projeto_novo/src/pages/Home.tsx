@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import AuthModal from "../components/AuthModal";
 import MobileMenu from "../components/MobileMenu";
 import Footer from "../components/Footer";
+import SEOHead from "../components/SEOHead";
 
 const Home = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -20,6 +21,12 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0e1a] text-white font-sans antialiased">
+      <SEOHead
+        title="Bubble Padel — Software de Torneio de Padel e Beach Tennis"
+        description="Organize torneios de padel e beach tennis sem planilhas. Grupos, chaves, resultados em tempo real e inscrições com PIX. Grátis para clubes."
+        url="https://bubblepadel.com"
+      />
+
       {/* Auth Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}

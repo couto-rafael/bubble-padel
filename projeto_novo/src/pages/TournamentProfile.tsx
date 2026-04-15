@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams, useLocation } from "react-router-dom"
 import AuthModal from "../components/AuthModal";
 import { PaymentModal } from "../components/PaymentModal";
 import MobileMenu from "../components/MobileMenu";
+import SEOHead from "../components/SEOHead";
 import {
   PublicTournamentService,
   AuthService,
@@ -221,15 +222,6 @@ const TournamentProfile = () => {
     return () => clearInterval(interval);
   }, [id, tournament?.status]);
 
-  // Task 4.5 — título dinâmico da aba
-  useEffect(() => {
-    if (tournament?.name) {
-      document.title = `${tournament.name} — Bubble Padel`;
-    }
-    return () => {
-      document.title = "Bubble Padel";
-    };
-  }, [tournament?.name]);
 
   const handleRegister = async () => {
     if (
@@ -384,6 +376,21 @@ const TournamentProfile = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0e27] text-white">
+      {tournament ? (
+        <SEOHead
+          title={tournament.name}
+          description={
+            tournament.description
+              ? tournament.description.slice(0, 160)
+              : `Torneio de ${sportLabel}${tournament.club?.city ? ` em ${tournament.club.city}, ${tournament.club.state}` : ""}. Inscreva-se no Bubble Padel.`
+          }
+          url={`https://bubblepadel.com/tournaments/${id}`}
+          type="article"
+        />
+      ) : (
+        <SEOHead title="Torneio — Bubble Padel" />
+      )}
+
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}

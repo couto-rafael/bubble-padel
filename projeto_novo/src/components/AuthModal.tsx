@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthService } from "../services/api";
 
@@ -161,6 +161,11 @@ const AuthModal: React.FC<AuthModalProps> = ({
 }) => {
   const navigate = useNavigate();
   const [view, setView] = useState<ModalView>(defaultView ?? "login");
+
+  useEffect(() => {
+    if (isOpen) setView(defaultView ?? "login");
+  }, [isOpen, defaultView]);
+
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});

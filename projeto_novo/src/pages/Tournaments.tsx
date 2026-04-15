@@ -3,6 +3,7 @@ import Footer from "../components/Footer";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import AuthModal from "../components/AuthModal";
 import MobileMenu from "../components/MobileMenu";
+import SEOHead from "../components/SEOHead";
 import {
   PublicTournamentService,
   AuthService,
@@ -202,6 +203,12 @@ const Tournaments = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0e1a] text-white">
+      <SEOHead
+        title="Torneios de Padel e Beach Tennis"
+        description="Encontre e inscreva-se nos melhores torneios de padel e beach tennis do Brasil. Organize seu próximo torneio no Bubble Padel."
+        url="https://bubblepadel.com/tournaments"
+      />
+
       {/* Auth Modal */}
       <AuthModal
         isOpen={isAuthModalOpen}

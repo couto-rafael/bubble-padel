@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import SEOHead from "../components/SEOHead";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
@@ -246,6 +247,21 @@ const LeagueProfile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0e1a] text-white">
+      {league ? (
+        <SEOHead
+          title={`${league.name} — Liga de ${league.sport ? normalizeSport(league.sport) : "Padel"}`}
+          description={
+            league.description
+              ? league.description.slice(0, 160)
+              : `Liga de ${league.sport ? normalizeSport(league.sport) : "Padel"} organizada por ${league.createdByClub.name} em ${league.createdByClub.city}. Veja o ranking no Bubble Padel.`
+          }
+          url={`https://bubblepadel.com/leagues/${id}`}
+          type="article"
+        />
+      ) : (
+        <SEOHead title="Liga — Bubble Padel" />
+      )}
+
       {/* Nav */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e27]/95 backdrop-blur-sm border-b border-white/5">
         <div className="max-w-4xl mx-auto px-6 flex items-center justify-between h-16">

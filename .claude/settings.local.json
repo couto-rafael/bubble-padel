@@ -8,7 +8,8 @@
       "Bash(/c/Users/couto/AppData/Local/Programs/Python/Python312/python.exe -c 'import sys; open\\('\\\\''graphify-out/.graphify_python'\\\\'', '\\\\''w'\\\\''\\).write\\(sys.executable\\)')",
       "Bash(npx tsc:*)",
       "Bash(npx prisma:*)",
-      "Bash(node -e ':*)"
+      "Bash(node -e ':*)",
+      "Bash(npm install:*)"
     ]
   }
 }
