@@ -183,13 +183,23 @@ export function PaymentModal({
                 </div>
               </div>
 
-              {/* Instrução */}
-              <p className="text-sm text-gray-300 text-center">
-                Abra o app do seu banco, escolha <strong>Pagar com PIX</strong>{" "}
-                e use o botão abaixo.
-              </p>
+              {/* QR Code inline */}
+              <div className="flex flex-col items-center gap-3">
+                <div className="bg-white rounded-2xl p-4 shadow-lg">
+                  <img
+                    src={`https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(billingUrl)}&choe=UTF-8`}
+                    alt="QR Code PIX"
+                    width={200}
+                    height={200}
+                    className="block"
+                  />
+                </div>
+                <p className="text-xs text-gray-400 text-center leading-relaxed">
+                  Escaneie com a câmera do celular ou app do banco
+                </p>
+              </div>
 
-              {/* CTA principal */}
+              {/* CTA mobile */}
               <button
                 onClick={handleOpenPix}
                 className="w-full py-3.5 bg-[#00ff88] text-[#050f1a] rounded-xl font-bold text-base hover:bg-[#00dd77] transition-colors flex items-center justify-center gap-2"
@@ -204,10 +214,10 @@ export function PaymentModal({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 3.5a3.5 3.5 0 11-7 0 3.5 3.5 0 017 0z"
+                    d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
                   />
                 </svg>
-                Abrir página de pagamento PIX
+                Abrir no celular
               </button>
 
               {/* Copiar link */}

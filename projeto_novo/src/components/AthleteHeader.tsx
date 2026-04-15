@@ -1,12 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthService } from "../services/api";
+
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
 
 const AthleteHeader: React.FC = () => {
   const navigate = useNavigate();
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isTorneiosOpen, setIsTorneiosOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    if (!token) return;
+    fetch(`${API_URL}/notifications/unread-count`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((j) => setUnreadCount(j.data?.count ?? 0))
+      .catch(() => {});
+
+    // Re-fetch a cada 60s
+    const interval = setInterval(() => {
+      fetch(`${API_URL}/notifications/unread-count`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((r) => r.json())
+        .then((j) => setUnreadCount(j.data?.count ?? 0))
+        .catch(() => {});
+    }, 60_000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = async () => {
     setIsProfileOpen(false);
@@ -192,7 +218,10 @@ const AthleteHeader: React.FC = () => {
             </button>
 
             {/* Notifications */}
-            <button className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors">
+            <Link
+              to="/athlete/notifications"
+              className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -206,9 +235,12 @@ const AthleteHeader: React.FC = () => {
                   d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                 />
               </svg>
-              {/* Badge de notificação */}
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-purple-500 rounded-full"></span>
-            </button>
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 min-w-[16px] h-4 px-0.5 bg-[#00ff88] text-[#050f1a] rounded-full text-[10px] font-extrabold flex items-center justify-center leading-none">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </Link>
 
             {/* Profile Dropdown */}
             <div className="relative">

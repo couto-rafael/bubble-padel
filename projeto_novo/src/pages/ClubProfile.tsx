@@ -153,7 +153,13 @@ export default function ClubProfile() {
     "all" | "open" | "ongoing" | "completed"
   >("all");
   const [copied, setCopied] = useState(false);
+  const [following, setFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
   const tourneiosRef = useRef<HTMLDivElement>(null);
+
+  const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
+  const token = localStorage.getItem("auth_token");
+  const isLoggedIn = !!token;
 
   useEffect(() => {
     if (!id) return;
@@ -163,6 +169,33 @@ export default function ClubProfile() {
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!id || !token) return;
+    fetch(`${API_URL}/social/follow/club/${id}/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((j) => setFollowing(j.data?.following ?? false))
+      .catch(() => {});
+  }, [id, token]);
+
+  const handleFollow = async () => {
+    if (!token || !id) return;
+    setFollowLoading(true);
+    try {
+      const method = following ? "DELETE" : "POST";
+      await fetch(`${API_URL}/social/follow/club/${id}`, {
+        method,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setFollowing(!following);
+    } catch {
+      // ignora
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   const handleShare = () => {
     if (navigator.share) {
@@ -369,6 +402,55 @@ export default function ClubProfile() {
               </svg>
               {copied ? "✓ Copiado!" : "Compartilhar"}
             </button>
+            {isLoggedIn && (
+              <button
+                onClick={handleFollow}
+                disabled={followLoading}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13px] font-bold transition-colors border ${
+                  following
+                    ? "bg-[#00ff88]/10 border-[#00ff88]/30 text-[#00ff88] hover:bg-red-500/10 hover:border-red-400/30 hover:text-red-400"
+                    : "bg-white/[0.08] border-white/[0.08] text-white hover:bg-white/15"
+                }`}
+              >
+                {followLoading ? (
+                  <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : following ? (
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <span className="hidden sm:inline">Seguindo</span>
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                    <span className="hidden sm:inline">Seguir</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </header>

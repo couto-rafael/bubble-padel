@@ -76,6 +76,7 @@ model User {
   updatedAt    DateTime @updatedAt
   club         Club?
   athlete      Athlete?
+  notifications Notification[]
 
   @@map("users")
 }
@@ -119,6 +120,9 @@ model Club {
   tournaments      Tournament[]
   leaguesCreated   League[]       @relation("LeaguesCreated")
   leagueMemberships LeagueMember[]
+
+  // Sprint 10 — social
+  followers         AthleteFollowsClub[] @relation("ClubFollowers")
 
   @@map("clubs")
 }
@@ -169,7 +173,12 @@ model Athlete {
   leaguePoints LeaguePoints[]
 
   // Sprint 9 — patrocinadores
-  sponsors     AthleteSponsor[]
+  sponsors          AthleteSponsor[]
+
+  // Sprint 10 — social
+  friendshipsSent   AthleteFriendship[] @relation("FriendshipSent")
+  friendshipsReceived AthleteFriendship[] @relation("FriendshipReceived")
+  followingClubs    AthleteFollowsClub[] @relation("AthleteFollowsClubs")
 
   @@map("athletes")
 }
@@ -499,4 +508,77 @@ model AthleteSponsor {
   createdAt  DateTime @default(now())
 
   @@map("athlete_sponsors")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SPRINT 10 — SOCIAL (Conexões, Seguir, Mensagens, Notificações)
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum NotificationType {
+  CONNECTION_REQUEST
+  CONNECTION_ACCEPTED
+  NEW_MESSAGE
+  TOURNAMENT_INVITE
+  CLUB_NEW_TOURNAMENT
+  BADGE_UNLOCKED
+  RANKING_CHANGE
+}
+
+model AthleteFriendship {
+  id         String           @id @default(cuid())
+  senderId   String
+  sender     Athlete          @relation("FriendshipSent", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   Athlete          @relation("FriendshipReceived", fields: [receiverId], references: [id], onDelete: Cascade)
+  status     FriendshipStatus @default(PENDING)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@unique([senderId, receiverId])
+  @@map("athlete_friendships")
+}
+
+model AthleteFollowsClub {
+  id        String   @id @default(cuid())
+  athleteId String
+  athlete   Athlete  @relation("AthleteFollowsClubs", fields: [athleteId], references: [id], onDelete: Cascade)
+  clubId    String
+  club      Club     @relation("ClubFollowers", fields: [clubId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([athleteId, clubId])
+  @@map("athlete_follows_club")
+}
+
+model Message {
+  id           String   @id @default(cuid())
+  senderId     String
+  senderType   UserType
+  receiverId   String
+  receiverType UserType
+  content      String
+  readAt       DateTime?
+  createdAt    DateTime @default(now())
+
+  @@map("messages")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String
+  payload   Json?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@map("notifications")
 }
