@@ -1,3 +1,4 @@
+// backend/src/routes/upload.ts
 import { Router, Request, Response, NextFunction } from "express";
 import multer from "multer";
 import { createClient } from "@supabase/supabase-js";
@@ -5,14 +6,9 @@ import { requireAuth } from "../middlewares/auth";
 
 const router = Router();
 
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-);
-
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (!file.mimetype.startsWith("image/")) {
       cb(new Error("Apenas imagens são permitidas."));
@@ -22,7 +18,6 @@ const upload = multer({
   },
 });
 
-// POST /api/upload/:bucket  (bucket = avatars | banners)
 router.post(
   "/:bucket",
   requireAuth,
@@ -34,11 +29,21 @@ router.post(
         res.status(400).json({ error: "Bucket inválido." });
         return;
       }
-
       if (!req.file) {
         res.status(400).json({ error: "Nenhum arquivo enviado." });
         return;
       }
+
+      // lazy init — só cria quando a rota é chamada
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
+      if (!supabaseUrl || !supabaseKey) {
+        res
+          .status(500)
+          .json({ error: "Supabase não configurado no servidor." });
+        return;
+      }
+      const supabase = createClient(supabaseUrl, supabaseKey);
 
       const userId = (req as any).userId as string;
       const ext = req.file.originalname.split(".").pop() ?? "jpg";
@@ -62,7 +67,7 @@ router.post(
     } catch (err) {
       next(err);
     }
-  }
+  },
 );
 
 export { router as uploadRoutes };

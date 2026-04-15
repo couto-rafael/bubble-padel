@@ -9,7 +9,11 @@
       "Bash(npx tsc:*)",
       "Bash(npx prisma:*)",
       "Bash(node -e ':*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm run *)",
+      "Bash(node -e \"const multer = require\\('multer'\\); console.log\\(typeof multer, typeof multer.memoryStorage\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(node -e \"require\\('./dist/server.js'\\)\")"
     ]
   }
 }
