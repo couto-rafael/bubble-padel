@@ -289,6 +289,7 @@ const AthleteProfileById: React.FC = () => {
     "all" | "unlocked" | "inProgress"
   >("all");
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -382,6 +383,19 @@ const AthleteProfileById: React.FC = () => {
     ? athlete.sports.join(", ")
     : "Padel";
 
+  const handleShare = () => {
+    const url = `${window.location.origin}/athletes/${athlete.id}`;
+    const text = `🎾 ${athlete.fullName} no Bubble Padel — veja o perfil completo!`;
+    if (navigator.share) {
+      navigator.share({ title: athlete.fullName, text, url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f8f9fc] pb-24 md:pb-8">
       <SEOHead
@@ -455,6 +469,42 @@ const AthleteProfileById: React.FC = () => {
               {/* Botões — desktop (mobile fica abaixo da bio) */}
               <div className="hidden sm:flex items-center gap-2">
                 <button
+                  onClick={handleShare}
+                  title="Compartilhar perfil"
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-[13px] font-bold text-gray-600 bg-white hover:bg-gray-50 transition-colors"
+                >
+                  {copied ? (
+                    <svg
+                      className="w-4 h-4 text-[#00e87a]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                      />
+                    </svg>
+                  )}
+                  {copied ? "Copiado!" : "Compartilhar"}
+                </button>
+                <button
                   disabled
                   title="Em breve"
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-[13px] font-bold text-gray-500 bg-white opacity-60 cursor-not-allowed"
@@ -516,15 +566,50 @@ const AthleteProfileById: React.FC = () => {
               </p>
             )}
 
-            {/* Botões — mobile (full width, abaixo da bio) */}
+            {/* Botões — mobile (ícone apenas) */}
             <div className="flex sm:hidden gap-2 mb-3">
+              <button
+                onClick={handleShare}
+                title="Compartilhar perfil"
+                className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-gray-200 text-[13px] font-bold text-gray-600 bg-white hover:bg-gray-50 transition-colors"
+              >
+                {copied ? (
+                  <svg
+                    className="w-5 h-5 text-[#00e87a]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                    />
+                  </svg>
+                )}
+              </button>
               <button
                 disabled
                 title="Em breve"
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-[13px] font-bold text-gray-500 bg-white opacity-60 cursor-not-allowed"
+                className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-gray-200 bg-white opacity-60 cursor-not-allowed"
               >
                 <svg
-                  className="w-4 h-4"
+                  className="w-5 h-5 text-gray-400"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth={2}
@@ -536,15 +621,14 @@ const AthleteProfileById: React.FC = () => {
                     d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
                   />
                 </svg>
-                Conectar
               </button>
               <button
                 disabled
                 title="Em breve"
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-[13px] font-bold text-gray-500 bg-white opacity-60 cursor-not-allowed"
+                className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-gray-200 bg-white opacity-60 cursor-not-allowed"
               >
                 <svg
-                  className="w-4 h-4"
+                  className="w-5 h-5 text-gray-400"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth={2}
@@ -556,7 +640,6 @@ const AthleteProfileById: React.FC = () => {
                     d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
                   />
                 </svg>
-                Mensagem
               </button>
             </div>
 

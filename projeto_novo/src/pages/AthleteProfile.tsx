@@ -438,6 +438,7 @@ const AthleteProfile: React.FC = () => {
     "all" | "unlocked" | "inProgress"
   >("all");
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const { pathname, state: navState } = useLocation();
 
@@ -537,6 +538,19 @@ const AthleteProfile: React.FC = () => {
     },
   ];
 
+  const handleShare = () => {
+    const url = `${window.location.origin}/athletes/${athlete.id}`;
+    const text = `🎾 ${athlete.fullName} no Bubble Padel — veja o perfil completo!`;
+    if (navigator.share) {
+      navigator.share({ title: athlete.fullName, text, url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f8f9fc] pb-24 md:pb-8">
       <AthleteHeader />
@@ -576,12 +590,66 @@ const AthleteProfile: React.FC = () => {
                   </span>
                 )}
               </button>
-              <Link
-                to="/athlete/profile/edit"
-                className="px-3.5 py-1.5 border border-gray-200 rounded-xl text-[12px] font-bold text-gray-600 hover:bg-gray-50 transition-colors"
-              >
-                Editar Perfil
-              </Link>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleShare}
+                  title="Compartilhar perfil"
+                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 border border-gray-200 rounded-xl text-[12px] font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  {copied ? (
+                    <svg
+                      className="w-4 h-4 text-[#00e87a] flex-shrink-0"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2.5}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="w-4 h-4 flex-shrink-0"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                      />
+                    </svg>
+                  )}
+                  <span className="hidden sm:inline">
+                    {copied ? "Copiado!" : "Compartilhar"}
+                  </span>
+                </button>
+                <Link
+                  to="/athlete/profile/edit"
+                  title="Editar Perfil"
+                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 border border-gray-200 rounded-xl text-[12px] font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  <svg
+                    className="w-4 h-4 flex-shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  <span className="hidden sm:inline">Editar Perfil</span>
+                </Link>
+              </div>
             </div>
 
             <h1 className="text-[22px] font-extrabold text-gray-900 tracking-tight mb-0.5">
