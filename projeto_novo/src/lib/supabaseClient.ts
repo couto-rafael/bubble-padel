@@ -19,7 +19,10 @@ export async function uploadImage(
     contentType: file.type,
   });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("Supabase upload error:", error);
+    throw new Error(error.message);
+  }
 
   const { data } = supabase.storage.from(bucket).getPublicUrl(path);
   return data.publicUrl;
