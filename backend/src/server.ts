@@ -18,8 +18,10 @@ import { prisma } from "./lib/prisma";
 import { paymentRoutes, webhookRoutes } from "./routes/payments";
 import { leagueRoutes, publicLeagueRoutes } from "./routes/leagues";
 import { uploadRoutes } from "./routes/upload";
+import { socialRoutes } from "./routes/athlete-social";
+import { notificationRoutes } from "./routes/notifications";
+import { messageRoutes } from "./routes/messages";
 
-// ─── Sentry (task 2.4) ────────────────────────────────────────────────────────
 if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
@@ -42,15 +44,11 @@ const ALLOWED_ORIGINS = [
   "http://localhost:5175",
 ].filter(Boolean);
 
-// ─── Middlewares ──────────────────────────────────────────────────────────────
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS bloqueado: ${origin}`));
-      }
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) callback(null, true);
+      else callback(new Error(`CORS bloqueado: ${origin}`));
     },
     credentials: true,
   }),
@@ -58,7 +56,6 @@ app.use(
 app.use(express.json());
 app.use(generalLimiter);
 
-// ─── Rotas ────────────────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/tournaments", tournamentRoutes);
 app.use("/api/public/tournaments/:id/register", registerLimiter);
@@ -75,15 +72,15 @@ app.use("/api/club", clubRoutes);
 app.use("/api/public/clubs", publicClubRoutes);
 app.use("/api/athlete", athleteRoutes);
 app.use("/api/public/athletes", publicAthleteRoutes);
-
-// ─── Pagamentos (task 3.1) ───────────────────────────────────────────────────
 app.use("/api/payments", paymentRoutes);
 app.use("/api/pay", paymentRoutes);
 app.use("/api/leagues", leagueRoutes);
 app.use("/api/webhooks", webhookRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/social", socialRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/messages", messageRoutes);
 
-// ─── Health check (task 2.4) ──────────────────────────────────────────────────
 app.get("/api/health", async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
@@ -93,17 +90,15 @@ app.get("/api/health", async (_req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch {
-    res.status(503).json({
-      status: "error",
-      db: "disconnected",
-      timestamp: new Date().toISOString(),
-    });
+    res
+      .status(503)
+      .json({
+        status: "error",
+        db: "disconnected",
+        timestamp: new Date().toISOString(),
+      });
   }
 });
-
-// ─── SEO — OG tags dinâmicas (task 4.5) ──────────────────────────────────────
-// Bots de redes sociais recebem HTML com meta tags dinâmicas
-// Usuários normais são redirecionados para o React app
 
 const BOT_AGENTS = [
   "whatsapp",
@@ -116,12 +111,9 @@ const BOT_AGENTS = [
   "googlebot",
   "bingbot",
 ];
-
-function isBot(userAgent: string): boolean {
-  const ua = userAgent.toLowerCase();
-  return BOT_AGENTS.some((bot) => ua.includes(bot));
+function isBot(ua: string): boolean {
+  return BOT_AGENTS.some((b) => ua.toLowerCase().includes(b));
 }
-
 function normalizeSport(s: string): string {
   switch (s?.toUpperCase()) {
     case "PADEL":
@@ -135,7 +127,6 @@ function normalizeSport(s: string): string {
   }
 }
 
-// GET /og/tournaments/:id — serve HTML com OG tags para bots
 app.get("/og/tournaments/:id", async (req, res) => {
   try {
     const tournament = await prisma.tournament.findFirst({
@@ -148,70 +139,36 @@ app.get("/og/tournaments/:id", async (req, res) => {
         _count: { select: { teams: true } },
       },
     });
-
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     const canonicalUrl = `${frontendUrl}/tournaments/${req.params.id}`;
     const ogImage = `${frontendUrl}/og-image.png`;
-
-    if (!tournament) {
-      return res.redirect(302, canonicalUrl);
-    }
-
+    if (!tournament) return res.redirect(302, canonicalUrl);
     const sport = normalizeSport(tournament.sport as string);
     const city = tournament.club?.city ?? "";
     const startDate = new Date(tournament.startDate).toLocaleDateString(
       "pt-BR",
-      {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      },
+      { day: "2-digit", month: "long", year: "numeric" },
     );
     const teamsCount = (tournament as any)._count?.teams ?? 0;
-
     const title = `${tournament.name} — Bubble Padel`;
     const description = `${sport} · ${city} · ${startDate} · ${teamsCount} duplas inscritas. Inscreva-se pelo Bubble Padel!`;
-
-    return res.send(`<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>${title}</title>
-  <meta name="description" content="${description}">
-  <meta property="og:title" content="${title}">
-  <meta property="og:description" content="${description}">
-  <meta property="og:image" content="${ogImage}">
-  <meta property="og:url" content="${canonicalUrl}">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Bubble Padel">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="${title}">
-  <meta name="twitter:description" content="${description}">
-  <meta name="twitter:image" content="${ogImage}">
-  <link rel="canonical" href="${canonicalUrl}">
-  <meta http-equiv="refresh" content="0; url=${canonicalUrl}">
-</head>
-<body>
-  <p>Redirecionando para <a href="${canonicalUrl}">${title}</a>...</p>
-</body>
-</html>`);
-  } catch (err) {
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    return res.redirect(302, `${frontendUrl}/tournaments/${req.params.id}`);
+    return res.send(
+      `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${title}</title><meta name="description" content="${description}"><meta property="og:title" content="${title}"><meta property="og:description" content="${description}"><meta property="og:image" content="${ogImage}"><meta property="og:url" content="${canonicalUrl}"><meta property="og:type" content="website"><meta property="og:site_name" content="Bubble Padel"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${title}"><meta name="twitter:description" content="${description}"><meta name="twitter:image" content="${ogImage}"><link rel="canonical" href="${canonicalUrl}"><meta http-equiv="refresh" content="0; url=${canonicalUrl}"></head><body><p>Redirecionando para <a href="${canonicalUrl}">${title}</a>...</p></body></html>`,
+    );
+  } catch {
+    return res.redirect(
+      302,
+      `${process.env.FRONTEND_URL || "http://localhost:5173"}/tournaments/${req.params.id}`,
+    );
   }
 });
 
-// Middleware de detecção de bot — intercepta /tournaments/:id ANTES do React
-// Redireciona bots para /og/tournaments/:id, usuários seguem normalmente
 app.get("/tournaments/:id", (req, res, next) => {
-  const ua = req.headers["user-agent"] ?? "";
-  if (isBot(ua)) {
+  if (isBot(req.headers["user-agent"] ?? ""))
     return res.redirect(301, `/og/tournaments/${req.params.id}`);
-  }
   next();
 });
 
-// ─── Error handler (sempre por último) ───────────────────────────────────────
 app.use(errorHandler);
 
 app.listen(PORT, () => {
