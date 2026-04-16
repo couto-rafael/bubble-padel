@@ -21,6 +21,7 @@ import { uploadRoutes } from "./routes/upload";
 import { socialRoutes } from "./routes/athlete-social";
 import { notificationRoutes } from "./routes/notifications";
 import { messageRoutes } from "./routes/messages";
+import { super8Routes } from "./routes/super8";
 
 if (process.env.SENTRY_DSN) {
   Sentry.init({
@@ -80,6 +81,7 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/social", socialRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/super8", super8Routes);
 
 app.get("/api/health", async (_req, res) => {
   try {

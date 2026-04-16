@@ -8,6 +8,8 @@ import TabJogos from "../components/TabJogos";
 import TabPlayoffs from "../components/TabPlayoffs";
 import TabInscricoes from "../components/TabInscricoes";
 import TabFinanceiro from "../components/TabFinanceiro";
+import TabSeeds from "../components/TabSeeds";
+import TabSuper8 from "../components/TabSuper8";
 import { calculateCapacity } from "../utils/groupUtils";
 
 // ─── TIPOS ────────────────────────────────────────────────
@@ -19,7 +21,9 @@ type Tab =
   | "financeiro"
   | "grupos"
   | "jogos"
-  | "playoffs";
+  | "playoffs"
+  | "seeds"
+  | "super8";
 
 // ─── STATUS BADGE ─────────────────────────────────────────
 const StatusBadge = ({
@@ -475,48 +479,26 @@ const EditTournament = () => {
     tournament.status?.toLowerCase() ?? "",
   );
 
-  const tabs = [
-    {
-      key: "torneio",
-      label: "Torneio",
-      icon: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-    },
-    {
-      key: "estrutura",
-      label: "Estrutura",
-      icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z",
-    },
-    {
-      key: "inscricoes",
-      label: "Inscrições",
-      icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z",
-    },
-    {
-      key: "categorias",
-      label: "Categorias",
-      icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10",
-    },
-    {
-      key: "financeiro",
-      label: "Financeiro",
-      icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-    },
-    {
-      key: "grupos",
-      label: "Grupos",
-      icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z",
-    },
-    {
-      key: "jogos",
-      label: "Jogos",
-      icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
-    },
-    {
-      key: "playoffs",
-      label: "Playoffs",
-      icon: "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z",
-    },
-  ];
+  const tournamentType = (tournament as any)?.tournamentType ?? "Regular (Grupo + Playoffs)";
+  const isElim = tournamentType === "Eliminatorias Diretas";
+  const isSuper8 = tournamentType === "Super 8";
+
+  const TAB_TORNEIO = { key: "torneio", label: "Torneio", icon: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" };
+  const TAB_ESTRUTURA = { key: "estrutura", label: "Estrutura", icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" };
+  const TAB_INSCRICOES = { key: "inscricoes", label: "Inscrições", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" };
+  const TAB_CATEGORIAS = { key: "categorias", label: "Categorias", icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" };
+  const TAB_FINANCEIRO = { key: "financeiro", label: "Financeiro", icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" };
+  const TAB_GRUPOS = { key: "grupos", label: "Grupos", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" };
+  const TAB_JOGOS = { key: "jogos", label: "Jogos", icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" };
+  const TAB_PLAYOFFS = { key: "playoffs", label: "Playoffs", icon: "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" };
+  const TAB_SEEDS = { key: "seeds", label: "Seeds", icon: "M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" };
+  const TAB_SUPER8 = { key: "super8", label: "Super 8", icon: "M13 10V3L4 14h7v7l9-11h-7z" };
+
+  const tabs = isSuper8
+    ? [TAB_TORNEIO, TAB_ESTRUTURA, TAB_INSCRICOES, TAB_FINANCEIRO, TAB_SUPER8]
+    : isElim
+    ? [TAB_TORNEIO, TAB_ESTRUTURA, TAB_INSCRICOES, TAB_CATEGORIAS, TAB_FINANCEIRO, TAB_SEEDS, TAB_PLAYOFFS]
+    : [TAB_TORNEIO, TAB_ESTRUTURA, TAB_INSCRICOES, TAB_CATEGORIAS, TAB_FINANCEIRO, TAB_GRUPOS, TAB_JOGOS, TAB_PLAYOFFS];
 
   return (
     <div className="min-h-screen bg-[#f8f9fc]">
@@ -1449,6 +1431,22 @@ const EditTournament = () => {
           {/* TAB CONTENT - Playoffs */}
           {activeTab === "playoffs" && (
             <TabPlayoffs tournament={tournament} teams={teams} />
+          )}
+          {activeTab === "seeds" && id && (
+            <div className="bg-white rounded-2xl border border-gray-200 p-6">
+              <h2 className="text-[17px] font-extrabold text-gray-900 mb-5">Seeds — Eliminatórias Diretas</h2>
+              <TabSeeds
+                tournamentId={id}
+                categories={(tournament as any).categories ?? []}
+                onBracketGenerated={() => setActiveTab("playoffs")}
+              />
+            </div>
+          )}
+          {activeTab === "super8" && id && (
+            <div className="bg-white rounded-2xl border border-gray-200 p-6">
+              <h2 className="text-[17px] font-extrabold text-gray-900 mb-5">Super 8</h2>
+              <TabSuper8 tournamentId={id} />
+            </div>
           )}
         </div>
       </main>

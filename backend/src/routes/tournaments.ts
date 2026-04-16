@@ -583,6 +583,171 @@ tournamentRoutes.get(
 );
 
 // ─────────────────────────────────────────────────────────────────────────────
+// POST /api/tournaments/:id/seed
+// Gera bracket de Eliminatórias Diretas a partir de lista de seeds
+// Body: { category: string, teamIds: string[] } — ordem = seed 1..N
+// ─────────────────────────────────────────────────────────────────────────────
+tournamentRoutes.post(
+  "/:id/seed",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const tournamentId = req.params.id;
+      const { category, teamIds } = req.body as {
+        category: string;
+        teamIds: string[];
+      };
+
+      if (!category || !Array.isArray(teamIds) || teamIds.length < 2) {
+        return res.status(400).json({ error: "category e teamIds[] (mín. 2) obrigatórios" });
+      }
+
+      // Próxima potência de 2
+      const n = teamIds.length;
+      let nextPow2 = 1;
+      while (nextPow2 < n) nextPow2 *= 2;
+      const byes = nextPow2 - n;
+
+      // Slots ATP: seed1→slot0, seed2→slot(last), seed3→slot(mid), seed4→slot(mid-1)...
+      // Algoritmo: distribui seeds nos slots de cima para baixo, intercalando
+      const slots: Array<string | null> = new Array(nextPow2).fill(null);
+      const seedOrder = buildSeedOrder(nextPow2);
+      for (let i = 0; i < seedOrder.length; i++) {
+        const slot = seedOrder[i];
+        slots[slot] = teamIds[i] ?? null; // null = bye
+      }
+
+      // Deleta bracket existente para a categoria
+      const existing = await prisma.playoffBracket.findUnique({
+        where: { tournamentId_category: { tournamentId, category } },
+      });
+      if (existing) {
+        await prisma.playoffMatch.deleteMany({ where: { bracketId: existing.id } });
+        await prisma.playoffBracket.delete({ where: { id: existing.id } });
+      }
+
+      // Busca nomes dos times para labels
+      const teamsData = await prisma.team.findMany({
+        where: { id: { in: teamIds } },
+        select: { id: true, player1Name: true, player2Name: true },
+      });
+      const teamLabel = new Map(
+        teamsData.map((t) => [t.id, `${t.player1Name} / ${t.player2Name}`]),
+      );
+
+      // Monta matches da primeira rodada (roundSize = nextPow2)
+      const matches: Array<{
+        roundSize: number;
+        matchIndex: number;
+        team1Id: string | null;
+        team2Id: string | null;
+        team1Label: string | null;
+        team2Label: string | null;
+        isBye: boolean;
+        played: boolean;
+        winnerId: string | null;
+      }> = [];
+
+      for (let i = 0; i < nextPow2 / 2; i++) {
+        const t1 = slots[i * 2];
+        const t2 = slots[i * 2 + 1];
+        const isByeMatch = !t1 || !t2;
+        const winnerId = isByeMatch ? (t1 ?? t2) : null;
+        matches.push({
+          roundSize: nextPow2,
+          matchIndex: i,
+          team1Id: t1 ?? null,
+          team2Id: t2 ?? null,
+          team1Label: t1 ? (teamLabel.get(t1) ?? null) : "BYE",
+          team2Label: t2 ? (teamLabel.get(t2) ?? null) : "BYE",
+          isBye: isByeMatch,
+          played: isByeMatch,
+          winnerId,
+        });
+      }
+
+      // Rounds subsequentes vazios (nextPow2/2 → 1)
+      for (let rSize = nextPow2 / 2; rSize >= 2; rSize /= 2) {
+        for (let i = 0; i < rSize / 2; i++) {
+          matches.push({
+            roundSize: rSize,
+            matchIndex: i,
+            team1Id: null,
+            team2Id: null,
+            team1Label: null,
+            team2Label: null,
+            isBye: false,
+            played: false,
+            winnerId: null,
+          });
+        }
+      }
+
+      const bracket = await prisma.playoffBracket.create({
+        data: {
+          tournamentId,
+          category,
+          matches: { create: matches },
+        },
+        include: {
+          matches: { orderBy: [{ roundSize: "desc" }, { matchIndex: "asc" }] },
+        },
+      });
+
+      return res.json({ data: bracket });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// Helper: ordem dos slots ATP para N seeds em nextPow2 slots
+function buildSeedOrder(size: number): number[] {
+  // Retorna array de posições de slot para seed 1, 2, 3, ...
+  // seed1 → slot 0, seed2 → slot size-1, seed3/4 → quartos, etc.
+  if (size === 1) return [0];
+  const slots: number[] = [];
+  function fill(lo: number, hi: number, depth: number) {
+    if (lo > hi) return;
+    const mid = Math.floor((lo + hi) / 2);
+    slots.push(lo);
+    if (lo !== hi) slots.push(hi);
+    fill(lo + 1, mid, depth + 1);
+    fill(mid + 1, hi - 1, depth + 1);
+  }
+  fill(0, size - 1, 0);
+  // Reorganiza: alternando top/bottom como bracket ATP
+  const result: number[] = new Array(size).fill(0);
+  // Distribuição padrão: pares de match por rodada
+  // Abordagem simples: seed 1 → slot 0, seed 2 → slot size-1,
+  // seed 3 → slot size/2, seed 4 → slot size/2 - 1, etc.
+  const positions: number[] = [];
+  function distribute(lo: number, hi: number) {
+    if (lo > hi) return;
+    positions.push(lo);
+    if (lo !== hi) positions.push(hi);
+    if (hi - lo > 1) {
+      const mid = Math.floor((lo + hi) / 2);
+      distribute(lo + 1, mid);
+      distribute(mid, hi - 1);
+    }
+  }
+  distribute(0, size - 1);
+  // Retorna os primeiros `size` posições únicas na ordem
+  const seen = new Set<number>();
+  const unique: number[] = [];
+  for (const p of positions) {
+    if (!seen.has(p)) { seen.add(p); unique.push(p); }
+    if (unique.length === size) break;
+  }
+  // Preenche qualquer slot restante
+  for (let i = 0; i < size && unique.length < size; i++) {
+    if (!seen.has(i)) { seen.add(i); unique.push(i); }
+  }
+  return unique;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // ROTAS PÚBLICAS
 // ─────────────────────────────────────────────────────────────────────────────
 

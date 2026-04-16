@@ -217,6 +217,8 @@ model Tournament {
   groups                 Group[]
   playoffs               PlayoffBracket[]
   league                 LeagueTournament?
+  super8Players          Super8Player[]
+  super8Matches          Super8Match[]
 
   @@map("tournaments")
 }
@@ -368,6 +370,44 @@ model PlayoffMatch {
   played     Boolean        @default(false)
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SPRINT 11 — SUPER 8
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Super8Player {
+  id           String     @id @default(cuid())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name         String
+  order        Int
+  wins         Int        @default(0)
+  losses       Int        @default(0)
+  gamesFor     Int        @default(0)
+  gamesAgainst Int        @default(0)
+  createdAt    DateTime   @default(now())
+
+  @@map("super8_players")
+}
+
+model Super8Match {
+  id           String     @id @default(cuid())
+  tournamentId String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  round        Int
+  matchIndex   Int
+  team1p1      Int
+  team1p2      Int
+  team2p1      Int
+  team2p2      Int
+  score1       Int?
+  score2       Int?
+  played       Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("super8_matches")
 }
 
 model Reconciliation {
