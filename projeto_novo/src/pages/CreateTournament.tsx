@@ -987,34 +987,38 @@ const CreateTournament = () => {
                                         className="px-3 py-1.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
                                       />
                                     </div>
-                                    <span className="text-gray-500">até</span>
-                                    <div className="flex items-center gap-2">
-                                      <svg
-                                        className="w-4 h-4 text-blue-600"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                        />
-                                      </svg>
-                                      <input
-                                        type="time"
-                                        value={schedule.endTime}
-                                        onChange={(e) =>
-                                          handleScheduleChange(
-                                            idx,
-                                            "endTime",
-                                            e.target.value,
-                                          )
-                                        }
-                                        className="px-3 py-1.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
-                                      />
-                                    </div>
+                                    {!isSuper8Form && (
+                                      <>
+                                        <span className="text-gray-500">até</span>
+                                        <div className="flex items-center gap-2">
+                                          <svg
+                                            className="w-4 h-4 text-blue-600"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={2}
+                                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                            />
+                                          </svg>
+                                          <input
+                                            type="time"
+                                            value={schedule.endTime}
+                                            onChange={(e) =>
+                                              handleScheduleChange(
+                                                idx,
+                                                "endTime",
+                                                e.target.value,
+                                              )
+                                            }
+                                            className="px-3 py-1.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
+                                          />
+                                        </div>
+                                      </>
+                                    )}
                                   </div>
                                 </div>
 
