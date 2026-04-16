@@ -1154,7 +1154,7 @@ const CreateTournament = () => {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
-                          Valor Inscrição - Primeira Categoria{" "}
+                          {isSuper8Form ? "Valor Inscrição" : "Valor Inscrição - Primeira Categoria"}{" "}
                           <span className="text-red-400">*</span>
                         </label>
                         <div className="relative">
@@ -1180,8 +1180,8 @@ const CreateTournament = () => {
                         </div>
                       </div>
 
-                      {/* Segunda Categoria */}
-                      <div>
+                      {/* Segunda Categoria — oculto para Super 8 */}
+                      {!isSuper8Form && <div>
                         <label className="flex items-center gap-3 cursor-pointer mb-3">
                           <input
                             type="checkbox"
@@ -1225,7 +1225,7 @@ const CreateTournament = () => {
                             />
                           </div>
                         )}
-                      </div>
+                      </div>}
                     </div>
 
                     {/* Chave PIX */}
@@ -1630,8 +1630,8 @@ const CreateTournament = () => {
                       )}
                     </div>
 
-                    {/* Tempo por Partida */}
-                    <div>
+                    {/* Tempo por Partida — oculto para Super 8 */}
+                    {!isSuper8Form && <div>
                       <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                         Tempo por Partida (minutos)
                       </label>
@@ -1659,9 +1659,9 @@ const CreateTournament = () => {
                           className="w-full pl-12 pr-4 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all"
                         />
                       </div>
-                    </div>
-                    {/* Limite de Duplas */}
-                    <div>
+                    </div>}
+                    {/* Limite de Duplas — oculto para Super 8 (sempre 8 atletas) */}
+                    {!isSuper8Form && <div>
                       <label className="flex items-center gap-3 cursor-pointer">
                         <input
                           type="checkbox"
@@ -1705,7 +1705,7 @@ const CreateTournament = () => {
                           )}
                         </div>
                       )}
-                    </div>
+                    </div>}
                   </div>
                 )}
 
