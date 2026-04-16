@@ -290,6 +290,21 @@ const AthleteProfileById: React.FC = () => {
   >("all");
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [connectStatus, setConnectStatus] = useState<
+    "none" | "pending_sent" | "pending_received" | "accepted"
+  >("none");
+  const [connectFriendshipId, setConnectFriendshipId] = useState<string | null>(
+    null,
+  );
+  const [connectLoading, setConnectLoading] = useState(false);
+
+  const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
+  const token = localStorage.getItem("auth_token");
+  const isLoggedIn = !!token;
+  const authH = () => ({
+    Authorization: `Bearer ${token ?? ""}`,
+    "Content-Type": "application/json",
+  });
 
   useEffect(() => {
     if (!id) return;
@@ -297,6 +312,22 @@ const AthleteProfileById: React.FC = () => {
       .then(setAthlete)
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
+
+    // Fetch connection status
+    if (token) {
+      fetch(`${API_URL}/social/status/${id}`, { headers: authH() })
+        .then((r) => r.json())
+        .then((j) => {
+          const s = j.data?.status;
+          if (s === "accepted") setConnectStatus("accepted");
+          else if (s === "pending")
+            setConnectStatus(
+              j.data?.isSender ? "pending_sent" : "pending_received",
+            );
+          if (j.data?.friendshipId) setConnectFriendshipId(j.data.friendshipId);
+        })
+        .catch(() => {});
+    }
   }, [id]);
 
   if (loading) {
@@ -382,6 +413,56 @@ const AthleteProfileById: React.FC = () => {
   const sportsLabel = athlete.sports?.length
     ? athlete.sports.join(", ")
     : "Padel";
+
+  const handleConnect = async () => {
+    if (!token || !id) return;
+    setConnectLoading(true);
+    try {
+      if (connectStatus === "none") {
+        const r = await fetch(`${API_URL}/social/connect/${id}`, {
+          method: "POST",
+          headers: authH(),
+        });
+        const j = await r.json();
+        if (r.ok) {
+          setConnectStatus("pending_sent");
+          setConnectFriendshipId(j.data?.id ?? null);
+        }
+      } else if (connectStatus === "pending_received" && connectFriendshipId) {
+        await fetch(`${API_URL}/social/connect/${connectFriendshipId}`, {
+          method: "PATCH",
+          headers: authH(),
+          body: JSON.stringify({ action: "accept" }),
+        });
+        setConnectStatus("accepted");
+      } else if (connectStatus === "accepted") {
+        await fetch(`${API_URL}/social/connect/${id}`, {
+          method: "DELETE",
+          headers: authH(),
+        });
+        setConnectStatus("none");
+        setConnectFriendshipId(null);
+      }
+    } catch {
+      /* ignora */
+    } finally {
+      setConnectLoading(false);
+    }
+  };
+
+  const connectLabel = () => {
+    if (connectLoading) return "...";
+    switch (connectStatus) {
+      case "accepted":
+        return "Conectado";
+      case "pending_sent":
+        return "Aguardando";
+      case "pending_received":
+        return "Aceitar";
+      default:
+        return "Conectar";
+    }
+  };
 
   const handleShare = () => {
     const url = `${window.location.origin}/athletes/${athlete.id}`;
@@ -504,46 +585,59 @@ const AthleteProfileById: React.FC = () => {
                   )}
                   {copied ? "Copiado!" : "Compartilhar"}
                 </button>
-                <button
-                  disabled
-                  title="Em breve"
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-[13px] font-bold text-gray-500 bg-white opacity-60 cursor-not-allowed"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
+                {isLoggedIn && (
+                  <button
+                    onClick={handleConnect}
+                    disabled={
+                      connectLoading || connectStatus === "pending_sent"
+                    }
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl border text-[13px] font-bold transition-colors ${
+                      connectStatus === "accepted"
+                        ? "bg-[#00e87a]/10 border-[#00e87a]/30 text-[#00b85f] hover:bg-red-50 hover:border-red-200 hover:text-red-500"
+                        : connectStatus === "pending_received"
+                          ? "bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
+                          : connectStatus === "pending_sent"
+                            ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
+                            : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                    }`}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                    />
-                  </svg>
-                  Conectar
-                </button>
-                <button
-                  disabled
-                  title="Em breve"
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-[13px] font-bold text-gray-500 bg-white opacity-60 cursor-not-allowed"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    viewBox="0 0 24 24"
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                      />
+                    </svg>
+                    {connectLabel()}
+                  </button>
+                )}
+                {isLoggedIn && (
+                  <button
+                    onClick={() => navigate(`/athlete/messages/${id}`)}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-[13px] font-bold text-gray-600 bg-white hover:bg-gray-50 transition-colors"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                    />
-                  </svg>
-                  Mensagem
-                </button>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      />
+                    </svg>
+                    Mensagem
+                  </button>
+                )}
               </div>
             </div>
 
@@ -603,44 +697,55 @@ const AthleteProfileById: React.FC = () => {
                   </svg>
                 )}
               </button>
-              <button
-                disabled
-                title="Em breve"
-                className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-gray-200 bg-white opacity-60 cursor-not-allowed"
-              >
-                <svg
-                  className="w-5 h-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
+              {isLoggedIn && (
+                <button
+                  onClick={handleConnect}
+                  disabled={connectLoading || connectStatus === "pending_sent"}
+                  className={`flex-1 flex items-center justify-center py-2.5 rounded-xl border text-[13px] font-bold transition-colors ${
+                    connectStatus === "accepted"
+                      ? "bg-[#00e87a]/10 border-[#00e87a]/30 text-[#00b85f]"
+                      : connectStatus === "pending_received"
+                        ? "bg-blue-50 border-blue-200 text-blue-600"
+                        : connectStatus === "pending_sent"
+                          ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed"
+                          : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                  }`}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-                  />
-                </svg>
-              </button>
-              <button
-                disabled
-                title="Em breve"
-                className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-gray-200 bg-white opacity-60 cursor-not-allowed"
-              >
-                <svg
-                  className="w-5 h-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                    />
+                  </svg>
+                </button>
+              )}
+              {isLoggedIn && (
+                <button
+                  onClick={() => navigate(`/athlete/messages/${id}`)}
+                  className="flex-1 flex items-center justify-center py-2.5 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                    />
+                  </svg>
+                </button>
+              )}
             </div>
 
             {/* Esportes / Raquete / Redes sociais */}
@@ -733,9 +838,9 @@ const AthleteProfileById: React.FC = () => {
                   color: "text-blue-600",
                 },
                 {
-                  value: achievUnlocked,
-                  label: "Badges",
-                  color: "text-purple-600",
+                  value: (athlete as any).connectionCount ?? 0,
+                  label: "Conexões",
+                  color: "text-[#00b85f]",
                 },
               ].map(({ value, label, color }) => (
                 <div key={label} className="text-center">

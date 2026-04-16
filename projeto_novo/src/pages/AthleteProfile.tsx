@@ -439,6 +439,7 @@ const AthleteProfile: React.FC = () => {
   >("all");
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [connectionCount, setConnectionCount] = useState(0);
 
   const { pathname, state: navState } = useLocation();
 
@@ -458,6 +459,14 @@ const AthleteProfile: React.FC = () => {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
+
+    // Fetch connection count
+    fetch(`${API_URL}/social/connections`, { headers: authHeaders() })
+      .then((r) => r.json())
+      .then((j) =>
+        setConnectionCount(Array.isArray(j.data) ? j.data.length : 0),
+      )
+      .catch(() => {});
   }, []);
 
   if (loading) {
@@ -739,7 +748,7 @@ const AthleteProfile: React.FC = () => {
               </div>
             )}
 
-            {/* Conexões — Sprint 8 */}
+            {/* Conexões */}
             <div className="flex items-center justify-between pt-3 pb-3 border-t border-gray-100">
               <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5">
                 <span className="flex -space-x-1">
@@ -750,9 +759,11 @@ const AthleteProfile: React.FC = () => {
                     />
                   ))}
                 </span>
+                <span className="text-gray-500 font-semibold">
+                  {connectionCount}
+                </span>
                 <span className="text-gray-400">
-                  Conexões{" "}
-                  <span className="font-semibold text-gray-500">em breve</span>
+                  {connectionCount === 1 ? "conexão" : "conexões"}
                 </span>
               </span>
             </div>

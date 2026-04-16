@@ -217,6 +217,27 @@ const AthleteHeader: React.FC = () => {
               </svg>
             </button>
 
+            {/* Messages — desktop only */}
+            <Link
+              to="/athlete/messages"
+              className="hidden md:block relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+              title="Mensagens"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+            </Link>
+
             {/* Notifications */}
             <Link
               to="/athlete/notifications"
@@ -350,6 +371,26 @@ const AthleteHeader: React.FC = () => {
                       />
                     </svg>
                     Configurações
+                  </Link>
+                  <Link
+                    to="/athlete/messages"
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 md:hidden"
+                    onClick={() => setIsProfileOpen(false)}
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      />
+                    </svg>
+                    Inbox
                   </Link>
                   <div className="border-t border-gray-200 my-2"></div>
                   <button

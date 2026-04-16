@@ -30,6 +30,9 @@ import LeagueProfile from "./pages/LeagueProfile";
 import LeaguesDashboard from "./pages/LeaguesDashboard";
 import PublicAthleteProfile from "./pages/PublicAthleteProfile";
 import AthleteProfileById from "./pages/AthleteProfileById";
+import NotificationsPage from "./pages/NotificationsPage";
+import MessagesPage from "./pages/MessagesPage";
+import MessageThreadPage from "./pages/MessageThreadPage";
 
 import { ToastProvider } from "./components/Toast";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -95,12 +98,27 @@ const App = () => {
                   element={<AthleteDashboard />}
                 />
                 <Route path="/athlete/profile" element={<AthleteProfile />} />
-                <Route path="/athlete/profile/edit" element={<AthleteEditProfile />} />
+                <Route
+                  path="/athlete/profile/edit"
+                  element={<AthleteEditProfile />}
+                />
                 <Route path="/athlete/settings" element={<AthleteSettings />} />
                 <Route path="/athlete/:id" element={<AthleteProfileById />} />
+                <Route
+                  path="/athlete/notifications"
+                  element={<NotificationsPage />}
+                />
+                <Route path="/athlete/messages" element={<MessagesPage />} />
+                <Route
+                  path="/athlete/messages/:userId"
+                  element={<MessageThreadPage />}
+                />
 
                 {/* Público */}
-                <Route path="/athletes/:id" element={<PublicAthleteProfile />} />
+                <Route
+                  path="/athletes/:id"
+                  element={<PublicAthleteProfile />}
+                />
                 <Route path="/leagues/:id" element={<LeagueProfile />} />
                 <Route path="/termos" element={<TermsPage />} />
                 <Route

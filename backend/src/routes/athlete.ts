@@ -988,6 +988,12 @@ athleteRoutes.get(
             select: { id: true, name: true, logoUrl: true, websiteUrl: true },
             orderBy: { createdAt: "asc" },
           }),
+          connectionCount: await prisma.athleteFriendship.count({
+            where: {
+              status: "ACCEPTED",
+              OR: [{ senderId: athleteId }, { receiverId: athleteId }],
+            },
+          }),
           summary: {
             totalTrophies: trophies.length,
             totalTitles: trophies.filter((t) => t.placement === "CHAMPION")

@@ -213,6 +213,7 @@ publicClubRoutes.get("/:id", async (req, res, next) => {
           },
           orderBy: { startDate: "desc" },
         },
+        _count: { select: { followers: true } },
       },
     });
 
