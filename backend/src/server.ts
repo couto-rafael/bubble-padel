@@ -18,9 +18,6 @@ import { prisma } from "./lib/prisma";
 import { paymentRoutes, webhookRoutes } from "./routes/payments";
 import { leagueRoutes, publicLeagueRoutes } from "./routes/leagues";
 import { uploadRoutes } from "./routes/upload";
-import { socialRoutes } from "./routes/athlete-social";
-import { notificationRoutes } from "./routes/notifications";
-import { messageRoutes } from "./routes/messages";
 
 // ─── Sentry (task 2.4) ────────────────────────────────────────────────────────
 if (process.env.SENTRY_DSN) {
@@ -38,10 +35,23 @@ const app = express();
 app.set("trust proxy", 1);
 const PORT = process.env.PORT || 3001;
 
+const ALLOWED_ORIGINS = [
+  process.env.FRONTEND_URL ?? "http://localhost:5173",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+].filter(Boolean);
+
 // ─── Middlewares ──────────────────────────────────────────────────────────────
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: (origin, callback) => {
+      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS bloqueado: ${origin}`));
+      }
+    },
     credentials: true,
   }),
 );
@@ -72,9 +82,6 @@ app.use("/api/pay", paymentRoutes);
 app.use("/api/leagues", leagueRoutes);
 app.use("/api/webhooks", webhookRoutes);
 app.use("/api/upload", uploadRoutes);
-app.use("/api/social", socialRoutes);
-app.use("/api/notifications", notificationRoutes);
-app.use("/api/messages", messageRoutes);
 
 // ─── Health check (task 2.4) ──────────────────────────────────────────────────
 app.get("/api/health", async (_req, res) => {
@@ -212,24 +219,5 @@ app.listen(PORT, () => {
   startStatusSyncJob();
   startReminderJob();
 });
-
-const ALLOWED_ORIGINS = [
-  process.env.FRONTEND_URL ?? "http://localhost:5173",
-  "http://localhost:5173",
-  "http://localhost:5174",
-].filter(Boolean);
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS bloqueado: ${origin}`));
-      }
-    },
-    credentials: true,
-  }),
-);
 
 export default app;

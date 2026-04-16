@@ -10,6 +10,7 @@ const AthleteHeader: React.FC = () => {
   const [isTorneiosOpen, setIsTorneiosOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   useEffect(() => {
     const token = localStorage.getItem("auth_token");
@@ -21,6 +22,20 @@ const AthleteHeader: React.FC = () => {
       .then((j) => setUnreadCount(j.data?.count ?? 0))
       .catch(() => {});
 
+    // Mensagens não lidas (mount)
+    fetch(`${API_URL}/messages/inbox`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((j) => {
+        const total = (j.data ?? []).reduce(
+          (s: number, t: any) => s + (t.unreadCount ?? 0),
+          0,
+        );
+        setUnreadMessages(total);
+      })
+      .catch(() => {});
+
     // Re-fetch a cada 60s
     const interval = setInterval(() => {
       fetch(`${API_URL}/notifications/unread-count`, {
@@ -28,6 +43,19 @@ const AthleteHeader: React.FC = () => {
       })
         .then((r) => r.json())
         .then((j) => setUnreadCount(j.data?.count ?? 0))
+        .catch(() => {});
+      // Mensagens não lidas
+      fetch(`${API_URL}/messages/inbox`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((r) => r.json())
+        .then((j) => {
+          const total = (j.data ?? []).reduce(
+            (s: number, t: any) => s + (t.unreadCount ?? 0),
+            0,
+          );
+          setUnreadMessages(total);
+        })
         .catch(() => {});
     }, 60_000);
 
@@ -236,6 +264,11 @@ const AthleteHeader: React.FC = () => {
                   d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
                 />
               </svg>
+              {unreadMessages > 0 && (
+                <span className="absolute top-1 right-1 min-w-[16px] h-4 px-0.5 bg-blue-500 text-white rounded-full text-[10px] font-extrabold flex items-center justify-center leading-none">
+                  {unreadMessages > 99 ? "99+" : unreadMessages}
+                </span>
+              )}
             </Link>
 
             {/* Notifications */}

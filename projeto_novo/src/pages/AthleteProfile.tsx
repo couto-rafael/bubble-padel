@@ -440,6 +440,18 @@ const AthleteProfile: React.FC = () => {
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [connectionCount, setConnectionCount] = useState(0);
+  const [connections, setConnections] = useState<
+    {
+      friendshipId: string;
+      athlete: {
+        id: string;
+        fullName: string;
+        avatarUrl?: string | null;
+        city?: string | null;
+      };
+    }[]
+  >([]);
+  const [showConnections, setShowConnections] = useState(false);
 
   const { pathname, state: navState } = useLocation();
 
@@ -463,9 +475,11 @@ const AthleteProfile: React.FC = () => {
     // Fetch connection count
     fetch(`${API_URL}/social/connections`, { headers: authHeaders() })
       .then((r) => r.json())
-      .then((j) =>
-        setConnectionCount(Array.isArray(j.data) ? j.data.length : 0),
-      )
+      .then((j) => {
+        const data = Array.isArray(j.data) ? j.data : [];
+        setConnections(data);
+        setConnectionCount(data.length);
+      })
       .catch(() => {});
   }, []);
 
@@ -749,8 +763,11 @@ const AthleteProfile: React.FC = () => {
             )}
 
             {/* Conexões */}
-            <div className="flex items-center justify-between pt-3 pb-3 border-t border-gray-100">
-              <span className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5">
+            <div className="pt-3 pb-3 border-t border-gray-100">
+              <button
+                onClick={() => setShowConnections(true)}
+                className="flex items-center gap-1.5 text-[11px] text-gray-400 font-medium hover:text-gray-600 transition-colors"
+              >
                 <span className="flex -space-x-1">
                   {[1, 2, 3].map((i) => (
                     <span
@@ -765,7 +782,20 @@ const AthleteProfile: React.FC = () => {
                 <span className="text-gray-400">
                   {connectionCount === 1 ? "conexão" : "conexões"}
                 </span>
-              </span>
+                <svg
+                  className="w-3 h-3 ml-0.5 text-gray-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
             </div>
             <div className="grid grid-cols-4 gap-2 pt-3 border-t border-gray-100">
               {[
@@ -1501,6 +1531,69 @@ const AthleteProfile: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      {/* ── Modal Conexões ────────────────────────────────────────────────── */}
+      {showConnections && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowConnections(false)}
+        >
+          <div
+            className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl max-h-[70vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h2 className="text-[16px] font-extrabold text-gray-900">
+                Conexões ({connectionCount})
+              </h2>
+              <button
+                onClick={() => setShowConnections(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 text-xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[55vh] divide-y divide-gray-100">
+              {connections.length === 0 ? (
+                <div className="p-8 text-center text-gray-400 text-sm">
+                  Nenhuma conexão ainda.
+                </div>
+              ) : (
+                connections.map((c) => (
+                  <Link
+                    key={c.friendshipId}
+                    to={`/athlete/${c.athlete.id}`}
+                    onClick={() => setShowConnections(false)}
+                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00e87a] to-[#00b85f] flex items-center justify-center text-[#0a0e1a] text-xs font-extrabold overflow-hidden flex-shrink-0">
+                      {c.athlete.avatarUrl ? (
+                        <img
+                          src={c.athlete.avatarUrl}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        c.athlete.fullName.slice(0, 2).toUpperCase()
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-bold text-gray-900">
+                        {c.athlete.fullName}
+                      </p>
+                      {c.athlete.city && (
+                        <p className="text-[11px] text-gray-400">
+                          {c.athlete.city}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Lightbox ──────────────────────────────────────────────────────── */}
       {lightboxUrl && (

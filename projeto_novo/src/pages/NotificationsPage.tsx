@@ -41,6 +41,9 @@ const NotificationsPage: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [processed, setProcessed] = useState<
+    Record<string, "accepted" | "rejected">
+  >({});
 
   useEffect(() => {
     fetch(`${API_URL}/notifications`, { headers: authH() })
@@ -76,20 +79,15 @@ const NotificationsPage: React.FC = () => {
     e.stopPropagation();
     if (!n.payload?.friendshipId) return;
     setActionLoading(n.id);
+    // Optimistic UI — muda imediatamente
+    setProcessed((prev) => ({ ...prev, [n.id]: "accepted" }));
     try {
-      const r = await fetch(
-        `${API_URL}/social/connect/${n.payload.friendshipId}`,
-        {
-          method: "PATCH",
-          headers: authH(),
-          body: JSON.stringify({ action: "accept" }),
-        },
-      );
-      if (r.ok) {
-        markRead(n.id);
-        // Remove this notification from list
-        setNotifications((prev) => prev.filter((x) => x.id !== n.id));
-      }
+      await fetch(`${API_URL}/social/connect/${n.payload.friendshipId}`, {
+        method: "PATCH",
+        headers: authH(),
+        body: JSON.stringify({ action: "accept" }),
+      });
+      markRead(n.id);
     } catch {
       /* ignora */
     } finally {
@@ -101,6 +99,8 @@ const NotificationsPage: React.FC = () => {
     e.stopPropagation();
     if (!n.payload?.friendshipId) return;
     setActionLoading(n.id + "_reject");
+    // Optimistic UI — muda imediatamente
+    setProcessed((prev) => ({ ...prev, [n.id]: "rejected" }));
     try {
       await fetch(`${API_URL}/social/connect/${n.payload.friendshipId}`, {
         method: "PATCH",
@@ -108,7 +108,6 @@ const NotificationsPage: React.FC = () => {
         body: JSON.stringify({ action: "reject" }),
       });
       markRead(n.id);
-      setNotifications((prev) => prev.filter((x) => x.id !== n.id));
     } catch {
       /* ignora */
     } finally {
@@ -201,23 +200,37 @@ const NotificationsPage: React.FC = () => {
                   </div>
                 </button>
 
-                {/* Aceitar / Recusar — só para CONNECTION_REQUEST */}
+                {/* Aceitar / Recusar — só para CONNECTION_REQUEST não processado */}
                 {n.type === "CONNECTION_REQUEST" && n.payload?.friendshipId && (
                   <div className="flex gap-2 px-5 pb-4 -mt-1">
-                    <button
-                      onClick={(e) => handleAccept(n, e)}
-                      disabled={actionLoading === n.id}
-                      className="flex-1 py-2 rounded-xl bg-[#00e87a] text-[#0a0e1a] text-[12px] font-extrabold hover:bg-[#00d470] transition-colors disabled:opacity-50"
-                    >
-                      {actionLoading === n.id ? "..." : "Aceitar"}
-                    </button>
-                    <button
-                      onClick={(e) => handleReject(n, e)}
-                      disabled={actionLoading === n.id + "_reject"}
-                      className="flex-1 py-2 rounded-xl bg-gray-100 text-gray-600 text-[12px] font-extrabold hover:bg-gray-200 transition-colors disabled:opacity-50"
-                    >
-                      {actionLoading === n.id + "_reject" ? "..." : "Recusar"}
-                    </button>
+                    {processed[n.id] === "accepted" ? (
+                      <p className="text-[12px] text-[#00b85f] font-bold px-1 py-2">
+                        ✓ Conexão aceita
+                      </p>
+                    ) : processed[n.id] === "rejected" ? (
+                      <p className="text-[12px] text-gray-400 font-bold px-1 py-2">
+                        ✗ Convite recusado
+                      </p>
+                    ) : (
+                      <>
+                        <button
+                          onClick={(e) => handleAccept(n, e)}
+                          disabled={!!actionLoading}
+                          className="flex-1 py-2 rounded-xl bg-[#00e87a] text-[#0a0e1a] text-[12px] font-extrabold hover:bg-[#00d470] transition-colors disabled:opacity-50"
+                        >
+                          {actionLoading === n.id ? "..." : "Aceitar"}
+                        </button>
+                        <button
+                          onClick={(e) => handleReject(n, e)}
+                          disabled={!!actionLoading}
+                          className="flex-1 py-2 rounded-xl bg-gray-100 text-gray-600 text-[12px] font-extrabold hover:bg-gray-200 transition-colors disabled:opacity-50"
+                        >
+                          {actionLoading === n.id + "_reject"
+                            ? "..."
+                            : "Recusar"}
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
