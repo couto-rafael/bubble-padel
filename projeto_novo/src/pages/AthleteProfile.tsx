@@ -1618,5 +1618,4 @@ const AthleteProfile: React.FC = () => {
     </div>
   );
 };
-
 export default AthleteProfile;
