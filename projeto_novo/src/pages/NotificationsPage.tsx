@@ -40,6 +40,7 @@ const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`${API_URL}/notifications`, { headers: authH() })
@@ -69,6 +70,50 @@ const NotificationsPage: React.FC = () => {
         n.id === id ? { ...n, readAt: new Date().toISOString() } : n,
       ),
     );
+  };
+
+  const handleAccept = async (n: Notification, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!n.payload?.friendshipId) return;
+    setActionLoading(n.id);
+    try {
+      const r = await fetch(
+        `${API_URL}/social/connect/${n.payload.friendshipId}`,
+        {
+          method: "PATCH",
+          headers: authH(),
+          body: JSON.stringify({ action: "accept" }),
+        },
+      );
+      if (r.ok) {
+        markRead(n.id);
+        // Remove this notification from list
+        setNotifications((prev) => prev.filter((x) => x.id !== n.id));
+      }
+    } catch {
+      /* ignora */
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleReject = async (n: Notification, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!n.payload?.friendshipId) return;
+    setActionLoading(n.id + "_reject");
+    try {
+      await fetch(`${API_URL}/social/connect/${n.payload.friendshipId}`, {
+        method: "PATCH",
+        headers: authH(),
+        body: JSON.stringify({ action: "reject" }),
+      });
+      markRead(n.id);
+      setNotifications((prev) => prev.filter((x) => x.id !== n.id));
+    } catch {
+      /* ignora */
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const handleClick = (n: Notification) => {
@@ -125,33 +170,57 @@ const NotificationsPage: React.FC = () => {
         ) : (
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
             {notifications.map((n, i) => (
-              <button
+              <div
                 key={n.id}
-                onClick={() => handleClick(n)}
-                className={`w-full flex items-start gap-4 px-5 py-4 text-left transition-colors hover:bg-gray-50 ${i > 0 ? "border-t border-gray-100" : ""} ${!n.readAt ? "bg-[#f0fdf6]" : ""}`}
+                className={`${i > 0 ? "border-t border-gray-100" : ""} ${!n.readAt ? "bg-[#f0fdf6]" : ""}`}
               >
-                <span className="text-2xl flex-shrink-0 mt-0.5">
-                  {TYPE_ICON[n.type] ?? "🔔"}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p
-                    className={`text-[13px] ${!n.readAt ? "font-bold text-gray-900" : "font-semibold text-gray-700"}`}
-                  >
-                    {n.title}
-                  </p>
-                  <p className="text-[12px] text-gray-500 mt-0.5 font-normal leading-relaxed">
-                    {n.body}
-                  </p>
-                </div>
-                <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                  <span className="text-[11px] text-gray-400">
-                    {timeAgo(n.createdAt)}
+                <button
+                  onClick={() => handleClick(n)}
+                  className="w-full flex items-start gap-4 px-5 py-4 text-left transition-colors hover:bg-gray-50"
+                >
+                  <span className="text-2xl flex-shrink-0 mt-0.5">
+                    {TYPE_ICON[n.type] ?? "🔔"}
                   </span>
-                  {!n.readAt && (
-                    <span className="w-2 h-2 rounded-full bg-[#00e87a]" />
-                  )}
-                </div>
-              </button>
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className={`text-[13px] ${!n.readAt ? "font-bold text-gray-900" : "font-semibold text-gray-700"}`}
+                    >
+                      {n.title}
+                    </p>
+                    <p className="text-[12px] text-gray-500 mt-0.5 font-normal leading-relaxed">
+                      {n.body}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                    <span className="text-[11px] text-gray-400">
+                      {timeAgo(n.createdAt)}
+                    </span>
+                    {!n.readAt && (
+                      <span className="w-2 h-2 rounded-full bg-[#00e87a]" />
+                    )}
+                  </div>
+                </button>
+
+                {/* Aceitar / Recusar — só para CONNECTION_REQUEST */}
+                {n.type === "CONNECTION_REQUEST" && n.payload?.friendshipId && (
+                  <div className="flex gap-2 px-5 pb-4 -mt-1">
+                    <button
+                      onClick={(e) => handleAccept(n, e)}
+                      disabled={actionLoading === n.id}
+                      className="flex-1 py-2 rounded-xl bg-[#00e87a] text-[#0a0e1a] text-[12px] font-extrabold hover:bg-[#00d470] transition-colors disabled:opacity-50"
+                    >
+                      {actionLoading === n.id ? "..." : "Aceitar"}
+                    </button>
+                    <button
+                      onClick={(e) => handleReject(n, e)}
+                      disabled={actionLoading === n.id + "_reject"}
+                      className="flex-1 py-2 rounded-xl bg-gray-100 text-gray-600 text-[12px] font-extrabold hover:bg-gray-200 transition-colors disabled:opacity-50"
+                    >
+                      {actionLoading === n.id + "_reject" ? "..." : "Recusar"}
+                    </button>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         )}

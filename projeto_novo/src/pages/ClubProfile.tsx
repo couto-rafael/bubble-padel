@@ -569,6 +569,14 @@ export default function ClubProfile() {
             </a>
           ))}
 
+          {/* Seguidores */}
+          <span className="text-[12px] text-gray-400 font-medium">
+            <span className="text-white font-bold">
+              {(club as any)._count?.followers ?? 0}
+            </span>{" "}
+            seguidores
+          </span>
+
           {/* Status torneio — âncora */}
           <button
             onClick={() =>

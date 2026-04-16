@@ -22,8 +22,7 @@ interface ContactInfo {
   id: string;
   name: string;
   type: string;
-  athlete?: { avatarUrl?: string | null };
-  club?: { logoUrl?: string | null };
+  avatarUrl?: string | null;
 }
 
 function getInitials(name: string) {
@@ -53,8 +52,9 @@ function formatDay(date: string) {
 }
 
 const MessageThreadPage: React.FC = () => {
-  const { userId } = useParams<{ userId: string }>();
+  const { userId: athleteIdParam } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+
   const myUserId = (() => {
     try {
       return JSON.parse(localStorage.getItem("auth_user") ?? "{}").id ?? "";
@@ -71,39 +71,41 @@ const MessageThreadPage: React.FC = () => {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!userId) return;
-
-    // Fetch messages
-    fetch(`${API_URL}/messages/thread/${userId}`, { headers: authH() })
+    if (!athleteIdParam) return;
+    fetch(`${API_URL}/public/athletes/${athleteIdParam}`)
+      .then((r) => r.json())
+      .then((j) => {
+        const a = j.data;
+        if (a)
+          setContact({
+            id: a.id,
+            name: a.fullName,
+            type: "ATHLETE",
+            avatarUrl: a.avatarUrl,
+          });
+      })
+      .catch(() => {});
+    fetch(`${API_URL}/messages/thread/${athleteIdParam}`, { headers: authH() })
       .then((r) => r.json())
       .then((j) => setMessages(j.data ?? []))
       .catch(() => {})
       .finally(() => setLoading(false));
-
-    // Fetch contact info
-    fetch(`${API_URL}/auth/user/${userId}`, { headers: authH() })
-      .then((r) => r.json())
-      .then((j) => setContact(j.data ?? null))
-      .catch(() => {});
-  }, [userId]);
+  }, [athleteIdParam]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const send = async () => {
-    if (!input.trim() || !userId) return;
+    if (!input.trim() || !athleteIdParam) return;
     setSending(true);
     try {
-      const receiverType = contact?.type === "CLUB" ? "CLUB" : "ATHLETE";
-      // receiverId for messages is the entity id (club.id or athlete.id), not userId
-      // We send to userId and let backend resolve
       const r = await fetch(`${API_URL}/messages`, {
         method: "POST",
         headers: authH(),
         body: JSON.stringify({
-          receiverId: userId,
-          receiverType,
+          receiverId: athleteIdParam,
+          receiverType: "ATHLETE",
           content: input.trim(),
         }),
       });
@@ -113,7 +115,6 @@ const MessageThreadPage: React.FC = () => {
         setInput("");
       }
     } catch {
-      /* ignora */
     } finally {
       setSending(false);
     }
@@ -126,7 +127,8 @@ const MessageThreadPage: React.FC = () => {
     }
   };
 
-  // Group messages by day
+  const isMine = (msg: Message) => msg.senderId === myUserId;
+
   const grouped: { day: string; msgs: Message[] }[] = [];
   for (const msg of messages) {
     const day = formatDay(msg.createdAt);
@@ -135,14 +137,9 @@ const MessageThreadPage: React.FC = () => {
     else grouped.push({ day, msgs: [msg] });
   }
 
-  const avatarUrl =
-    contact?.athlete?.avatarUrl ?? contact?.club?.logoUrl ?? null;
-
   return (
     <div className="min-h-screen bg-[#f8f9fc] flex flex-col">
       <AthleteHeader />
-
-      {/* Thread header */}
       <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center gap-3 sticky top-16 z-10">
         <button
           onClick={() => navigate("/athlete/messages")}
@@ -163,9 +160,9 @@ const MessageThreadPage: React.FC = () => {
           </svg>
         </button>
         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#00e87a] to-[#00b85f] flex items-center justify-center text-[#0a0e1a] text-xs font-extrabold overflow-hidden flex-shrink-0">
-          {avatarUrl ? (
+          {contact?.avatarUrl ? (
             <img
-              src={avatarUrl}
+              src={contact.avatarUrl}
               alt=""
               className="w-full h-full object-cover"
             />
@@ -177,13 +174,9 @@ const MessageThreadPage: React.FC = () => {
           <p className="text-[14px] font-extrabold text-gray-900 leading-tight">
             {contact?.name ?? "..."}
           </p>
-          <p className="text-[11px] text-gray-400">
-            {contact?.type === "CLUB" ? "Clube" : "Atleta"}
-          </p>
+          <p className="text-[11px] text-gray-400">Atleta</p>
         </div>
       </div>
-
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5 max-w-2xl w-full mx-auto">
         {loading ? (
           <div className="flex justify-center pt-12">
@@ -206,38 +199,33 @@ const MessageThreadPage: React.FC = () => {
                 </span>
                 <div className="flex-1 h-px bg-gray-200" />
               </div>
-              {msgs.map((msg) => {
-                const isMine = msg.senderId === myUserId;
-                return (
+              {msgs.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex mb-2 ${isMine(msg) ? "justify-end" : "justify-start"}`}
+                >
                   <div
-                    key={msg.id}
-                    className={`flex mb-2 ${isMine ? "justify-end" : "justify-start"}`}
+                    className={`max-w-[72%] px-4 py-2.5 rounded-2xl text-[13px] leading-relaxed ${
+                      isMine(msg)
+                        ? "bg-[#00e87a] text-[#0a0e1a] rounded-br-sm font-medium"
+                        : "bg-white border border-gray-200 text-gray-800 rounded-bl-sm shadow-sm"
+                    }`}
                   >
-                    <div
-                      className={`max-w-[72%] px-4 py-2.5 rounded-2xl text-[13px] leading-relaxed ${
-                        isMine
-                          ? "bg-[#00e87a] text-[#0a0e1a] rounded-br-sm font-medium"
-                          : "bg-white border border-gray-200 text-gray-800 rounded-bl-sm shadow-sm"
-                      }`}
+                    <p>{msg.content}</p>
+                    <p
+                      className={`text-[10px] mt-1 text-right ${isMine(msg) ? "text-[#0a0e1a]/50" : "text-gray-400"}`}
                     >
-                      <p>{msg.content}</p>
-                      <p
-                        className={`text-[10px] mt-1 text-right ${isMine ? "text-[#0a0e1a]/50" : "text-gray-400"}`}
-                      >
-                        {formatTime(msg.createdAt)}
-                        {isMine && msg.readAt && " · lida"}
-                      </p>
-                    </div>
+                      {formatTime(msg.createdAt)}
+                      {isMine(msg) && msg.readAt && " · lida"}
+                    </p>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           ))
         )}
         <div ref={bottomRef} />
       </div>
-
-      {/* Input */}
       <div className="bg-white border-t border-gray-200 px-4 sm:px-6 py-3 sticky bottom-0">
         <div className="max-w-2xl mx-auto flex items-end gap-3">
           <textarea
