@@ -523,11 +523,13 @@ const CreateTournament = () => {
     return methods;
   };
 
+  const isSuper8Form = form.tournamentType === "Super 8";
+
   const handleDateChange = (field: "startDate" | "endDate", value: string) => {
     const updated = { ...form, [field]: value };
 
-    // Se torneio de 1 dia, endDate sempre = startDate
-    if (singleDay && field === "startDate") {
+    // Se torneio de 1 dia (ou Super 8), endDate sempre = startDate
+    if ((singleDay || isSuper8Form) && field === "startDate") {
       updated.endDate = value;
     }
 
@@ -596,7 +598,7 @@ const CreateTournament = () => {
 
     if (!form.name.trim()) errors.push("Nome do torneio é obrigatório");
     if (!form.startDate) errors.push("Data de início é obrigatória");
-    if (!singleDay && !form.endDate) errors.push("Data de fim é obrigatória");
+    if (!singleDay && !isSuper8Form && !form.endDate) errors.push("Data de fim é obrigatória");
     if (Object.values(dateErrors).some((e) => e !== ""))
       errors.push("Corrija os erros nas datas antes de continuar");
     if (form.selectedCategories.length === 0)
@@ -859,33 +861,35 @@ const CreateTournament = () => {
 
                     {/* Datas do Torneio */}
                     <div>
-                      {/* Toggle 1 dia */}
-                      <label className="flex items-center gap-3 mb-4 cursor-pointer w-fit">
-                        <div
-                          onClick={() => {
-                            const next = !singleDay;
-                            setSingleDay(next);
-                            if (next && form.startDate) {
-                              handleDateChange("startDate", form.startDate);
-                            }
-                          }}
-                          className={`relative w-10 h-5 rounded-full transition-colors ${singleDay ? "bg-blue-600" : "bg-gray-300"}`}
-                        >
-                          <span
-                            className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${singleDay ? "translate-x-5" : "translate-x-0"}`}
-                          />
-                        </div>
-                        <span className="text-sm font-medium text-gray-700">
-                          Torneio de 1 dia
-                        </span>
-                      </label>
+                      {/* Toggle 1 dia — oculto para Super 8 (sempre 1 dia) */}
+                      {!isSuper8Form && (
+                        <label className="flex items-center gap-3 mb-4 cursor-pointer w-fit">
+                          <div
+                            onClick={() => {
+                              const next = !singleDay;
+                              setSingleDay(next);
+                              if (next && form.startDate) {
+                                handleDateChange("startDate", form.startDate);
+                              }
+                            }}
+                            className={`relative w-10 h-5 rounded-full transition-colors ${singleDay ? "bg-blue-600" : "bg-gray-300"}`}
+                          >
+                            <span
+                              className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${singleDay ? "translate-x-5" : "translate-x-0"}`}
+                            />
+                          </div>
+                          <span className="text-sm font-medium text-gray-700">
+                            Torneio de 1 dia
+                          </span>
+                        </label>
+                      )}
 
                       <div
-                        className={`grid gap-4 ${singleDay ? "grid-cols-1 sm:grid-cols-1 max-w-xs" : "grid-cols-1 sm:grid-cols-2"}`}
+                        className={`grid gap-4 ${singleDay || isSuper8Form ? "grid-cols-1 sm:grid-cols-1 max-w-xs" : "grid-cols-1 sm:grid-cols-2"}`}
                       >
                         <div>
                           <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
-                            {singleDay ? "Data do Torneio" : "Data Início"}{" "}
+                            {singleDay || isSuper8Form ? "Dia do Torneio" : "Data Início"}{" "}
                             <span className="text-red-400">*</span>
                           </label>
                           <input
@@ -908,7 +912,7 @@ const CreateTournament = () => {
                           )}
                         </div>
 
-                        {!singleDay && (
+                        {!singleDay && !isSuper8Form && (
                           <div>
                             <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                               Data Fim <span className="text-red-400">*</span>
