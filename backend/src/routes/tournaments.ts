@@ -756,8 +756,8 @@ export const publicTournamentRoutes = Router();
 const registerSchema = z.object({
   player1Name: z.string().min(2),
   player1Email: z.string().email(),
-  player2Name: z.string().min(2),
-  player2Email: z.string().email(),
+  player2Name: z.string().default(""),
+  player2Email: z.union([z.string().email(), z.literal("")]).default(""),
   category: z.string(),
 });
 
