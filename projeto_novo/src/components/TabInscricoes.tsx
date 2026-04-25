@@ -16,6 +16,7 @@ interface Props {
   updateTeam: (id: string, data: Partial<Team>) => Promise<any>;
   deleteTeam: (id: string) => Promise<any>;
   readOnly?: boolean;
+  isSuper8?: boolean;
 }
 
 // ─── RANDOM HELPERS (para geração de teste) ───────────────────────────────────
@@ -85,6 +86,7 @@ const TabInscricoes = ({
   updateTeam,
   deleteTeam,
   readOnly = false,
+  isSuper8 = false,
 }: Props) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("todas");
@@ -200,20 +202,26 @@ const TabInscricoes = ({
     if (
       !newTeam.athlete1Name ||
       !newTeam.athlete1Email ||
-      !newTeam.athlete2Name ||
-      !newTeam.athlete2Email ||
+      (!isSuper8 && (!newTeam.athlete2Name || !newTeam.athlete2Email)) ||
       !newTeam.category
     ) {
       alert("Por favor, preencha todos os campos");
       return;
     }
+    if (isSuper8 && teams.length >= 8) {
+      alert("Super 8 aceita no máximo 8 atletas.");
+      return;
+    }
+    const category = isSuper8
+      ? (tournament.categories[0] ?? "Super 8")
+      : newTeam.category;
     try {
       await addTeam({
         player1Name: newTeam.athlete1Name,
         player1Email: newTeam.athlete1Email,
-        player2Name: newTeam.athlete2Name,
-        player2Email: newTeam.athlete2Email,
-        category: newTeam.category,
+        player2Name: isSuper8 ? "" : newTeam.athlete2Name,
+        player2Email: isSuper8 ? "" : newTeam.athlete2Email,
+        category,
       });
       setIsAddTeamModalOpen(false);
       setNewTeam({
@@ -403,12 +411,12 @@ const TabInscricoes = ({
             </select>
           </div>
 
-          {!readOnly && (
+          {!readOnly && (!isSuper8 || teams.length < 8) && (
             <button
               onClick={() => setIsAddTeamModalOpen(true)}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 shadow-sm hover:shadow transition-all whitespace-nowrap"
             >
-              + Adicionar Dupla
+              {isSuper8 ? `+ Adicionar Atleta (${teams.length}/8)` : "+ Adicionar Dupla"}
             </button>
           )}
         </div>
@@ -790,100 +798,86 @@ const TabInscricoes = ({
         )}
       </div>
 
-      {/* ── MODAL ADICIONAR DUPLA ── */}
+      {/* ── MODAL ADICIONAR DUPLA / ATLETA ── */}
       {isAddTeamModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => {
               setIsAddTeamModalOpen(false);
-              setNewTeam({
-                athlete1Name: "",
-                athlete1Email: "",
-                athlete2Name: "",
-                athlete2Email: "",
-                category: "",
-              });
+              setNewTeam({ athlete1Name: "", athlete1Email: "", athlete2Name: "", athlete2Email: "", category: "" });
             }}
           />
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 relative z-10">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-900">
-                Adicionar Nova Dupla
+                {isSuper8 ? "Adicionar Atleta" : "Adicionar Nova Dupla"}
               </h3>
               <button
                 onClick={() => {
                   setIsAddTeamModalOpen(false);
-                  setNewTeam({
-                    athlete1Name: "",
-                    athlete1Email: "",
-                    athlete2Name: "",
-                    athlete2Email: "",
-                    category: "",
-                  });
+                  setNewTeam({ athlete1Name: "", athlete1Email: "", athlete2Name: "", athlete2Email: "", category: "" });
                 }}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <svg
-                  className="w-5 h-5 text-gray-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
             <div className="space-y-6">
-              {[
-                {
-                  label: "Atleta 1",
-                  nameKey: "athlete1Name",
-                  emailKey: "athlete1Email",
-                  placeholder: "Ex: João Silva",
-                },
-                {
-                  label: "Atleta 2",
-                  nameKey: "athlete2Name",
-                  emailKey: "athlete2Email",
-                  placeholder: "Ex: Pedro Santos",
-                },
-              ].map(({ label, nameKey, emailKey, placeholder }) => (
-                <div key={label}>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                    {label}
-                  </h4>
+              {/* Atleta 1 (sempre) */}
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                  {isSuper8 ? "Atleta" : "Atleta 1"}
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Nome Completo</label>
+                    <input
+                      type="text"
+                      value={newTeam.athlete1Name}
+                      onChange={(e) => setNewTeam({ ...newTeam, athlete1Name: e.target.value })}
+                      placeholder="Ex: João Silva"
+                      autoComplete="off"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Email</label>
+                    <input
+                      type="email"
+                      value={newTeam.athlete1Email}
+                      onChange={(e) => setNewTeam({ ...newTeam, athlete1Email: e.target.value })}
+                      placeholder="email@exemplo.com"
+                      autoComplete="off"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                    />
+                  </div>
+                </div>
+              </div>
+              {/* Atleta 2 — oculto no Super 8 */}
+              {!isSuper8 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Atleta 2</h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">
-                        Nome Completo
-                      </label>
+                      <label className="block text-sm font-medium text-gray-600 mb-2">Nome Completo</label>
                       <input
                         type="text"
-                        value={newTeam[nameKey as keyof typeof newTeam]}
-                        onChange={(e) =>
-                          setNewTeam({ ...newTeam, [nameKey]: e.target.value })
-                        }
-                        placeholder={placeholder}
+                        value={newTeam.athlete2Name}
+                        onChange={(e) => setNewTeam({ ...newTeam, athlete2Name: e.target.value })}
+                        placeholder="Ex: Pedro Santos"
                         autoComplete="off"
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-2">
-                        Email
-                      </label>
+                      <label className="block text-sm font-medium text-gray-600 mb-2">Email</label>
                       <input
                         type="email"
-                        value={newTeam[emailKey as keyof typeof newTeam]}
-                        onChange={(e) =>
-                          setNewTeam({ ...newTeam, [emailKey]: e.target.value })
-                        }
+                        value={newTeam.athlete2Email}
+                        onChange={(e) => setNewTeam({ ...newTeam, athlete2Email: e.target.value })}
                         placeholder="email@exemplo.com"
                         autoComplete="off"
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
@@ -891,38 +885,32 @@ const TabInscricoes = ({
                     </div>
                   </div>
                 </div>
-              ))}
-              <div>
-                <label className="block text-sm font-medium text-gray-600 mb-2">
-                  Categoria
-                </label>
-                <select
-                  value={newTeam.category}
-                  onChange={(e) =>
-                    setNewTeam({ ...newTeam, category: e.target.value })
-                  }
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
-                >
-                  <option value="">Selecione uma categoria</option>
-                  {tournament.categories.map((cat, idx) => (
-                    <option key={idx} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              )}
+              {tournament.categories.length > 0 && !isSuper8 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 mb-2">Categoria</label>
+                  <select
+                    value={newTeam.category}
+                    onChange={(e) => setNewTeam({ ...newTeam, category: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                  >
+                    <option value="">Selecione uma categoria</option>
+                    {tournament.categories.map((cat, idx) => (
+                      <option key={idx} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {/* Super 8: categoria única auto-preenchida */}
+              {isSuper8 && (
+                <input type="hidden" value={newTeam.category} />
+              )}
             </div>
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => {
                   setIsAddTeamModalOpen(false);
-                  setNewTeam({
-                    athlete1Name: "",
-                    athlete1Email: "",
-                    athlete2Name: "",
-                    athlete2Email: "",
-                    category: "",
-                  });
+                  setNewTeam({ athlete1Name: "", athlete1Email: "", athlete2Name: "", athlete2Email: "", category: "" });
                 }}
                 className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
               >
@@ -932,7 +920,7 @@ const TabInscricoes = ({
                 onClick={handleAddTeam}
                 className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
               >
-                Adicionar Dupla
+                {isSuper8 ? "Adicionar Atleta" : "Adicionar Dupla"}
               </button>
             </div>
           </div>

@@ -223,13 +223,14 @@ const TournamentProfile = () => {
   }, [id, tournament?.status]);
 
 
+  const isSuper8Tournament = tournament?.tournamentType === "Super 8";
+
   const handleRegister = async () => {
     if (
       !id ||
       !registerForm.player1Name ||
       !registerForm.player1Email ||
-      !registerForm.player2Name ||
-      !registerForm.player2Email ||
+      (!isSuper8Tournament && (!registerForm.player2Name || !registerForm.player2Email)) ||
       !registerForm.category
     ) {
       setRegisterError("Preencha todos os campos.");
@@ -242,7 +243,10 @@ const TournamentProfile = () => {
     setRegisterLoading(true);
     setRegisterError("");
     try {
-      const result = await PublicTournamentService.register(id, registerForm);
+      const payload = isSuper8Tournament
+        ? { ...registerForm, player2Name: "", player2Email: "" }
+        : registerForm;
+      const result = await PublicTournamentService.register(id, payload);
       setShowRegisterForm(false);
 
       // Se torneio tem valor → mostra modal de pagamento
@@ -2485,7 +2489,8 @@ const TournamentProfile = () => {
                 )}
               </div>
 
-              {/* Jogador 2 — parceiro */}
+              {/* Jogador 2 — oculto para Super 8 */}
+              {!isSuper8Tournament && (
               <div className="pt-2">
                 <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2">
                   {isAthlete ? "Parceiro (Jogador 2)" : "Jogador 2"}
@@ -2514,6 +2519,7 @@ const TournamentProfile = () => {
                   className="w-full px-3.5 py-2.5 bg-[#0a0e1a] border border-white/[0.12] rounded-xl text-white text-sm outline-none focus:border-[#00ff88] focus:ring-[3px] focus:ring-[#00ff88]/10 transition-all placeholder:text-gray-600"
                 />
               </div>
+              )}
 
               {registerError && (
                 <p className="text-red-400 text-sm">{registerError}</p>

@@ -28,6 +28,7 @@ interface TabFinanceiroProps {
   pixKey: string;
   priceSecondCategory: number;
   onFieldChange: (field: any, value: any, label: string) => void;
+  isSuper8?: boolean;
 }
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
@@ -47,6 +48,7 @@ export default function TabFinanceiro({
   pixKey,
   priceSecondCategory,
   onFieldChange,
+  isSuper8 = false,
 }: TabFinanceiroProps) {
   const [data, setData] = useState<FinancialSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -138,6 +140,7 @@ export default function TabFinanceiro({
               className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
             />
           </div>
+          {!isSuper8 && (
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-2">
               Preço 2ª+ Categoria
@@ -155,6 +158,7 @@ export default function TabFinanceiro({
               className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
             />
           </div>
+          )}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-600 mb-2">
               Chave PIX

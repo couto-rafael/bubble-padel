@@ -25,6 +25,7 @@ interface Tournament {
     | "Finalizado";
   sport: string;
   teams: number;
+  tournamentType: string;
 }
 
 function normalizeSport(sport: string): string {
@@ -84,6 +85,7 @@ function mapPublicTournament(t: PublicTournament): Tournament {
     status: normalizeStatus(t.status),
     sport: normalizeSport(t.sport),
     teams: t._count?.teams ?? t.totalTeams ?? 0,
+    tournamentType: (t as any).tournamentType ?? "Regular (Grupo + Playoffs)",
   };
 }
 
@@ -101,6 +103,7 @@ const Tournaments = () => {
   const [stateFilters, setStateFilters] = useState<string[]>([]);
   const [cityFilters, setCityFilters] = useState<string[]>([]);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const [typeFilters, setTypeFilters] = useState<string[]>([]);
   const [allTournaments, setAllTournaments] = useState<Tournament[]>([]);
   const [loadingTournaments, setLoadingTournaments] = useState(true);
 
@@ -157,13 +160,16 @@ const Tournaments = () => {
       cityFilters.length === 0 || cityFilters.includes(tournament.city);
     const matchesSport =
       sportFilters.length === 0 || sportFilters.includes(tournament.sport);
+    const matchesType =
+      typeFilters.length === 0 || typeFilters.includes(tournament.tournamentType);
 
     return (
       matchesSearch &&
       matchesStatus &&
       matchesState &&
       matchesCity &&
-      matchesSport
+      matchesSport &&
+      matchesType
     );
   });
 
@@ -597,13 +603,65 @@ const Tournaments = () => {
                     </button>
                   )}
                 </div>
+
+                {/* Type Filter */}
+                <div className="relative">
+                  <select
+                    value=""
+                    onChange={(e) =>
+                      toggleFilter(
+                        typeFilters,
+                        setTypeFilters,
+                        e.target.value,
+                      )
+                    }
+                    className="w-full px-4 py-3 bg-[#0a0e1a] border border-white/[0.08] rounded-lg text-white focus:outline-none focus:border-[#00ff88]/50 transition-colors appearance-none cursor-pointer"
+                  >
+                    <option value="" disabled>
+                      {getFilterLabel(typeFilters, "Tipo")}
+                    </option>
+                    {["Regular (Grupo + Playoffs)", "Eliminatorias Diretas", "Super 8"].map((type) => (
+                      <option
+                        key={type}
+                        value={type}
+                        disabled={
+                          typeFilters.length >= 2 &&
+                          !typeFilters.includes(type)
+                        }
+                      >
+                        {type} {typeFilters.includes(type) ? "✓" : ""}
+                      </option>
+                    ))}
+                  </select>
+                  {typeFilters.length > 0 && (
+                    <button
+                      onClick={() => setTypeFilters([])}
+                      className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Active Filters Display */}
               {(sportFilters.length > 0 ||
                 stateFilters.length > 0 ||
                 cityFilters.length > 0 ||
-                statusFilters.length > 0) && (
+                statusFilters.length > 0 ||
+                typeFilters.length > 0) && (
                 <div className="mt-4 flex flex-wrap gap-2">
                   {sportFilters.map((sport) => (
                     <span
@@ -717,12 +775,41 @@ const Tournaments = () => {
                       </button>
                     </span>
                   ))}
+                  {typeFilters.map((type) => (
+                    <span
+                      key={type}
+                      className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/20 text-cyan-300 rounded-full text-sm border border-cyan-500/30"
+                    >
+                      {type}
+                      <button
+                        onClick={() =>
+                          toggleFilter(typeFilters, setTypeFilters, type)
+                        }
+                        className="hover:text-white"
+                      >
+                        <svg
+                          className="w-3 h-3"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </span>
+                  ))}
                   <button
                     onClick={() => {
                       setSportFilters([]);
                       setStateFilters([]);
                       setCityFilters([]);
                       setStatusFilters([]);
+                      setTypeFilters([]);
                     }}
                     className="px-3 py-1 text-gray-400 hover:text-white text-sm"
                   >

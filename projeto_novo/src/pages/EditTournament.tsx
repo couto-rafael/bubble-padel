@@ -740,6 +740,7 @@ const EditTournament = () => {
                         className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all cursor-pointer hover:border-gray-300 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-default disabled:opacity-70"
                       />
                     </div>
+                    {!isSuper8 && (
                     <div>
                       <label className="block text-[12px] font-semibold text-gray-500 mb-1.5">
                         Data de Término
@@ -759,6 +760,7 @@ const EditTournament = () => {
                         className="w-full px-3.5 py-2.5 border-[1.5px] border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white outline-none focus:border-blue-500 focus:ring-[3px] focus:ring-blue-500/10 transition-all cursor-pointer hover:border-gray-300 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-default disabled:opacity-70"
                       />
                     </div>
+                    )}
                   </div>
                   <div className="mt-6 pt-6 border-t border-gray-200">
                     <p className="text-sm text-gray-500 italic flex items-center gap-2">
@@ -880,7 +882,18 @@ const EditTournament = () => {
                   <h3 className="text-[13px] font-extrabold text-gray-900 tracking-tight mb-3">
                     Capacidade
                   </h3>
-                  {capacity ? (
+                  {isSuper8 ? (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
+                        <div className="text-2xl font-black text-blue-700">8</div>
+                        <div className="text-xs text-blue-500 mt-0.5">Atletas máx.</div>
+                      </div>
+                      <div className="bg-gray-50 border border-gray-100 rounded-lg p-3 text-center">
+                        <div className="text-2xl font-black text-gray-700">{confirmedCount}</div>
+                        <div className="text-xs text-gray-400 mt-0.5">Confirmados</div>
+                      </div>
+                    </div>
+                  ) : capacity ? (
                     <div className="space-y-3">
                       <div className="grid grid-cols-2 gap-3">
                         <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center">
@@ -953,15 +966,17 @@ const EditTournament = () => {
                 {tournament && (
                   <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
                     <h3 className="text-[13px] font-extrabold text-gray-900 tracking-tight mb-2">
-                      Limite de Inscrições
+                      {isSuper8 ? "Limite de Atletas" : "Limite de Inscrições"}
                     </h3>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xl font-black text-gray-900">
-                        {(tournament as any).maxTeams >= 999
+                        {isSuper8
+                          ? "8 atletas"
+                          : (tournament as any).maxTeams >= 999
                           ? "Sem limite"
                           : `${(tournament as any).maxTeams} duplas`}
                       </span>
-                      {capacity && (tournament as any).maxTeams >= 999 && (
+                      {!isSuper8 && capacity && (tournament as any).maxTeams >= 999 && (
                         <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full">
                           Rec.: {capacity.maxTeams} duplas
                         </span>
@@ -1060,7 +1075,7 @@ const EditTournament = () => {
 
               {/* COLUNA 2 — Duração + Horários */}
               <div className="space-y-6">
-                <div className="bg-white border border-gray-200 rounded-xl p-6">
+                {!isSuper8 && <div className="bg-white border border-gray-200 rounded-xl p-6">
                   <h3 className="text-base font-bold text-gray-900 mb-4">
                     Tempo por Partida
                   </h3>
@@ -1074,7 +1089,7 @@ const EditTournament = () => {
                     />
                     <span className="text-sm text-gray-500">minutos</span>
                   </div>
-                </div>
+                </div>}
 
                 <div className="bg-white border border-gray-200 rounded-xl p-6">
                   <h3 className="text-base font-bold text-gray-900 mb-4">
@@ -1116,6 +1131,7 @@ const EditTournament = () => {
                               }}
                               className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-900 focus:outline-none focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
                             />
+                            {!isSuper8 && <>
                             <span className="text-gray-400 text-sm">até</span>
                             <input
                               type="time"
@@ -1131,6 +1147,7 @@ const EditTournament = () => {
                               }}
                               className="px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-900 focus:outline-none focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
                             />
+                            </>}
                           </div>
                         </div>
                       ))}
@@ -1216,6 +1233,7 @@ const EditTournament = () => {
               updateTeam={updateTeam}
               deleteTeam={deleteTeam}
               readOnly={isLocked}
+              isSuper8={isSuper8}
             />
           )}
           {/* TAB CONTENT - Categorias */}
@@ -1415,6 +1433,7 @@ const EditTournament = () => {
               pixKey={tournament.pixKey || ""}
               priceSecondCategory={tournament.priceSecondCategory || 0}
               onFieldChange={handleFieldChange}
+              isSuper8={isSuper8}
             />
           )}
 
@@ -1445,7 +1464,11 @@ const EditTournament = () => {
           {activeTab === "super8" && id && (
             <div className="bg-white rounded-2xl border border-gray-200 p-6">
               <h2 className="text-[17px] font-extrabold text-gray-900 mb-5">Super 8</h2>
-              <TabSuper8 tournamentId={id} />
+              <TabSuper8
+                tournamentId={id}
+                registeredAthletes={teams.map((t) => ({ id: t.id, player1Name: t.player1Name, status: t.status }))}
+                courts={(tournament as any).courts ?? []}
+              />
             </div>
           )}
         </div>
