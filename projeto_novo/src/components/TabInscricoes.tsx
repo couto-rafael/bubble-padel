@@ -203,7 +203,7 @@ const TabInscricoes = ({
       !newTeam.athlete1Name ||
       !newTeam.athlete1Email ||
       (!isSuper8 && (!newTeam.athlete2Name || !newTeam.athlete2Email)) ||
-      !newTeam.category
+      (!isSuper8 && !newTeam.category)
     ) {
       alert("Por favor, preencha todos os campos");
       return;
@@ -808,7 +808,10 @@ const TabInscricoes = ({
               setNewTeam({ athlete1Name: "", athlete1Email: "", athlete2Name: "", athlete2Email: "", category: "" });
             }}
           />
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 relative z-10">
+          <div
+            className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 relative z-10"
+            onKeyDown={(e) => { if (e.key === "Enter") handleAddTeam(); }}
+          >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-900">
                 {isSuper8 ? "Adicionar Atleta" : "Adicionar Nova Dupla"}

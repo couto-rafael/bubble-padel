@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 // ── mock ──────────────────────────────────────────────────
 const CLUB = {
@@ -47,6 +48,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   activePage = "dashboard",
 }) => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [dropOpen, setDropOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [navDashOpen, setNavDashOpen] = useState(false);
@@ -484,8 +486,9 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                   {/* logout */}
                   <div className="border-t border-white/10 mt-1">
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         setDropOpen(false);
+                        await logout();
                         navigate("/");
                       }}
                       className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"

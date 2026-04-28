@@ -1132,7 +1132,7 @@ const ClubSettings = () => {
                             <div>
                               <label className={LABEL_CLS}>Esportes</label>
                               <div className="flex gap-2 flex-wrap mt-1">
-                                {SPORTS_LIST.map(({ key, label }) => (
+                                {SPORTS_LIST.filter(({ key }) => clubSports.length === 0 || clubSports.includes(key)).map(({ key, label }) => (
                                   <button
                                     key={key}
                                     type="button"

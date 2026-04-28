@@ -223,7 +223,7 @@ const TournamentProfile = () => {
   }, [id, tournament?.status]);
 
 
-  const isSuper8Tournament = tournament?.tournamentType === "Super 8";
+  const isSuper8Tournament = (tournament as any)?.tournamentType === "Super 8";
 
   const handleRegister = async () => {
     if (
@@ -496,6 +496,16 @@ const TournamentProfile = () => {
                 <span className="px-3 py-1.5 bg-blue-500/20 text-blue-300 rounded-full text-[12px] font-extrabold border border-blue-500/30 tracking-wide">
                   {sportLabel}
                 </span>
+                {(() => {
+                  const type = (tournament as any).tournamentType ?? "Regular (Grupo + Playoffs)";
+                  const typeLabel = type === "Super 8" ? "Super 8" : type === "Eliminatorias Diretas" ? "Eliminatórias" : "Grupos + Playoffs";
+                  const typeCls = type === "Super 8" ? "bg-purple-500/20 text-purple-300 border-purple-500/30" : type === "Eliminatorias Diretas" ? "bg-orange-500/20 text-orange-300 border-orange-500/30" : "bg-teal-500/20 text-teal-300 border-teal-500/30";
+                  return (
+                    <span className={`px-3 py-1.5 rounded-full text-[12px] font-extrabold border tracking-wide ${typeCls}`}>
+                      {typeLabel}
+                    </span>
+                  );
+                })()}
               </div>
 
               <h1 className="text-[26px] sm:text-[32px] md:text-[40px] lg:text-[48px] font-black mb-4 leading-tight tracking-tight">

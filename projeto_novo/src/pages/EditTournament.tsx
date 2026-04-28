@@ -1169,12 +1169,14 @@ const EditTournament = () => {
                         {estruturaCourts.length}
                       </span>
                     </div>
+                    {!isSuper8 && (
                     <div className="flex justify-between">
                       <span className="text-gray-500">Duração/jogo</span>
                       <span className="font-semibold text-gray-900">
                         {estruturaDuration || "—"} min
                       </span>
                     </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-gray-500">Dias</span>
                       <span className="font-semibold text-gray-900">
@@ -1183,7 +1185,7 @@ const EditTournament = () => {
                     </div>
                   </div>
 
-                  {estruturaCapacity && (
+                  {!isSuper8 && estruturaCapacity && (
                     <div className="mt-4 pt-4 border-t border-gray-100">
                       <p className="text-xs text-gray-400 mb-1">
                         Capacidade estimada

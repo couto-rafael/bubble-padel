@@ -8,8 +8,8 @@ export const teamRoutes = Router();
 const teamSchema = z.object({
   player1Name: z.string().min(2),
   player1Email: z.string().email(),
-  player2Name: z.string().min(2),
-  player2Email: z.string().email(),
+  player2Name: z.string().default(""),
+  player2Email: z.union([z.string().email(), z.literal("")]).default(""),
   category: z.string(),
   status: z.enum(["CONFIRMED", "PENDING"]).default("PENDING"),
   paymentStatus: z.enum(["PAID", "PENDING"]).default("PENDING"),
