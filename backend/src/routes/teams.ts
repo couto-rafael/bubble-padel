@@ -12,7 +12,6 @@ const teamSchema = z.object({
   player2Email: z.union([z.string().email(), z.literal("")]).default(""),
   category: z.string(),
   status: z.enum(["CONFIRMED", "PENDING"]).default("PENDING"),
-  paymentStatus: z.enum(["PAID", "PENDING"]).default("PENDING"),
   amount: z.number().default(0),
   hasRestriction: z.boolean().default(false),
 });
@@ -40,17 +39,20 @@ teamRoutes.post(
   requireAuth,
   async (req: AuthRequest, res, next) => {
     try {
-      const data = teamSchema.parse(req.body);
+      const parsed = teamSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Validação falhou", details: parsed.error.flatten() });
+      }
       const team = await prisma.team.create({
-        data: { ...data, tournamentId: req.params.tournamentId },
+        data: { ...parsed.data, tournamentId: req.params.tournamentId },
       });
-      // Atualiza totalTeams no torneio
       await prisma.tournament.update({
         where: { id: req.params.tournamentId },
         data: { updatedAt: new Date() },
       });
       return res.status(201).json({ data: team });
-    } catch (err) {
+    } catch (err: any) {
+      console.error("POST /teams error:", err?.message ?? err);
       next(err);
     }
   },
