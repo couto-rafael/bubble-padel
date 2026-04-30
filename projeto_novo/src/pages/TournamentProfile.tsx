@@ -166,6 +166,8 @@ const TournamentProfile = () => {
   // Task 3.2 — payment flow
   const [showPayment, setShowPayment] = useState(false);
   const [paymentTeamId, setPaymentTeamId] = useState("");
+  // Super 8 — dados públicos de partidas/ranking
+  const [super8Data, setSuper8Data] = useState<{ players: any[]; matches: any[] } | null>(null);
 
   const handleOpenRegister = () => {
     if (isAthlete && currentUser) {
@@ -173,6 +175,12 @@ const TournamentProfile = () => {
         ...prev,
         player1Name: currentUser.name ?? "",
         player1Email: currentUser.email ?? "",
+      }));
+    }
+    if ((tournament as any)?.tournamentType === "Super 8") {
+      setRegisterForm((prev) => ({
+        ...prev,
+        category: (tournament as any)?.categories?.[0] ?? "Super 8",
       }));
     }
     setShowRegisterForm(true);
@@ -222,6 +230,12 @@ const TournamentProfile = () => {
     return () => clearInterval(interval);
   }, [id, tournament?.status]);
 
+  useEffect(() => {
+    if (!id || (tournament as any)?.tournamentType !== "Super 8") return;
+    PublicTournamentService.getSuper8(id)
+      .then(setSuper8Data)
+      .catch(() => {});
+  }, [id, tournament]);
 
   const isSuper8Tournament = (tournament as any)?.tournamentType === "Super 8";
 
@@ -231,7 +245,7 @@ const TournamentProfile = () => {
       !registerForm.player1Name ||
       !registerForm.player1Email ||
       (!isSuper8Tournament && (!registerForm.player2Name || !registerForm.player2Email)) ||
-      !registerForm.category
+      (!isSuper8Tournament && !registerForm.category)
     ) {
       setRegisterError("Preencha todos os campos.");
       return;
@@ -286,15 +300,21 @@ const TournamentProfile = () => {
     }
   };
 
-  const tabs = [
-    { id: "info", label: "Informações" },
-    { id: "participants", label: "Inscritos" },
-    { id: "groups", label: "Grupos" },
-    { id: "matches", label: "Jogos" },
-    { id: "playoffs", label: "Playoffs" },
-    { id: "live", label: "Ao Vivo" },
-    { id: "results", label: "Resultados" },
-  ];
+  const tabs = isSuper8Tournament
+    ? [
+        { id: "info", label: "Informações" },
+        { id: "participants", label: "Atletas" },
+        { id: "partidas", label: "Partidas & Ranking" },
+      ]
+    : [
+        { id: "info", label: "Informações" },
+        { id: "participants", label: "Inscritos" },
+        { id: "groups", label: "Grupos" },
+        { id: "matches", label: "Jogos" },
+        { id: "playoffs", label: "Playoffs" },
+        { id: "live", label: "Ao Vivo" },
+        { id: "results", label: "Resultados" },
+      ];
 
   const infoSubTabs = [
     { id: "general", label: "Gerais" },
@@ -578,7 +598,13 @@ const TournamentProfile = () => {
                       d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                   </svg>
-                  <span>{`${new Date((tournament.startDate ?? "").slice(0, 10) + "T12:00:00").toLocaleDateString("pt-BR")} – ${new Date((tournament.endDate ?? "").slice(0, 10) + "T12:00:00").toLocaleDateString("pt-BR")}`}</span>
+                  <span>{(() => {
+                    const s = (tournament.startDate ?? "").slice(0, 10);
+                    const e = (tournament.endDate ?? "").slice(0, 10);
+                    const start = new Date(s + "T12:00:00").toLocaleDateString("pt-BR");
+                    const end = new Date(e + "T12:00:00").toLocaleDateString("pt-BR");
+                    return s === e ? start : `${start} – ${end}`;
+                  })()}</span>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -597,10 +623,10 @@ const TournamentProfile = () => {
                   </svg>
                   <span>
                     {totalTeams}
-                    {tournament.maxTeams < 999
-                      ? `/${tournament.maxTeams}`
+                    {(isSuper8Tournament ? 8 : tournament.maxTeams) < 999
+                      ? `/${isSuper8Tournament ? 8 : tournament.maxTeams}`
                       : ""}{" "}
-                    duplas
+                    {isSuper8Tournament ? "atletas" : "duplas"}
                   </span>
                 </div>
               </div>
@@ -793,6 +819,7 @@ const TournamentProfile = () => {
                       </div>
                     </div>
 
+                    {!isSuper8Tournament && (
                     <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10">
                       <h2 className="text-2xl font-bold mb-4">
                         Categorias Disponíveis
@@ -825,12 +852,14 @@ const TournamentProfile = () => {
                         )}
                       </div>
                     </div>
+                    )}
                   </div>
 
                   <div className="space-y-6">
                     <div className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 p-6 rounded-xl border border-white/10">
                       <h3 className="font-bold mb-4">Detalhes Rápidos</h3>
                       <div className="space-y-3 text-sm">
+                        {!isSuper8Tournament && (
                         <div className="flex items-center gap-3 pb-3 border-b border-white/10">
                           <svg
                             className="w-5 h-5 text-[#00ff88]"
@@ -848,10 +877,17 @@ const TournamentProfile = () => {
                           <div>
                             <p className="text-gray-400">Data do Evento</p>
                             <p className="text-white font-medium">
-                              {`${new Date((tournament.startDate ?? "").slice(0, 10) + "T12:00:00").toLocaleDateString("pt-BR")} – ${new Date((tournament.endDate ?? "").slice(0, 10) + "T12:00:00").toLocaleDateString("pt-BR")}`}
+                              {(() => {
+                                const s = (tournament.startDate ?? "").slice(0, 10);
+                                const e = (tournament.endDate ?? "").slice(0, 10);
+                                const start = new Date(s + "T12:00:00").toLocaleDateString("pt-BR");
+                                const end = new Date(e + "T12:00:00").toLocaleDateString("pt-BR");
+                                return s === e ? start : `${start} – ${end}`;
+                              })()}
                             </p>
                           </div>
                         </div>
+                        )}
                         <div className="flex items-center gap-3 pb-3 border-b border-white/10">
                           <svg
                             className="w-5 h-5 text-[#00ff88]"
@@ -870,10 +906,10 @@ const TournamentProfile = () => {
                             <p className="text-gray-400">Inscritos</p>
                             <p className="text-white font-medium">
                               {totalTeams}
-                              {tournament.maxTeams < 999
-                                ? ` de ${tournament.maxTeams}`
+                              {(isSuper8Tournament ? 8 : tournament.maxTeams) < 999
+                                ? ` de ${isSuper8Tournament ? 8 : tournament.maxTeams}`
                                 : ""}{" "}
-                              duplas
+                              {isSuper8Tournament ? "atletas" : "duplas"}
                             </p>
                           </div>
                         </div>
@@ -1292,9 +1328,12 @@ const TournamentProfile = () => {
           {activeTab === "participants" && (
             <div>
               <div className="mb-6">
-                <h2 className="text-2xl font-bold mb-1">Duplas Inscritas</h2>
+                <h2 className="text-2xl font-bold mb-1">
+                  {isSuper8Tournament ? "Atletas Inscritos" : "Duplas Inscritas"}
+                </h2>
                 <p className="text-gray-400 mb-4">
-                  Total de {confirmedTeams.length} duplas confirmadas
+                  Total de {confirmedTeams.length}{" "}
+                  {isSuper8Tournament ? "atletas confirmados" : "duplas confirmadas"}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="relative flex-1">
@@ -1319,6 +1358,7 @@ const TournamentProfile = () => {
                       className="w-full pl-9 pr-4 py-2.5 bg-[#0a0e1a] border border-white/20 rounded-lg text-white placeholder-gray-600 focus:outline-none focus:border-[#00ff88] text-sm"
                     />
                   </div>
+                  {!isSuper8Tournament && (
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
@@ -1331,6 +1371,7 @@ const TournamentProfile = () => {
                       </option>
                     ))}
                   </select>
+                  )}
                 </div>
               </div>
 
@@ -1342,15 +1383,15 @@ const TournamentProfile = () => {
                       player2Name: string;
                       category: string;
                     }) =>
-                      (selectedCategory === "Todas" ||
-                        p.category === selectedCategory) &&
+                      (isSuper8Tournament || selectedCategory === "Todas" || p.category === selectedCategory) &&
                       (searchTerm === "" ||
                         p.player1Name
                           .toLowerCase()
                           .includes(searchTerm.toLowerCase()) ||
-                        p.player2Name
-                          .toLowerCase()
-                          .includes(searchTerm.toLowerCase())),
+                        (!isSuper8Tournament &&
+                          p.player2Name
+                            .toLowerCase()
+                            .includes(searchTerm.toLowerCase()))),
                   )
                   .map(
                     (participant: {
@@ -1393,19 +1434,25 @@ const TournamentProfile = () => {
                                     {participant.player1Name}
                                   </Link>
                                 ) : participant.player1Name}
-                                {" / "}
-                                {participant.player2AthleteId ? (
-                                  <Link
-                                    to={currentUser ? `/athlete/${participant.player2AthleteId}` : `/athletes/${participant.player2AthleteId}`}
-                                    className="hover:text-[#00ff88] transition-colors"
-                                  >
-                                    {participant.player2Name}
-                                  </Link>
-                                ) : participant.player2Name}
+                                {!isSuper8Tournament && (
+                                  <>
+                                    {" / "}
+                                    {participant.player2AthleteId ? (
+                                      <Link
+                                        to={currentUser ? `/athlete/${participant.player2AthleteId}` : `/athletes/${participant.player2AthleteId}`}
+                                        className="hover:text-[#00ff88] transition-colors"
+                                      >
+                                        {participant.player2Name}
+                                      </Link>
+                                    ) : participant.player2Name}
+                                  </>
+                                )}
                               </h3>
+                              {!isSuper8Tournament && (
                               <p className="text-gray-400 text-sm">
                                 Categoria: {participant.category}
                               </p>
+                              )}
                             </div>
                           </div>
                           <span
@@ -1421,10 +1468,115 @@ const TournamentProfile = () => {
                   )}
                 {confirmedTeams.length === 0 && (
                   <div className="text-center py-12 text-gray-400">
-                    Nenhuma dupla confirmada ainda.
+                    {isSuper8Tournament ? "Nenhum atleta confirmado ainda." : "Nenhuma dupla confirmada ainda."}
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* SUPER 8 — PARTIDAS & RANKING TAB */}
+          {activeTab === "partidas" && isSuper8Tournament && (
+            <div className="space-y-8">
+              {/* Ranking */}
+              <div>
+                <h2 className="text-xl font-bold mb-4">Ranking</h2>
+                {super8Data && super8Data.players.length > 0 ? (
+                  <div className="overflow-x-auto rounded-xl border border-white/10">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-white/5 text-gray-400 text-xs uppercase">
+                          <th className="text-left px-4 py-3">#</th>
+                          <th className="text-left px-4 py-3">Atleta</th>
+                          <th className="text-center px-4 py-3">V</th>
+                          <th className="text-center px-4 py-3">D</th>
+                          <th className="text-center px-4 py-3">GP</th>
+                          <th className="text-center px-4 py-3">GC</th>
+                          <th className="text-center px-4 py-3">Saldo</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[...super8Data.players]
+                          .sort((a, b) => b.wins - a.wins || (b.gamesFor - b.gamesAgainst) - (a.gamesFor - a.gamesAgainst))
+                          .map((player, idx) => (
+                            <tr key={player.id} className="border-t border-white/5 hover:bg-white/5 transition-colors">
+                              <td className="px-4 py-3 font-bold text-gray-400">{idx + 1}</td>
+                              <td className="px-4 py-3 font-semibold">{player.name}</td>
+                              <td className="px-4 py-3 text-center text-green-400 font-semibold">{player.wins}</td>
+                              <td className="px-4 py-3 text-center text-red-400">{player.losses}</td>
+                              <td className="px-4 py-3 text-center">{player.gamesFor}</td>
+                              <td className="px-4 py-3 text-center">{player.gamesAgainst}</td>
+                              <td className="px-4 py-3 text-center font-semibold">
+                                <span className={player.gamesFor - player.gamesAgainst >= 0 ? "text-green-400" : "text-red-400"}>
+                                  {player.gamesFor - player.gamesAgainst > 0 ? "+" : ""}{player.gamesFor - player.gamesAgainst}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-center py-8">Nenhuma partida registrada ainda.</p>
+                )}
+              </div>
+
+              {/* Rodadas */}
+              {super8Data && super8Data.matches.length > 0 && (
+                <div>
+                  <h2 className="text-xl font-bold mb-4">Partidas</h2>
+                  <div className="space-y-6">
+                    {Array.from({ length: 7 }, (_, i) => i + 1).map((round) => {
+                      const roundMatches = super8Data.matches.filter((m) => m.round === round);
+                      if (roundMatches.length === 0) return null;
+                      return (
+                        <div key={round}>
+                          <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
+                            Rodada {round}
+                          </h3>
+                          <div className="space-y-3">
+                            {roundMatches.map((match) => {
+                              const p = super8Data.players;
+                              const t1p1 = p.find((x) => x.order === match.team1p1)?.name ?? "—";
+                              const t1p2 = p.find((x) => x.order === match.team1p2)?.name ?? "—";
+                              const t2p1 = p.find((x) => x.order === match.team2p1)?.name ?? "—";
+                              const t2p2 = p.find((x) => x.order === match.team2p2)?.name ?? "—";
+                              const played = match.played;
+                              const t1Won = played && match.score1 > match.score2;
+                              const t2Won = played && match.score2 > match.score1;
+                              return (
+                                <div key={match.id} className="bg-gradient-to-br from-[#1a1f4a]/50 to-[#0f1540]/50 rounded-xl border border-white/10 p-4">
+                                  <div className="flex items-center justify-between gap-4">
+                                    <div className={`flex-1 text-right ${t1Won ? "text-[#00ff88] font-bold" : "text-white"}`}>
+                                      <p className="text-sm">{t1p1}</p>
+                                      <p className="text-sm">{t1p2}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-lg font-bold min-w-[80px] justify-center">
+                                      {played ? (
+                                        <>
+                                          <span className={t1Won ? "text-[#00ff88]" : "text-gray-400"}>{match.score1}</span>
+                                          <span className="text-gray-600">×</span>
+                                          <span className={t2Won ? "text-[#00ff88]" : "text-gray-400"}>{match.score2}</span>
+                                        </>
+                                      ) : (
+                                        <span className="text-gray-600 text-sm font-normal">vs</span>
+                                      )}
+                                    </div>
+                                    <div className={`flex-1 ${t2Won ? "text-[#00ff88] font-bold" : "text-white"}`}>
+                                      <p className="text-sm">{t2p1}</p>
+                                      <p className="text-sm">{t2p2}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -2433,6 +2585,7 @@ const TournamentProfile = () => {
             </div>
 
             <div className="space-y-4">
+              {!isSuper8Tournament && (
               <div>
                 <label className="block text-[12px] font-semibold text-gray-400 mb-1.5">
                   Categoria
@@ -2452,6 +2605,7 @@ const TournamentProfile = () => {
                   ))}
                 </select>
               </div>
+              )}
 
               {/* Jogador 1 — pré-preenchido e bloqueado se atleta logado */}
               <div className="pt-2">

@@ -77,8 +77,7 @@ super8Routes.post(
 // ─────────────────────────────────────────────────────────────────────────────
 super8Routes.get(
   "/:tournamentId",
-  requireAuth,
-  async (req: AuthRequest, res, next) => {
+  async (req, res, next) => {
     try {
       const { tournamentId } = req.params;
       const result = await fetchSuper8Data(tournamentId);

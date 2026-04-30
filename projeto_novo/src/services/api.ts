@@ -568,6 +568,12 @@ export const PublicTournamentService = {
     return handleResponse<PublicTournament>(res);
   },
 
+  getSuper8: async (id: string): Promise<{ players: any[]; matches: any[] }> => {
+    const res = await fetch(`${API_URL}/super8/${id}`);
+    const data = await handleResponse<{ players: any[]; matches: any[] }>(res);
+    return data;
+  },
+
   register: async (
     id: string,
     data: {

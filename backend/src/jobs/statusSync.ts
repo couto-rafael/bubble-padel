@@ -71,6 +71,50 @@ export async function syncTournamentStatuses(): Promise<void> {
     }
   }
 
+  // ── Super 8: OPEN/CLOSED/PUBLISHED → ONGOING por startDate ─────────────
+  const super8Candidates = await prisma.tournament.findMany({
+    where: {
+      tournamentType: "Super 8",
+      status: { in: ["OPEN", "CLOSED", "PUBLISHED"] },
+    },
+    select: { id: true, name: true, startDate: true },
+  });
+
+  for (const t of super8Candidates) {
+    try {
+      const startOfDay = new Date(t.startDate.toISOString().slice(0, 10) + "T00:00:00");
+      if (now >= startOfDay) {
+        await prisma.tournament.update({
+          where: { id: t.id },
+          data: { status: "ONGOING" },
+        });
+        console.log(`[cron] Super 8 "${t.name}" → ONGOING (startDate: ${t.startDate.toISOString().slice(0, 10)})`);
+      }
+    } catch (err) {
+      console.error(`[cron] Erro Super 8 ONGOING ${t.id}:`, err);
+    }
+  }
+
+  // ── Super 8: ONGOING → COMPLETED quando todas partidas jogadas ───────────
+  const super8Ongoing = await prisma.tournament.findMany({
+    where: { status: "ONGOING", tournamentType: "Super 8" },
+    include: { super8Matches: true },
+  });
+
+  for (const t of super8Ongoing) {
+    try {
+      if (t.super8Matches.length === 0) continue;
+      if (!t.super8Matches.every((m) => m.played)) continue;
+      await prisma.tournament.update({
+        where: { id: t.id },
+        data: { status: "COMPLETED" },
+      });
+      console.log(`[cron] Super 8 "${t.name}" → COMPLETED`);
+    } catch (err) {
+      console.error(`[cron] Erro Super 8 COMPLETED ${t.id}:`, err);
+    }
+  }
+
   // ── Task 4.6: ONGOING → COMPLETED automático ─────────────────────────────
   // Condição: todos os playoffs não-bye foram jogados E
   // o último jogo foi há mais de 6 horas (evita completar antes de encerrar)
