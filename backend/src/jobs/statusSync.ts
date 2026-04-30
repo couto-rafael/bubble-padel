@@ -24,10 +24,13 @@ export function startStatusSyncJob(): void {
 export async function syncTournamentStatuses(): Promise<void> {
   const now = new Date();
 
-  // ── Task 1.5: CLOSED/PUBLISHED → ONGOING ─────────────────────────────────
+  // ── Task 1.5: OPEN/CLOSED/PUBLISHED → ONGOING (Grupo+Playoffs) ──────────
 
   const ongoingCandidates = await prisma.tournament.findMany({
-    where: { status: { in: ["CLOSED", "PUBLISHED"] } },
+    where: {
+      status: { in: ["OPEN", "CLOSED", "PUBLISHED"] },
+      tournamentType: { not: "Super 8" },
+    },
     select: { id: true, name: true, status: true },
   });
 
@@ -68,30 +71,6 @@ export async function syncTournamentStatuses(): Promise<void> {
       }
     } catch (err) {
       console.error(`[cron] Erro ao processar torneio ${tournament.id}:`, err);
-    }
-  }
-
-  // ── Super 8: OPEN/CLOSED/PUBLISHED → ONGOING por startDate ─────────────
-  const super8Candidates = await prisma.tournament.findMany({
-    where: {
-      tournamentType: "Super 8",
-      status: { in: ["OPEN", "CLOSED", "PUBLISHED"] },
-    },
-    select: { id: true, name: true, startDate: true },
-  });
-
-  for (const t of super8Candidates) {
-    try {
-      const startOfDay = new Date(t.startDate.toISOString().slice(0, 10) + "T00:00:00");
-      if (now >= startOfDay) {
-        await prisma.tournament.update({
-          where: { id: t.id },
-          data: { status: "ONGOING" },
-        });
-        console.log(`[cron] Super 8 "${t.name}" → ONGOING (startDate: ${t.startDate.toISOString().slice(0, 10)})`);
-      }
-    } catch (err) {
-      console.error(`[cron] Erro Super 8 ONGOING ${t.id}:`, err);
     }
   }
 

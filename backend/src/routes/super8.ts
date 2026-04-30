@@ -111,6 +111,23 @@ super8Routes.put(
         data: { score1, score2, played: true },
       });
 
+      // Primeiro placar salvo → torneio vai para ONGOING
+      const tournament = await prisma.tournament.findUnique({
+        where: { id: tournamentId },
+        select: { status: true },
+      });
+      if (tournament && ["OPEN", "CLOSED", "PUBLISHED"].includes(tournament.status)) {
+        const playedCount = await prisma.super8Match.count({
+          where: { tournamentId, played: true },
+        });
+        if (playedCount === 1) {
+          await prisma.tournament.update({
+            where: { id: tournamentId },
+            data: { status: "ONGOING" },
+          });
+        }
+      }
+
       // Recalcula ranking — zera todos e recalcula do zero
       await recalcRanking(tournamentId);
 
