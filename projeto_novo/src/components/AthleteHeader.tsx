@@ -177,21 +177,14 @@ const AthleteHeader: React.FC = () => {
                 {isTorneiosOpen && (
                   <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                     <Link
-                      to="/tournaments/inscritos"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      onClick={() => setIsTorneiosOpen(false)}
-                    >
-                      Inscritos
-                    </Link>
-                    <Link
-                      to="/tournaments/abertos"
+                      to="/tournaments?filter=abertos"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       onClick={() => setIsTorneiosOpen(false)}
                     >
                       Abertos
                     </Link>
                     <Link
-                      to="/tournaments/encerrados"
+                      to="/tournaments?filter=encerrados"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       onClick={() => setIsTorneiosOpen(false)}
                     >

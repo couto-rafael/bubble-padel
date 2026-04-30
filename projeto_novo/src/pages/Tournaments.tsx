@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import Footer from "../components/Footer";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import AuthModal from "../components/AuthModal";
 import MobileMenu from "../components/MobileMenu";
+import AthleteHeader from "../components/AthleteHeader";
 import SEOHead from "../components/SEOHead";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -93,6 +94,7 @@ function mapPublicTournament(t: PublicTournament): Tournament {
 const Tournaments = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const [searchParams] = useSearchParams();
   const { user: currentUser } = useAuth();
   const isAthlete = currentUser?.type?.toUpperCase() === "ATHLETE";
   const isClub = currentUser?.type?.toUpperCase() === "CLUB";
@@ -103,7 +105,12 @@ const Tournaments = () => {
   const [sportFilters, setSportFilters] = useState<string[]>([]);
   const [stateFilters, setStateFilters] = useState<string[]>([]);
   const [cityFilters, setCityFilters] = useState<string[]>([]);
-  const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const [statusFilters, setStatusFilters] = useState<string[]>(() => {
+    const f = searchParams.get("filter");
+    if (f === "abertos") return ["Inscrições Abertas"];
+    if (f === "encerrados") return ["Finalizado"];
+    return [];
+  });
   const [typeFilters, setTypeFilters] = useState<string[]>([]);
   const [allTournaments, setAllTournaments] = useState<Tournament[]>([]);
   const [loadingTournaments, setLoadingTournaments] = useState(true);
@@ -235,6 +242,9 @@ const Tournaments = () => {
       />
 
       {/* Navigation */}
+      {isAthlete ? (
+        <AthleteHeader />
+      ) : (
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e1a]/95 backdrop-blur-sm border-b border-white/[0.07]">
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
@@ -310,9 +320,10 @@ const Tournaments = () => {
           </div>
         </div>
       </nav>
+      )}
 
       {/* Page Header */}
-      <section className="pt-32 pb-12 px-4 md:px-6 lg:px-8">
+      <section className={`${isAthlete ? "pt-24" : "pt-32"} pb-12 px-4 md:px-6 lg:px-8`}>
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-4">
             Torneios
