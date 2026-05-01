@@ -228,7 +228,7 @@ const Tournaments = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0e1a] text-white">
+    <div className="min-h-screen bg-[#0a0e27] text-white">
       <SEOHead
         title="Torneios de Padel e Beach Tennis"
         description="Encontre e inscreva-se nos melhores torneios de padel e beach tennis do Brasil. Organize seu próximo torneio no Bubble Padel."
@@ -245,9 +245,9 @@ const Tournaments = () => {
       {isAthlete ? (
         <AthleteHeader />
       ) : (
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e1a]/95 backdrop-blur-sm border-b border-white/[0.07]">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e27]/95 backdrop-blur-sm border-b border-white/[0.07]">
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-2">
               <div className="w-10 h-10 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center">
                 <svg
@@ -323,7 +323,7 @@ const Tournaments = () => {
       )}
 
       {/* Page Header */}
-      <section className={`${isAthlete ? "pt-24" : "pt-32"} pb-12 px-4 md:px-6 lg:px-8`}>
+      <section className="pt-24 pb-12 px-4 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-4">
             Torneios

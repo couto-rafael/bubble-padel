@@ -505,7 +505,9 @@ export interface PublicTournament {
   teams?: Array<{
     id: string;
     player1Name: string;
+    player1Email?: string;
     player2Name: string;
+    player2Email?: string;
     category: string;
     status: string;
     player1AthleteId?: string | null;

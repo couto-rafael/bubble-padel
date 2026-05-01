@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link, useParams, useSearchParams, useLocation } from "react-router-dom";
 import AuthModal from "../components/AuthModal";
 import { PaymentModal } from "../components/PaymentModal";
 import MobileMenu from "../components/MobileMenu";
+import AthleteHeader from "../components/AthleteHeader";
 import SEOHead from "../components/SEOHead";
+import { useAuth } from "../contexts/AuthContext";
 import {
   PublicTournamentService,
   AuthService,
@@ -145,7 +147,7 @@ const TournamentProfile = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Auth
-  const currentUser = AuthService.getCurrentUser();
+  const { user: currentUser } = useAuth();
   const isAthlete = currentUser?.type?.toUpperCase() === "ATHLETE";
   const isClub = currentUser?.type?.toUpperCase() === "CLUB";
   const { pathname } = useLocation();
@@ -166,6 +168,8 @@ const TournamentProfile = () => {
   // Task 3.2 — payment flow
   const [showPayment, setShowPayment] = useState(false);
   const [paymentTeamId, setPaymentTeamId] = useState("");
+  // Rastrea inscrição feita nesta sessão (antes de confirmação de pagamento)
+  const [registeredPending, setRegisteredPending] = useState(false);
   // Super 8 — dados públicos de partidas/ranking
   const [super8Data, setSuper8Data] = useState<{ players: any[]; matches: any[] } | null>(null);
 
@@ -261,11 +265,36 @@ const TournamentProfile = () => {
         ? { ...registerForm, player2Name: "", player2Email: "" }
         : registerForm;
       const result = await PublicTournamentService.register(id, payload);
+      const newTeamId = (result as any)?.id ?? "";
       setShowRegisterForm(false);
+      setRegisteredPending(true);
+
+      // Adiciona o time ao estado local para aparecer na lista imediatamente
+      setTournament((prev) =>
+        prev
+          ? {
+              ...prev,
+              teams: [
+                ...(prev.teams ?? []),
+                {
+                  id: newTeamId,
+                  player1Name: registerForm.player1Name,
+                  player1Email: registerForm.player1Email,
+                  player2Name: registerForm.player2Name,
+                  player2Email: registerForm.player2Email,
+                  category: registerForm.category,
+                  status: "PENDING",
+                  player1AthleteId: null,
+                  player2AthleteId: null,
+                },
+              ],
+            }
+          : prev,
+      );
 
       // Se torneio tem valor → mostra modal de pagamento
       if (tournament && tournament.priceFirstCategory > 0) {
-        setPaymentTeamId((result as any)?.id ?? "");
+        setPaymentTeamId(newTeamId);
         setShowPayment(true);
       } else {
         // Torneio gratuito → confirma direto
@@ -397,6 +426,15 @@ const TournamentProfile = () => {
         ? "Encerradas"
         : "Não abertas";
   const confirmedTeams = tournament.teams ?? [];
+  const existingMyRegistration = useMemo(() => {
+    if (!currentUser?.email || !tournament?.teams) return null;
+    return tournament.teams.find(
+      (t) => t.player1Email === currentUser.email || t.player2Email === currentUser.email,
+    ) ?? null;
+  }, [tournament?.teams, currentUser?.email]);
+  const isAlreadyRegistered = registeredPending || !!existingMyRegistration;
+  const isPendingPayment = isAlreadyRegistered && !registerSuccess &&
+    (existingMyRegistration?.status !== "CONFIRMED");
 
   return (
     <div className="min-h-screen bg-[#0a0e27] text-white">
@@ -422,9 +460,12 @@ const TournamentProfile = () => {
       />
 
       {/* Navigation */}
+      {isAthlete ? (
+        <AthleteHeader />
+      ) : (
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e27]/95 backdrop-blur-sm border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center gap-2">
               <div className="w-10 h-10 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center">
                 <svg
@@ -491,10 +532,11 @@ const TournamentProfile = () => {
               )}
             </div>
 
-            <MobileMenu onLoginClick={() => setIsAuthModalOpen(true)} currentUser={currentUser} />
+            <MobileMenu onLoginClick={() => setIsAuthModalOpen(true)} currentUser={currentUser as any} />
           </div>
         </div>
       </nav>
+      )}
 
       {/* Hero */}
       <section className="relative pt-20 pb-6 px-4 md:px-6 lg:px-8">
@@ -638,6 +680,10 @@ const TournamentProfile = () => {
                   <div className="w-full py-3.5 bg-green-600/20 border border-green-500/30 text-green-300 rounded-lg font-bold text-base text-center mb-4">
                     ✓ Inscrição realizada! Aguarde confirmação do clube.
                   </div>
+                ) : isPendingPayment ? (
+                  <div className="w-full py-3.5 bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-lg font-bold text-base text-center mb-4">
+                    Inscrito — Aguardando Pagamento
+                  </div>
                 ) : isOpen && isClub ? (
                   <div className="w-full py-3.5 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold text-base text-center mb-4 cursor-not-allowed">
                     Inscrição exclusiva para atletas
@@ -714,7 +760,7 @@ const TournamentProfile = () => {
       </section>
 
       {/* Tabs */}
-      <section className="sticky top-20 z-40 bg-[#0a0e27]/95 backdrop-blur-sm border-b border-white/10">
+      <section className="sticky top-16 z-40 bg-[#0a0e27]/95 backdrop-blur-sm border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex overflow-x-auto flex-1">
@@ -2555,6 +2601,7 @@ const TournamentProfile = () => {
           playerEmail={registerForm.player1Email}
           playerNumber={1}
           amount={tournament.priceFirstCategory ?? 0}
+          isSuper8={isSuper8Tournament}
           tournamentName={tournament.name}
           category={registerForm.category}
           isFree={
@@ -2749,6 +2796,10 @@ const TournamentProfile = () => {
           {registerSuccess ? (
             <div className="w-full py-3 bg-green-600/20 border border-green-500/30 text-green-300 rounded-xl font-bold text-sm text-center">
               ✓ Inscrição realizada! Aguarde confirmação.
+            </div>
+          ) : isPendingPayment ? (
+            <div className="w-full py-3 bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-xl font-bold text-sm text-center">
+              Inscrito — Aguardando Pagamento
             </div>
           ) : isClub ? (
             <div className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-xl font-bold text-sm text-center">

@@ -807,7 +807,7 @@ publicTournamentRoutes.get("/:id", async (req, res, next) => {
         },
         _count: { select: { teams: true } },
         teams: {
-          where: { status: "CONFIRMED" },
+          where: { status: { in: ["CONFIRMED", "PENDING"] } },
           select: {
             id: true,
             player1Name: true,

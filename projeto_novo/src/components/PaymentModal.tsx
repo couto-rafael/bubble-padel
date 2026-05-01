@@ -8,7 +8,8 @@ interface PaymentModalProps {
   playerName: string;
   playerEmail: string;
   playerNumber: 1 | 2;
-  amount: number; // valor total da dupla
+  amount: number; // valor total da dupla (ou por atleta no Super 8)
+  isSuper8?: boolean; // Super 8: não divide por 2
   tournamentName: string;
   category: string;
   onPaid: () => void; // chamado quando pagamento confirmado
@@ -28,6 +29,7 @@ export function PaymentModal({
   playerName,
   playerNumber,
   amount,
+  isSuper8 = false,
   tournamentName,
   category,
   onPaid,
@@ -38,7 +40,7 @@ export function PaymentModal({
   const [billingUrl, setBillingUrl] = useState("");
   const [billingId, setBillingId] = useState("");
   const [copied, setCopied] = useState(false);
-  const amountPerPlayer = amount / 2;
+  const amountPerPlayer = isSuper8 ? amount : amount / 2;
 
   // ── Cria a cobrança ao montar ─────────────────────────────────────────────
   useEffect(() => {

@@ -39,6 +39,7 @@ paymentRoutes.post(
               id: true,
               name: true,
               priceFirstCategory: true,
+              tournamentType: true,
             },
           },
         },
@@ -51,8 +52,9 @@ paymentRoutes.post(
       const playerEmail =
         playerNumber === 1 ? team.player1Email : team.player2Email;
 
-      // Valor por atleta = metade da inscrição (em centavos)
-      const amountCents = Math.round((team.amount / 2) * 100);
+      // Super 8: valor integral por atleta; duplas: metade (em centavos)
+      const isSuper8 = team.tournament.tournamentType === "Super 8";
+      const amountCents = Math.round((isSuper8 ? team.amount : team.amount / 2) * 100);
 
       if (amountCents <= 0) {
         return res
