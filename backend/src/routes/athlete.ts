@@ -1106,6 +1106,105 @@ athleteRoutes.delete(
   },
 );
 
+// ─── Settings defaults ───────────────────────────────────────────────────────
+
+const DEFAULT_SETTINGS = {
+  profileVisibility: "PUBLIC",
+  matchHistoryVisibility: "PUBLIC",
+  statsVisibility: "PUBLIC",
+  searchable: true,
+  email_registrationConfirmed: true,
+  email_tournamentReminder: true,
+  email_resultsPublished: true,
+  email_newFollower: false,
+  email_newMessage: false,
+  email_nearbyTournaments: false,
+  email_weeklySummary: false,
+  app_registrationConfirmed: true,
+  app_tournamentReminder: true,
+  app_resultsPublished: true,
+  app_newFollower: true,
+  app_newMessage: true,
+  app_nearbyTournaments: false,
+  app_weeklySummary: false,
+};
+
+const settingsSchema = z.object({
+  profileVisibility: z.enum(["PUBLIC", "FOLLOWERS", "PRIVATE"]).optional(),
+  matchHistoryVisibility: z.enum(["PUBLIC", "FOLLOWERS", "PRIVATE"]).optional(),
+  statsVisibility: z.enum(["PUBLIC", "FOLLOWERS", "PRIVATE"]).optional(),
+  searchable: z.boolean().optional(),
+  email_registrationConfirmed: z.boolean().optional(),
+  email_tournamentReminder: z.boolean().optional(),
+  email_resultsPublished: z.boolean().optional(),
+  email_newFollower: z.boolean().optional(),
+  email_newMessage: z.boolean().optional(),
+  email_nearbyTournaments: z.boolean().optional(),
+  email_weeklySummary: z.boolean().optional(),
+  app_registrationConfirmed: z.boolean().optional(),
+  app_tournamentReminder: z.boolean().optional(),
+  app_resultsPublished: z.boolean().optional(),
+  app_newFollower: z.boolean().optional(),
+  app_newMessage: z.boolean().optional(),
+  app_nearbyTournaments: z.boolean().optional(),
+  app_weeklySummary: z.boolean().optional(),
+});
+
+// ─── GET /api/athlete/settings ────────────────────────────────────────────────
+
+athleteRoutes.get(
+  "/settings",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const athlete = await prisma.athlete.findUnique({
+        where: { userId: req.userId },
+        select: { settings: true },
+      });
+      if (!athlete)
+        return res.status(404).json({ error: "Atleta não encontrado" });
+
+      const merged = { ...DEFAULT_SETTINGS, ...(athlete.settings as object ?? {}) };
+      return res.json({ data: merged });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// ─── PATCH /api/athlete/settings ─────────────────────────────────────────────
+
+athleteRoutes.patch(
+  "/settings",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const parsed = settingsSchema.safeParse(req.body);
+      if (!parsed.success)
+        return res.status(400).json({ error: parsed.error.flatten() });
+
+      const athlete = await prisma.athlete.findUnique({
+        where: { userId: req.userId },
+        select: { settings: true },
+      });
+      if (!athlete)
+        return res.status(404).json({ error: "Atleta não encontrado" });
+
+      const current = { ...DEFAULT_SETTINGS, ...(athlete.settings as object ?? {}) };
+      const updated = { ...current, ...parsed.data };
+
+      await (prisma.athlete as any).update({
+        where: { userId: req.userId },
+        data: { settings: updated },
+      });
+
+      return res.json({ data: updated });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
 // ─── Rotas públicas ───────────────────────────────────────────────────────────
 
 export const publicAthleteRoutes = Router();

@@ -180,6 +180,9 @@ model Athlete {
   friendshipsReceived AthleteFriendship[] @relation("FriendshipReceived")
   followingClubs    AthleteFollowsClub[] @relation("AthleteFollowsClubs")
 
+  // Configurações de privacidade e notificações
+  settings          Json      @default("{}")
+
   @@map("athletes")
 }
 
