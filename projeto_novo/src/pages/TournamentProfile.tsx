@@ -170,6 +170,18 @@ const TournamentProfile = () => {
   const [paymentTeamId, setPaymentTeamId] = useState("");
   // Rastrea inscrição feita nesta sessão (antes de confirmação de pagamento)
   const [registeredPending, setRegisteredPending] = useState(false);
+  // useMemo deve ficar antes de qualquer return condicional (Rules of Hooks)
+  const existingMyRegistration = useMemo(() => {
+    if (!currentUser?.email || !tournament?.teams) return null;
+    return (
+      tournament.teams.find(
+        (t) => t.player1Email === currentUser.email || t.player2Email === currentUser.email,
+      ) ?? null
+    );
+  }, [tournament?.teams, currentUser?.email]);
+  const isAlreadyRegistered = registeredPending || !!existingMyRegistration;
+  const isPendingPayment =
+    isAlreadyRegistered && !registerSuccess && existingMyRegistration?.status !== "CONFIRMED";
   // Super 8 — dados públicos de partidas/ranking
   const [super8Data, setSuper8Data] = useState<{ players: any[]; matches: any[] } | null>(null);
 
@@ -426,15 +438,6 @@ const TournamentProfile = () => {
         ? "Encerradas"
         : "Não abertas";
   const confirmedTeams = tournament.teams ?? [];
-  const existingMyRegistration = useMemo(() => {
-    if (!currentUser?.email || !tournament?.teams) return null;
-    return tournament.teams.find(
-      (t) => t.player1Email === currentUser.email || t.player2Email === currentUser.email,
-    ) ?? null;
-  }, [tournament?.teams, currentUser?.email]);
-  const isAlreadyRegistered = registeredPending || !!existingMyRegistration;
-  const isPendingPayment = isAlreadyRegistered && !registerSuccess &&
-    (existingMyRegistration?.status !== "CONFIRMED");
 
   return (
     <div className="min-h-screen bg-[#0a0e27] text-white">
