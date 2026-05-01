@@ -204,6 +204,15 @@ const TournamentProfile = () => {
 
   useEffect(() => {
     if (!id) return;
+    // Verifica se atleta já se inscreveu nesta sessão anterior (localStorage)
+    try {
+      const pending = JSON.parse(localStorage.getItem("bubble_pending_reg") ?? "{}");
+      if (pending[id]) setRegisteredPending(true);
+    } catch {}
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
     PublicTournamentService.get(id)
       .then((t) => {
         setTournament(t);
@@ -280,6 +289,11 @@ const TournamentProfile = () => {
       const newTeamId = (result as any)?.id ?? "";
       setShowRegisterForm(false);
       setRegisteredPending(true);
+      try {
+        const pending = JSON.parse(localStorage.getItem("bubble_pending_reg") ?? "{}");
+        pending[id] = { teamId: newTeamId, at: Date.now() };
+        localStorage.setItem("bubble_pending_reg", JSON.stringify(pending));
+      } catch {}
 
       // Adiciona o time ao estado local para aparecer na lista imediatamente
       setTournament((prev) =>

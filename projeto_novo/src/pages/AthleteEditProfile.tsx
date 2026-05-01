@@ -21,6 +21,20 @@ interface IbgeCity {
   uf: string;
 }
 
+// Cache module-level: baixa uma única vez em toda a sessão
+let _ibgeCache: IbgeCity[] | null = null;
+let _ibgeFetch: Promise<void> | null = null;
+async function loadIbge(): Promise<void> {
+  if (_ibgeCache) return;
+  if (_ibgeFetch) return _ibgeFetch;
+  _ibgeFetch = fetch("https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome")
+    .then((r) => r.json())
+    .then((all: Array<{ id: number; nome: string; microrregiao: { mesorregiao: { UF: { sigla: string } } } }>) => {
+      _ibgeCache = all.map((m) => ({ id: m.id, nome: m.nome, uf: m.microrregiao.mesorregiao.UF.sigla }));
+    });
+  return _ibgeFetch;
+}
+
 interface AthleteForm {
   firstName: string;
   lastName: string;
@@ -250,13 +264,11 @@ const AthleteEditProfile: React.FC = () => {
     const t = setTimeout(async () => {
       setCityLoading(true);
       try {
-        const res = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome`);
-        const all: Array<{ id: number; nome: string; microrregiao: { mesorregiao: { UF: { sigla: string } } } }> = await res.json();
+        await loadIbge();
         const q = value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        const filtered = all
-          .filter((m) => m.nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(q))
-          .slice(0, 8)
-          .map((m) => ({ id: m.id, nome: m.nome, uf: m.microrregiao.mesorregiao.UF.sigla }));
+        const filtered = (_ibgeCache ?? [])
+          .filter((m) => m.nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").startsWith(q))
+          .slice(0, 8);
         setCitySuggestions(filtered);
       } catch { /* ignora */ } finally {
         setCityLoading(false);
