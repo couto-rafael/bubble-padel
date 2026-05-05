@@ -114,6 +114,21 @@ interface CategoryStat {
   winRate: number;
 }
 
+interface EnrichedPartner {
+  athleteId: string | null;
+  name: string;
+  avatar: string | null;
+  matchesTogether: number;
+  winRate: number;
+}
+
+interface EnrichedOpponent {
+  athleteId: string | null;
+  name: string;
+  avatar: string | null;
+  headToHead: { wins: number; losses: number; totalMatches: number };
+}
+
 interface AthleteStats {
   trophies: AthleteTrophy[];
   achievements: {
@@ -129,6 +144,17 @@ interface AthleteStats {
     winRate: number;
     topPartners: PartnerStat[];
     byCategory: CategoryStat[];
+  };
+  enrichedStats?: {
+    totalMatches: number;
+    wins: number;
+    losses: number;
+    winRate: number | null;
+    setsWon: number;
+    setsLost: number;
+    bestPartners: EnrichedPartner[];
+    frequentOpponents: EnrichedOpponent[];
+    byCategory: Record<string, { matches: number; wins: number; winRate: number }>;
   };
   summary: {
     totalTrophies: number;
@@ -960,6 +986,18 @@ const AthleteProfile: React.FC = () => {
                     </div>
                   )}
 
+                  {/* Sets (enrichedStats) */}
+                  {stats.enrichedStats && (stats.enrichedStats.setsWon > 0 || stats.enrichedStats.setsLost > 0) && (
+                    <div className="flex items-center justify-between text-[12px] pt-1 border-t border-white/[0.06]">
+                      <span className="text-[#6b7a99] font-semibold">Sets</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[#00e87a] font-bold">{stats.enrichedStats.setsWon}W</span>
+                        <span className="text-[#6b7a99]">/</span>
+                        <span className="text-red-400 font-bold">{stats.enrichedStats.setsLost}L</span>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Por categoria */}
                   {stats.matchStats.byCategory.length > 0 && (
                     <div>
@@ -1117,6 +1155,39 @@ const AthleteProfile: React.FC = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Adversários Frequentes */}
+            {(stats?.enrichedStats?.frequentOpponents ?? []).length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-5 py-4 border-b border-gray-100">
+                  <h2 className="text-[14px] font-extrabold text-gray-900 tracking-tight">
+                    ⚔️ Adversários Frequentes
+                  </h2>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {stats!.enrichedStats!.frequentOpponents.map((opp) => {
+                    const { wins, losses, totalMatches } = opp.headToHead;
+                    const wr = totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0;
+                    return (
+                      <div key={opp.name} className="px-5 py-4 flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-red-50 border border-red-100 flex items-center justify-center text-[13px] font-extrabold text-red-400 flex-shrink-0">
+                          {opp.name.slice(0, 1).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] font-bold text-gray-900 truncate">{opp.name}</p>
+                          <p className="text-[11px] text-gray-400 font-normal">
+                            {totalMatches} jogo{totalMatches !== 1 ? "s" : ""} · {wins}V {losses}D
+                          </p>
+                        </div>
+                        <span className={`text-[14px] font-extrabold flex-shrink-0 ${wr >= 50 ? "text-[#00e87a]" : "text-amber-500"}`}>
+                          {wr}%
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

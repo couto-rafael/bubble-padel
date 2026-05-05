@@ -2841,7 +2841,7 @@ const TournamentProfile = () => {
       )}
 
       {/* Footer */}
-      <footer className="bg-[#0a0e27] border-t border-white/5 py-8 md:py-12 px-4 md:px-6 lg:px-8 mt-12 md:mt-20 pb-20 md:pb-12">
+      <footer className={`bg-[#0a0e27] border-t border-white/5 py-8 md:py-12 px-4 md:px-6 lg:px-8 mt-12 md:mt-20 ${isAthlete ? "pb-20" : ""} md:pb-12`}>
         <div className="max-w-7xl mx-auto text-center text-gray-400">
           <p>&copy; 2026 Bubble. Todos os direitos reservados.</p>
         </div>

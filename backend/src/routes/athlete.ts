@@ -461,20 +461,22 @@ athleteRoutes.get(
 
       const myTeamIds = myTeams.map((t) => t.id);
 
-      // Group matches
+      // Group matches — apenas torneios COMPLETED
       const groupMatches = await prisma.match.findMany({
         where: {
           OR: [{ team1Id: { in: myTeamIds } }, { team2Id: { in: myTeamIds } }],
           played: true,
+          group: { tournament: { status: "COMPLETED" } },
         },
         select: { team1Id: true, team2Id: true, score1: true, score2: true },
       });
 
-      // Playoff matches
+      // Playoff matches — apenas torneios COMPLETED
       const playoffMatches = await prisma.playoffMatch.findMany({
         where: {
           OR: [{ team1Id: { in: myTeamIds } }, { team2Id: { in: myTeamIds } }],
           played: true,
+          bracket: { tournament: { status: "COMPLETED" } },
         },
         select: {
           team1Id: true,
@@ -503,13 +505,15 @@ athleteRoutes.get(
       // Count wins/losses per match type
       let wins = 0;
       let losses = 0;
+      let setsWon = 0;
+      let setsLost = 0;
       const partnerStats = new Map<
         string,
         { name: string; wins: number; losses: number }
       >();
       const opponentStats = new Map<
         string,
-        { name: string; matches: number }
+        { wins: number; losses: number }
       >();
       const categoryStats = new Map<string, { wins: number; losses: number }>();
 
@@ -534,6 +538,9 @@ athleteRoutes.get(
         if (won) wins++;
         else losses++;
 
+        setsWon += myScore;
+        setsLost += oppScore;
+
         // Partner stats
         const info = teamMap.get(myTeamId);
         if (info) {
@@ -557,10 +564,10 @@ athleteRoutes.get(
 
         // Opponent stats
         if (oppTeamId) {
-          const key = oppTeamId;
-          const opp = opponentStats.get(key) ?? { name: oppTeamId, matches: 0 };
-          opp.matches++;
-          opponentStats.set(key, opp);
+          const opp = opponentStats.get(oppTeamId) ?? { wins: 0, losses: 0 };
+          if (won) opp.wins++;
+          else opp.losses++;
+          opponentStats.set(oppTeamId, opp);
         }
       };
 
@@ -572,8 +579,13 @@ athleteRoutes.get(
         processMatch(m.team1Id, m.team2Id, m.score1, m.score2, m.winnerId);
       }
 
+      const totalMatches = wins + losses;
+      const winRate =
+        totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0;
+
+      // ── Legacy matchStats (backward compat) ─────────────────────────────────
       const topPartners = Array.from(partnerStats.entries())
-        .map(([email, s]) => ({
+        .map(([, s]) => ({
           name: s.name,
           wins: s.wins,
           losses: s.losses,
@@ -586,7 +598,7 @@ athleteRoutes.get(
         .sort((a, b) => b.winRate - a.winRate || b.total - a.total)
         .slice(0, 5);
 
-      const byCategory = Array.from(categoryStats.entries())
+      const byCategoryArray = Array.from(categoryStats.entries())
         .map(([cat, s]) => ({
           category: cat,
           wins: s.wins,
@@ -599,17 +611,128 @@ athleteRoutes.get(
         }))
         .sort((a, b) => b.total - a.total);
 
-      const totalMatches = wins + losses;
-      const winRate =
-        totalMatches > 0 ? Math.round((wins / totalMatches) * 100) : 0;
-
       const matchStats = {
         wins,
         losses,
         totalMatches,
         winRate,
         topPartners,
-        byCategory,
+        byCategory: byCategoryArray,
+      };
+
+      // ── Enriched stats (8.S1) ────────────────────────────────────────────────
+      // Batch-resolve partner and opponent emails → athlete records
+      const partnerEmails = Array.from(partnerStats.keys());
+      const oppTeamIds = Array.from(opponentStats.keys());
+
+      const [partnerAthleteRecords, oppTeamRecords] = await Promise.all([
+        partnerEmails.length > 0
+          ? prisma.athlete.findMany({
+              where: { user: { email: { in: partnerEmails } } },
+              select: { id: true, avatarUrl: true, user: { select: { email: true } } },
+            })
+          : [],
+        oppTeamIds.length > 0
+          ? prisma.team.findMany({
+              where: { id: { in: oppTeamIds } },
+              select: {
+                id: true,
+                player1Name: true,
+                player1Email: true,
+                player2Name: true,
+                player2Email: true,
+              },
+            })
+          : [],
+      ]);
+
+      const emailToAthlete = new Map(
+        (partnerAthleteRecords as any[]).map((a: any) => [
+          a.user.email,
+          { id: a.id, avatarUrl: a.avatarUrl as string | null },
+        ]),
+      );
+
+      // Resolve opponent player1 email → athlete
+      const oppPlayer1Emails = (oppTeamRecords as any[]).map(
+        (t: any) => t.player1Email as string,
+      );
+      const oppAthleteRecords =
+        oppPlayer1Emails.length > 0
+          ? await prisma.athlete.findMany({
+              where: { user: { email: { in: oppPlayer1Emails } } },
+              select: { id: true, avatarUrl: true, user: { select: { email: true } } },
+            })
+          : [];
+      const oppEmailToAthlete = new Map(
+        (oppAthleteRecords as any[]).map((a: any) => [
+          a.user.email,
+          { id: a.id, avatarUrl: a.avatarUrl as string | null },
+        ]),
+      );
+
+      const bestPartners = Array.from(partnerStats.entries())
+        .map(([email, s]) => {
+          const matchesTogether = s.wins + s.losses;
+          const athleteInfo = emailToAthlete.get(email);
+          return {
+            athleteId: athleteInfo?.id ?? null,
+            name: s.name,
+            avatar: athleteInfo?.avatarUrl ?? null,
+            matchesTogether,
+            winRate:
+              matchesTogether > 0
+                ? Math.round((s.wins / matchesTogether) * 1000) / 10
+                : 0,
+          };
+        })
+        .filter((p) => p.matchesTogether >= 3)
+        .sort((a, b) => b.winRate - a.winRate || b.matchesTogether - a.matchesTogether)
+        .slice(0, 5);
+
+      const frequentOpponents = (oppTeamRecords as any[])
+        .map((team: any) => {
+          const h = opponentStats.get(team.id)!;
+          const total = h.wins + h.losses;
+          const athleteInfo = oppEmailToAthlete.get(team.player1Email);
+          return {
+            athleteId: athleteInfo?.id ?? null,
+            name: `${team.player1Name} / ${team.player2Name}`,
+            avatar: athleteInfo?.avatarUrl ?? null,
+            headToHead: {
+              wins: h.wins,
+              losses: h.losses,
+              totalMatches: total,
+            },
+          };
+        })
+        .sort((a, b) => b.headToHead.totalMatches - a.headToHead.totalMatches)
+        .slice(0, 5);
+
+      const byCategoryRecord: Record<
+        string,
+        { matches: number; wins: number; winRate: number }
+      > = {};
+      for (const [cat, s] of categoryStats.entries()) {
+        const total = s.wins + s.losses;
+        byCategoryRecord[cat] = {
+          matches: total,
+          wins: s.wins,
+          winRate:
+            total > 0 ? Math.round((s.wins / total) * 1000) / 10 : 0,
+        };
+      }
+
+      const enrichedStats = {
+        totalMatches,
+        wins,
+        losses,
+        winRate: totalMatches > 0 ? Math.round((wins / totalMatches) * 1000) / 10 : null,
+        setsWon,
+        setsLost,
+        bestPartners,
+        frequentOpponents,
+        byCategory: byCategoryRecord,
       };
 
       return res.json({
@@ -618,6 +741,7 @@ athleteRoutes.get(
           achievements,
           leagueStandings,
           matchStats,
+          enrichedStats,
           summary: {
             totalTrophies: trophies.length,
             totalTitles: trophies.filter((t) => t.placement === "CHAMPION")

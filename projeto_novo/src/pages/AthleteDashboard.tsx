@@ -118,6 +118,8 @@ const AthleteDashboard: React.FC = () => {
     wins: number;
     losses: number;
     winRate: number;
+    totalMatches: number;
+    topPartner: { name: string; winRate: number } | null;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -140,12 +142,17 @@ const AthleteDashboard: React.FC = () => {
         setProfile(p);
         setBannerDismissed(localStorage.getItem(`bubble_profile_banner_${p?.id}`) === "1");
         setEntries(t);
-        if (s?.data?.summary)
+        if (s?.data?.summary) {
+          const enriched = s.data.enrichedStats;
+          const bp = enriched?.bestPartners?.[0] ?? null;
           setStats({
             wins: s.data.summary.wins ?? 0,
             losses: s.data.summary.losses ?? 0,
             winRate: s.data.summary.winRate ?? 0,
+            totalMatches: enriched?.totalMatches ?? (s.data.summary.wins ?? 0) + (s.data.summary.losses ?? 0),
+            topPartner: bp ? { name: bp.name, winRate: bp.winRate } : null,
           });
+        }
       })
       .catch((err) => setError(err.message ?? "Erro ao carregar dados"))
       .finally(() => setLoading(false));
@@ -392,6 +399,33 @@ const AthleteDashboard: React.FC = () => {
                 </p>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Card resumo — total de partidas + parceiro top */}
+        {stats && (stats.totalMatches > 0 || stats.topPartner) && (
+          <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm mb-6 flex items-center gap-4">
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">
+                Histórico
+              </p>
+              <p className="text-[15px] font-extrabold text-gray-900">
+                {stats.totalMatches} partida{stats.totalMatches !== 1 ? "s" : ""} em torneios completos
+              </p>
+            </div>
+            {stats.topPartner && (
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-[#00e87a]/10 border border-[#00e87a]/20 flex items-center justify-center text-[12px] font-extrabold text-[#00e87a]">
+                  {stats.topPartner.name.slice(0, 1).toUpperCase()}
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] text-gray-400 font-semibold">Parceiro Top</p>
+                  <p className="text-[12px] font-extrabold text-gray-900 max-w-[90px] truncate">
+                    {stats.topPartner.name.split(" ")[0]}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
