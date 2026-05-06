@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { PublicAthleteService, type PublicAthlete } from "../services/api";
+import { PublicAthleteService, AuthService, type PublicAthlete } from "../services/api";
+import SEOHead from "../components/SEOHead";
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -20,6 +21,10 @@ const SPORT_LABELS: Record<string, string> = {
   PICKLEBALL: "Pickleball",
 };
 
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("pt-BR", { month: "short", year: "numeric" });
+}
+
 // ─── COMPONENTE ───────────────────────────────────────────────────────────────
 
 const PublicAthleteProfile: React.FC = () => {
@@ -27,6 +32,9 @@ const PublicAthleteProfile: React.FC = () => {
   const [athlete, setAthlete] = useState<PublicAthlete | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+
+  const currentUser = AuthService.getCurrentUser();
+  const isOwnProfile = !!currentUser && currentUser.athleteId === id;
 
   useEffect(() => {
     if (!id) return;
@@ -55,14 +63,50 @@ const PublicAthleteProfile: React.FC = () => {
     );
   }
 
+  // Followers-only wall
+  if (athlete.isFollowersOnly) {
+    return (
+      <div className="min-h-screen bg-[#0a0e1a] text-white flex flex-col items-center justify-center gap-6 px-4">
+        <SEOHead title={`${athlete.fullName} — Bubble Padel`} />
+        <div className="w-20 h-20 rounded-full bg-[#00e87a]/10 border border-[#00e87a]/20 flex items-center justify-center text-3xl font-extrabold text-[#00e87a]">
+          {athlete.avatarUrl
+            ? <img src={athlete.avatarUrl} alt={athlete.fullName} className="w-full h-full rounded-full object-cover" />
+            : getInitials(athlete.fullName)}
+        </div>
+        <div className="text-center">
+          <h1 className="text-2xl font-black mb-1">{athlete.fullName}</h1>
+          {athlete.nickname && <p className="text-[#00ccff] font-bold">@{athlete.nickname}</p>}
+        </div>
+        <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 text-center max-w-sm">
+          <p className="text-2xl mb-3">🔒</p>
+          <p className="font-bold text-white mb-1">Perfil privado</p>
+          <p className="text-gray-400 text-sm">Este atleta compartilha o perfil apenas com conexões.</p>
+        </div>
+        <Link to="/tournaments" className="text-[#00ff88] hover:underline text-sm">← Torneios</Link>
+      </div>
+    );
+  }
+
   const location = [athlete.city, athlete.state].filter(Boolean).join(", ");
   const memberSince = new Date(athlete.createdAt).toLocaleDateString("pt-BR", {
     month: "long",
     year: "numeric",
   });
 
+  const PUBLIC_DOMAIN = import.meta.env.VITE_PUBLIC_DOMAIN || "bubblepadel.com";
+  const profileUrl = `https://${PUBLIC_DOMAIN}/athletes/${athlete.id}`;
+  const seoTitle = `${athlete.fullName}${athlete.nickname ? ` (${athlete.nickname})` : ""} — Bubble Padel`;
+  const seoDesc = `Perfil de ${athlete.fullName}, atleta de ${athlete.sports.map((s) => SPORT_LABELS[s] ?? s).join(", ")}${location ? `, ${location}` : ""}. Bubble Padel.`;
+
   return (
     <div className="min-h-screen bg-[#0a0e1a] text-white">
+      <SEOHead
+        title={seoTitle}
+        description={seoDesc}
+        url={profileUrl}
+        type="profile"
+      />
+
       {/* ── Nav ─────────────────────────────────────────────────────────────── */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e1a]/95 backdrop-blur-sm border-b border-white/[0.07]">
         <div className="max-w-4xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
@@ -83,18 +127,25 @@ const PublicAthleteProfile: React.FC = () => {
             </div>
             <span className="text-lg font-bold tracking-tight">Bubble</span>
           </Link>
+          {isOwnProfile && (
+            <Link
+              to="/athlete/profile/edit"
+              className="px-3 py-1.5 bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.12] rounded-lg text-sm font-semibold transition-colors"
+            >
+              Editar perfil
+            </Link>
+          )}
+          {!isOwnProfile && <div className="w-16" />}
         </div>
       </nav>
 
-      <main className="max-w-4xl mx-auto px-4 md:px-6 pt-24 pb-16">
+      <main className="max-w-4xl mx-auto px-4 md:px-6 pt-24 pb-16 space-y-6">
         {/* ── Hero ────────────────────────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#00e87a] to-[#00b85f] flex items-center justify-center text-[#0a0e1a] text-2xl font-extrabold flex-shrink-0 shadow-[0_0_32px_rgba(0,232,122,0.15)]">
-            {athlete.avatarUrl ? (
-              <img src={athlete.avatarUrl} alt={athlete.fullName} className="w-full h-full rounded-full object-cover" />
-            ) : (
-              getInitials(athlete.fullName)
-            )}
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#00e87a] to-[#00b85f] flex items-center justify-center text-[#0a0e1a] text-2xl font-extrabold flex-shrink-0 shadow-[0_0_32px_rgba(0,232,122,0.15)] overflow-hidden">
+            {athlete.avatarUrl
+              ? <img src={athlete.avatarUrl} alt={athlete.fullName} className="w-full h-full object-cover" />
+              : getInitials(athlete.fullName)}
           </div>
           <div className="text-center sm:text-left flex-1">
             <h1 className="text-3xl font-black tracking-tight mb-1">{athlete.fullName}</h1>
@@ -102,8 +153,8 @@ const PublicAthleteProfile: React.FC = () => {
               <p className="text-[#00ccff] font-bold text-base mb-1">@{athlete.nickname}</p>
             )}
             {location && (
-              <p className="text-gray-400 text-sm mb-4 flex items-center gap-1.5 justify-center sm:justify-start">
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <p className="text-gray-400 text-sm mb-3 flex items-center gap-1.5 justify-center sm:justify-start">
+                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                     d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
@@ -129,9 +180,39 @@ const PublicAthleteProfile: React.FC = () => {
           </div>
         </div>
 
+        {/* ── Bio ─────────────────────────────────────────────────────────── */}
+        {athlete.bio && (
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5">
+            <p className="text-gray-300 text-sm leading-relaxed">{athlete.bio}</p>
+          </div>
+        )}
+
+        {/* ── Stats resumo ─────────────────────────────────────────────────── */}
+        {athlete.stats && athlete.stats.totalMatches > 0 && (
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5">
+            <h2 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-4">Desempenho</h2>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: "Partidas", value: athlete.stats.totalMatches, color: "text-white" },
+                { label: "Vitórias", value: athlete.stats.wins, color: "text-[#00e87a]" },
+                {
+                  label: "Win Rate",
+                  value: athlete.stats.winRate != null ? `${athlete.stats.winRate}%` : "—",
+                  color: (athlete.stats.winRate ?? 0) >= 50 ? "text-[#00e87a]" : "text-amber-400",
+                },
+              ].map(({ label, value, color }) => (
+                <div key={label} className="text-center">
+                  <p className={`text-[26px] font-black leading-none mb-1 ${color}`}>{value}</p>
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ── Sports & Rackets ─────────────────────────────────────────────── */}
         {(athlete.sports.length > 0 || athlete.rackets.length > 0) && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {athlete.sports.length > 0 && (
               <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5">
                 <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3">Modalidades</h3>
@@ -159,23 +240,60 @@ const PublicAthleteProfile: React.FC = () => {
           </div>
         )}
 
-        {/* ── CTA Login ───────────────────────────────────────────────────── */}
-        <div className="mb-8 bg-gradient-to-br from-[#00ff88]/10 to-[#00ccff]/10 border border-[#00ff88]/20 rounded-2xl p-6 text-center">
-          <p className="text-white font-bold text-base mb-1">
-            Histórico e estatísticas completas
-          </p>
-          <p className="text-gray-400 text-sm mb-4">
-            Entre ou crie sua conta para ver os torneios, parceiros e stats deste atleta.
-          </p>
-          <Link
-            to="/tournaments"
-            className="inline-block px-6 py-2.5 bg-[#00ff88] text-[#0a0e1a] rounded-xl font-extrabold text-sm hover:bg-[#00ff99] transition-all"
-          >
-            Criar conta / Entrar
-          </Link>
+        {/* ── Sala de Troféus ──────────────────────────────────────────────── */}
+        <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-white/[0.06]">
+            <h2 className="text-[14px] font-extrabold tracking-tight">🏆 Sala de Troféus</h2>
+          </div>
+          {!athlete.trophies || athlete.trophies.length === 0 ? (
+            <div className="px-5 py-10 text-center">
+              <p className="text-3xl mb-3 opacity-30">🏆</p>
+              <p className="text-gray-500 text-sm font-semibold">Nenhum troféu ainda</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-white/[0.04]">
+              {athlete.trophies.map((t, i) => (
+                <div key={i} className="px-5 py-4 flex items-center gap-4">
+                  <span className="text-2xl flex-shrink-0">{t.position === 1 ? "🥇" : "🥈"}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-[13px] text-white truncate">{t.tournamentName}</p>
+                    <p className="text-[11px] text-gray-400 font-normal">{t.category} · {formatDate(t.date)}</p>
+                  </div>
+                  <span className={`text-[11px] font-extrabold px-2 py-0.5 rounded-full flex-shrink-0 ${
+                    t.position === 1
+                      ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                      : "bg-gray-400/10 text-gray-400 border border-gray-400/20"
+                  }`}>
+                    {t.position === 1 ? "Campeão" : "Vice"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        <p className="text-gray-600 text-sm text-center">Membro desde {memberSince}</p>
+        {/* ── Patrocinadores (populado em 8.P3) ─────────────────────────────── */}
+        {athlete.sponsors && athlete.sponsors.length > 0 && (
+          <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-5">
+            <h2 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-4">Patrocinadores</h2>
+            <div className="flex flex-wrap gap-3">
+              {athlete.sponsors.map((sp) => (
+                <a
+                  key={sp.id}
+                  href={sp.websiteUrl ?? undefined}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 bg-white/[0.05] border border-white/[0.08] rounded-xl hover:bg-white/[0.09] transition-colors"
+                >
+                  {sp.logoUrl && <img src={sp.logoUrl} alt={sp.name} className="h-6 object-contain" />}
+                  <span className="text-sm font-semibold text-gray-300">{sp.name}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <p className="text-gray-600 text-xs text-center pb-2">Membro desde {memberSince}</p>
       </main>
     </div>
   );

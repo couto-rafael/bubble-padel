@@ -1344,16 +1344,147 @@ publicAthleteRoutes.get("/:id", async (req, res, next) => {
         city: true,
         state: true,
         avatarUrl: true,
+        bannerUrl: true,
+        bio: true,
         sports: true,
         rackets: true,
         instagramUrl: true,
         twitterUrl: true,
         createdAt: true,
+        settings: true,
+        trophies: {
+          where: { placement: { in: ["CHAMPION", "RUNNER_UP"] } },
+          orderBy: { earnedAt: "desc" },
+          select: {
+            tournamentId: true,
+            tournamentName: true,
+            category: true,
+            placement: true,
+            earnedAt: true,
+          },
+        },
+        user: { select: { email: true } },
       },
     });
+
     if (!athlete)
       return res.status(404).json({ error: "Atleta não encontrado" });
-    return res.json({ data: athlete });
+
+    const settings = {
+      ...DEFAULT_SETTINGS,
+      ...((athlete.settings as object) ?? {}),
+    } as typeof DEFAULT_SETTINGS;
+
+    // Privacy gate
+    if (settings.profileVisibility === "PRIVATE")
+      return res.status(404).json({ error: "Atleta não encontrado" });
+
+    if (settings.profileVisibility === "FOLLOWERS") {
+      return res.json({
+        data: {
+          id: athlete.id,
+          fullName: athlete.fullName,
+          nickname: athlete.nickname,
+          avatarUrl: athlete.avatarUrl,
+          sports: athlete.sports,
+          isFollowersOnly: true,
+        },
+      });
+    }
+
+    // Stats summary (PUBLIC only)
+    let stats: { totalMatches: number; wins: number; winRate: number | null } | null = null;
+    if (settings.statsVisibility === "PUBLIC") {
+      const userEmail = athlete.user.email;
+      const myTeams = await prisma.team.findMany({
+        where: { OR: [{ player1Email: userEmail }, { player2Email: userEmail }] },
+        select: { id: true },
+      });
+      const myTeamIds = myTeams.map((t) => t.id);
+
+      if (myTeamIds.length > 0) {
+        const [gMatches, pMatches] = await Promise.all([
+          prisma.match.findMany({
+            where: {
+              OR: [{ team1Id: { in: myTeamIds } }, { team2Id: { in: myTeamIds } }],
+              played: true,
+              group: { tournament: { status: "COMPLETED" } },
+            },
+            select: { team1Id: true, team2Id: true, score1: true, score2: true },
+          }),
+          prisma.playoffMatch.findMany({
+            where: {
+              OR: [{ team1Id: { in: myTeamIds } }, { team2Id: { in: myTeamIds } }],
+              played: true,
+              isBye: false,
+              bracket: { tournament: { status: "COMPLETED" } },
+            },
+            select: { team1Id: true, team2Id: true, score1: true, score2: true, winnerId: true },
+          }),
+        ]);
+
+        let wins = 0;
+        let losses = 0;
+        const countMatch = (
+          t1: string | null,
+          t2: string | null,
+          s1: number | null,
+          s2: number | null,
+          winnerId?: string | null,
+        ) => {
+          const isT1 = t1 ? myTeamIds.includes(t1) : false;
+          const isT2 = t2 ? myTeamIds.includes(t2) : false;
+          if (!isT1 && !isT2) return;
+          const myId = isT1 ? t1! : t2!;
+          const myScore = isT1 ? (s1 ?? 0) : (s2 ?? 0);
+          const oppScore = isT1 ? (s2 ?? 0) : (s1 ?? 0);
+          const won = winnerId ? winnerId === myId : myScore > oppScore;
+          if (won) wins++;
+          else losses++;
+        };
+        for (const m of gMatches) countMatch(m.team1Id, m.team2Id, m.score1, m.score2);
+        for (const m of pMatches) countMatch(m.team1Id, m.team2Id, m.score1, m.score2, m.winnerId);
+
+        const total = wins + losses;
+        stats = {
+          totalMatches: total,
+          wins,
+          winRate: total > 0 ? Math.round((wins / total) * 1000) / 10 : null,
+        };
+      }
+    }
+
+    const trophies =
+      settings.matchHistoryVisibility === "PUBLIC"
+        ? athlete.trophies.map((t) => ({
+            tournamentId: t.tournamentId,
+            tournamentName: t.tournamentName,
+            category: t.category,
+            position: t.placement === "CHAMPION" ? 1 : 2,
+            date: t.earnedAt.toISOString(),
+          }))
+        : [];
+
+    return res.json({
+      data: {
+        id: athlete.id,
+        fullName: athlete.fullName,
+        nickname: athlete.nickname,
+        city: athlete.city,
+        state: athlete.state,
+        avatarUrl: athlete.avatarUrl,
+        bannerUrl: athlete.bannerUrl,
+        bio: athlete.bio,
+        sports: athlete.sports,
+        rackets: athlete.rackets,
+        instagramUrl: athlete.instagramUrl,
+        twitterUrl: athlete.twitterUrl,
+        createdAt: athlete.createdAt.toISOString(),
+        trophies,
+        stats,
+        sponsors: [],
+      },
+    });
   } catch (err) {
     next(err);
   }

@@ -598,6 +598,14 @@ export const PublicTournamentService = {
 
 // ─── Public Athlete Service ───────────────────────────────────────────────────
 
+export interface PublicAthleteTrophy {
+  tournamentId: string;
+  tournamentName: string;
+  category: string;
+  position: 1 | 2;
+  date: string;
+}
+
 export interface PublicAthlete {
   id: string;
   fullName: string;
@@ -612,6 +620,11 @@ export interface PublicAthlete {
   instagramUrl?: string | null;
   twitterUrl?: string | null;
   createdAt: string;
+  // 8.P1 additions
+  isFollowersOnly?: boolean;
+  trophies?: PublicAthleteTrophy[];
+  stats?: { totalMatches: number; wins: number; winRate: number | null } | null;
+  sponsors?: Array<{ id: string; name: string; logoUrl?: string | null; websiteUrl?: string | null }>;
 }
 
 export const PublicAthleteService = {
@@ -680,7 +693,7 @@ interface LeagueStandingView {
   }>;
 }
 
-export interface AthleteView extends PublicAthlete {
+export interface AthleteView extends Omit<PublicAthlete, "trophies" | "stats"> {
   tournaments: AthleteViewEntry[];
   sponsors: Array<{ id: string; name: string; logoUrl?: string | null; websiteUrl?: string | null }>;
   trophies: AthleteTrophyView[];
