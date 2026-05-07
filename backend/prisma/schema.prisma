@@ -547,9 +547,12 @@ model AthleteSponsor {
   athlete    Athlete  @relation(fields: [athleteId], references: [id], onDelete: Cascade)
   name       String
   logoUrl    String?
+  publicId   String?
   websiteUrl String?
+  order      Int      @default(0)
   createdAt  DateTime @default(now())
 
+  @@index([athleteId, order])
   @@map("athlete_sponsors")
 }
 

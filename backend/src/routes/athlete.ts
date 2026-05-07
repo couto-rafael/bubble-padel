@@ -1138,10 +1138,19 @@ athleteRoutes.get(
 
 // ─── Sponsors ────────────────────────────────────────────────────────────────
 
+import { signParams, destroyAsset } from "../lib/cloudinary";
+
+const SPONSOR_LIMIT = 6;
+
 const sponsorSchema = z.object({
   name: z.string().min(1).max(80),
   logoUrl: z.string().url().optional().nullable(),
+  publicId: z.string().optional().nullable(),
   websiteUrl: z.string().url().optional().nullable(),
+});
+
+const reorderSchema = z.object({
+  ids: z.array(z.string()),
 });
 
 athleteRoutes.get(
@@ -1158,9 +1167,38 @@ athleteRoutes.get(
 
       const sponsors = await prisma.athleteSponsor.findMany({
         where: { athleteId: athlete.id },
-        orderBy: { createdAt: "asc" },
+        orderBy: { order: "asc" },
+        select: { id: true, name: true, logoUrl: true, publicId: true, websiteUrl: true, order: true },
       });
       return res.json({ data: sponsors });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// Assinar upload para o Cloudinary — validar limite ANTES de assinar
+athleteRoutes.post(
+  "/sponsors/sign",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const athlete = await prisma.athlete.findUnique({
+        where: { userId: req.userId! },
+        select: { id: true },
+      });
+      if (!athlete)
+        return res.status(404).json({ error: "Atleta não encontrado" });
+
+      const count = await prisma.athleteSponsor.count({
+        where: { athleteId: athlete.id },
+      });
+      if (count >= SPONSOR_LIMIT)
+        return res.status(400).json({ error: `Limite de ${SPONSOR_LIMIT} patrocinadores atingido.` });
+
+      const folder = `bubble/sponsors/${athlete.id}`;
+      const params = signParams(folder);
+      return res.json({ data: params });
     } catch (err) {
       next(err);
     }
@@ -1186,18 +1224,52 @@ athleteRoutes.post(
       const count = await prisma.athleteSponsor.count({
         where: { athleteId: athlete.id },
       });
-      if (count >= 10)
-        return res.status(400).json({ error: "Máximo de 10 patrocinadores." });
+      if (count >= SPONSOR_LIMIT)
+        return res.status(400).json({ error: `Limite de ${SPONSOR_LIMIT} patrocinadores atingido.` });
 
       const sponsor = await prisma.athleteSponsor.create({
         data: {
           athleteId: athlete.id,
           name: body.data.name,
           logoUrl: body.data.logoUrl ?? null,
+          publicId: body.data.publicId ?? null,
           websiteUrl: body.data.websiteUrl ?? null,
+          order: count,
         },
       });
       return res.status(201).json({ data: sponsor });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+athleteRoutes.patch(
+  "/sponsors/reorder",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const body = reorderSchema.safeParse(req.body);
+      if (!body.success)
+        return res.status(400).json({ error: body.error.flatten() });
+
+      const athlete = await prisma.athlete.findUnique({
+        where: { userId: req.userId! },
+        select: { id: true },
+      });
+      if (!athlete)
+        return res.status(404).json({ error: "Atleta não encontrado" });
+
+      await Promise.all(
+        body.data.ids.map((id, index) =>
+          prisma.athleteSponsor.updateMany({
+            where: { id, athleteId: athlete.id },
+            data: { order: index },
+          }),
+        ),
+      );
+
+      return res.json({ data: { ok: true } });
     } catch (err) {
       next(err);
     }
@@ -1223,6 +1295,13 @@ athleteRoutes.delete(
         return res.status(404).json({ error: "Patrocinador não encontrado" });
 
       await prisma.athleteSponsor.delete({ where: { id: sponsor.id } });
+
+      if (sponsor.publicId) {
+        destroyAsset(sponsor.publicId).catch((e) =>
+          console.error("[Cloudinary] destroy failed:", e),
+        );
+      }
+
       return res.status(204).send();
     } catch (err) {
       next(err);
@@ -1364,6 +1443,10 @@ publicAthleteRoutes.get("/:id", async (req, res, next) => {
           },
         },
         user: { select: { email: true } },
+        sponsors: {
+          orderBy: { order: "asc" },
+          select: { id: true, name: true, logoUrl: true, websiteUrl: true },
+        },
       },
     });
 
@@ -1482,7 +1565,12 @@ publicAthleteRoutes.get("/:id", async (req, res, next) => {
         createdAt: athlete.createdAt.toISOString(),
         trophies,
         stats,
-        sponsors: [],
+        sponsors: athlete.sponsors.map((s) => ({
+          id: s.id,
+          name: s.name,
+          logoUrl: s.logoUrl,
+          websiteUrl: s.websiteUrl,
+        })),
       },
     });
   } catch (err) {

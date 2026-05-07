@@ -12,7 +12,9 @@ interface Sponsor {
   id: string;
   name: string;
   logoUrl?: string | null;
+  publicId?: string | null;
   websiteUrl?: string | null;
+  order?: number;
 }
 
 interface IbgeCity {
@@ -145,9 +147,15 @@ const AthleteEditProfile: React.FC = () => {
     bannerUrl: "",
   });
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
-  const [sponsorForm, setSponsorForm] = useState({ name: "", logoUrl: "", websiteUrl: "" });
+  const [sponsorName, setSponsorName] = useState("");
+  const [sponsorWebsite, setSponsorWebsite] = useState("");
+  const [sponsorFile, setSponsorFile] = useState<File | null>(null);
+  const [sponsorPreview, setSponsorPreview] = useState<string | null>(null);
   const [sponsorAdding, setSponsorAdding] = useState(false);
   const [sponsorOpen, setSponsorOpen] = useState(false);
+  const [sponsorError, setSponsorError] = useState("");
+  const draggedIndexRef = useRef<number | null>(null);
+  const sponsorFileRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [cityQuery, setCityQuery] = useState("");
@@ -211,26 +219,85 @@ const AthleteEditProfile: React.FC = () => {
   const set = <K extends keyof AthleteForm>(field: K, value: AthleteForm[K]) =>
     setForm((f) => ({ ...f, [field]: value }));
 
+  const ALLOWED_MIME = ["image/png", "image/jpeg", "image/svg+xml"];
+  const MAX_BYTES = 2 * 1024 * 1024;
+
+  const handleSponsorFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_MIME.includes(file.type)) {
+      setSponsorError("Formato inválido. Use PNG, JPG ou SVG.");
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      setSponsorError("Arquivo muito grande. Máximo 2MB.");
+      return;
+    }
+    setSponsorError("");
+    setSponsorFile(file);
+    setSponsorPreview(URL.createObjectURL(file));
+  };
+
   const addSponsor = async () => {
-    if (!sponsorForm.name.trim()) return;
+    if (!sponsorName.trim()) return;
     setSponsorAdding(true);
+    setSponsorError("");
     try {
+      let logoUrl: string | null = null;
+      let publicId: string | null = null;
+
+      if (sponsorFile) {
+        const signRes = await fetch(`${API_URL}/athlete/sponsors/sign`, {
+          method: "POST",
+          headers: authHeaders(),
+        });
+        if (!signRes.ok) {
+          const err = await signRes.json();
+          throw new Error(err.error ?? "Erro ao obter assinatura");
+        }
+        const { data: sd } = await signRes.json();
+
+        const fd = new FormData();
+        fd.append("file", sponsorFile);
+        fd.append("api_key", sd.apiKey);
+        fd.append("timestamp", String(sd.timestamp));
+        fd.append("signature", sd.signature);
+        fd.append("folder", sd.folder);
+        fd.append("upload_preset", sd.uploadPreset);
+
+        const upRes = await fetch(
+          `https://api.cloudinary.com/v1_1/${sd.cloudName}/image/upload`,
+          { method: "POST", body: fd },
+        );
+        if (!upRes.ok) throw new Error("Upload falhou");
+        const upData = await upRes.json();
+        logoUrl = upData.secure_url;
+        publicId = upData.public_id;
+      }
+
       const res = await fetch(`${API_URL}/athlete/sponsors`, {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({
-          name: sponsorForm.name.trim(),
-          logoUrl: sponsorForm.logoUrl.trim() || null,
-          websiteUrl: sponsorForm.websiteUrl.trim() || null,
+          name: sponsorName.trim(),
+          logoUrl,
+          publicId,
+          websiteUrl: sponsorWebsite.trim() || null,
         }),
       });
-      if (!res.ok) throw new Error();
-      const json = await res.json();
-      setSponsors((s) => [...s, json.data]);
-      setSponsorForm({ name: "", logoUrl: "", websiteUrl: "" });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error ?? "Erro ao salvar");
+      }
+      const { data } = await res.json();
+      setSponsors((s) => [...s, data]);
+      setSponsorName("");
+      setSponsorWebsite("");
+      setSponsorFile(null);
+      setSponsorPreview(null);
       setSponsorOpen(false);
-    } catch {
-      setError("Erro ao adicionar patrocinador.");
+    } catch (e: any) {
+      setSponsorError(e.message ?? "Erro ao adicionar patrocinador.");
     } finally {
       setSponsorAdding(false);
     }
@@ -246,6 +313,25 @@ const AthleteEditProfile: React.FC = () => {
     } catch {
       setError("Erro ao remover patrocinador.");
     }
+  };
+
+  const handleDragStart = (index: number) => {
+    draggedIndexRef.current = index;
+  };
+
+  const handleDrop = async (targetIndex: number) => {
+    const from = draggedIndexRef.current;
+    if (from === null || from === targetIndex) return;
+    draggedIndexRef.current = null;
+    const reordered = [...sponsors];
+    const [item] = reordered.splice(from, 1);
+    reordered.splice(targetIndex, 0, item);
+    setSponsors(reordered);
+    await fetch(`${API_URL}/athlete/sponsors/reorder`, {
+      method: "PATCH",
+      headers: authHeaders(),
+      body: JSON.stringify({ ids: reordered.map((s) => s.id) }),
+    }).catch(() => {});
   };
 
   const toggleSport = (sport: Sport) =>
@@ -775,12 +861,12 @@ const AthleteEditProfile: React.FC = () => {
                     <h2 className="text-[14px] font-extrabold text-gray-900 tracking-tight">
                       🏅 Patrocinadores
                     </h2>
-                    <p className="text-[12px] text-gray-400 mt-0.5 font-normal">Máximo de 10</p>
+                    <p className="text-[12px] text-gray-400 mt-0.5 font-normal">Máximo de 6 · arraste para reordenar</p>
                   </div>
-                  {sponsors.length < 10 && (
+                  {sponsors.length < 6 && (
                     <button
                       type="button"
-                      onClick={() => setSponsorOpen((v) => !v)}
+                      onClick={() => { setSponsorOpen((v) => !v); setSponsorError(""); }}
                       className="text-[12px] font-bold text-blue-600 hover:text-blue-700 transition-colors"
                     >
                       {sponsorOpen ? "Cancelar" : "+ Adicionar"}
@@ -791,8 +877,16 @@ const AthleteEditProfile: React.FC = () => {
                   {sponsors.length === 0 && !sponsorOpen && (
                     <p className="text-[13px] text-gray-400 text-center py-2">Nenhum patrocinador adicionado.</p>
                   )}
-                  {sponsors.map((sp) => (
-                    <div key={sp.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                  {sponsors.map((sp, index) => (
+                    <div
+                      key={sp.id}
+                      draggable
+                      onDragStart={() => handleDragStart(index)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => handleDrop(index)}
+                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 cursor-grab active:cursor-grabbing"
+                    >
+                      <span className="text-gray-300 text-sm select-none">⠿</span>
                       {sp.logoUrl ? (
                         <img src={sp.logoUrl} alt={sp.name} className="w-9 h-9 rounded-lg object-contain bg-white border border-gray-200 flex-shrink-0" />
                       ) : (
@@ -814,38 +908,56 @@ const AthleteEditProfile: React.FC = () => {
                     </div>
                   ))}
                   {sponsorOpen && (
-                    <div className="space-y-2 pt-1 border-t border-gray-100">
+                    <div className="space-y-3 pt-2 border-t border-gray-100">
+                      {/* Preview */}
+                      <div
+                        onClick={() => sponsorFileRef.current?.click()}
+                        className="flex flex-col items-center justify-center gap-2 h-28 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors"
+                      >
+                        {sponsorPreview ? (
+                          <img src={sponsorPreview} alt="preview" className="h-20 object-contain" />
+                        ) : (
+                          <>
+                            <span className="text-2xl">🖼️</span>
+                            <p className="text-[12px] text-gray-400 font-semibold">Clique para selecionar logo</p>
+                            <p className="text-[11px] text-gray-300">PNG, JPG ou SVG · máx. 2MB</p>
+                          </>
+                        )}
+                      </div>
                       <input
-                        value={sponsorForm.name}
-                        onChange={(e) => setSponsorForm((f) => ({ ...f, name: e.target.value }))}
+                        ref={sponsorFileRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/svg+xml"
+                        className="hidden"
+                        onChange={handleSponsorFile}
+                      />
+                      <input
+                        value={sponsorName}
+                        onChange={(e) => setSponsorName(e.target.value)}
                         placeholder="Nome do patrocinador *"
                         maxLength={80}
                         className={inputCls}
                       />
                       <input
-                        value={sponsorForm.logoUrl}
-                        onChange={(e) => setSponsorForm((f) => ({ ...f, logoUrl: e.target.value }))}
-                        placeholder="URL do logo (opcional)"
-                        type="url"
-                        className={inputCls}
-                      />
-                      <input
-                        value={sponsorForm.websiteUrl}
-                        onChange={(e) => setSponsorForm((f) => ({ ...f, websiteUrl: e.target.value }))}
+                        value={sponsorWebsite}
+                        onChange={(e) => setSponsorWebsite(e.target.value)}
                         placeholder="Website (opcional)"
                         type="url"
                         className={inputCls}
                       />
+                      {sponsorError && (
+                        <p className="text-[12px] text-red-500 font-semibold">{sponsorError}</p>
+                      )}
                       <button
                         type="button"
                         onClick={addSponsor}
-                        disabled={sponsorAdding || !sponsorForm.name.trim()}
+                        disabled={sponsorAdding || !sponsorName.trim()}
                         className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-[13px] font-extrabold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
                         {sponsorAdding && (
                           <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
                         )}
-                        Salvar patrocinador
+                        {sponsorAdding ? "Enviando…" : "Salvar patrocinador"}
                       </button>
                     </div>
                   )}
