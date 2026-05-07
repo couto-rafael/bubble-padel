@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { requireAuth, AuthRequest } from "../middlewares/auth";
+import { maybeCreatePlayoffMatchResultPost } from "../services/PostService";
 
 // ─── Router montado em /api/tournaments ──────────────────────────────────────
 export const playoffTournamentRoutes = Router();
@@ -363,6 +364,13 @@ playoffRoutes.patch(
             });
           }
         }
+      }
+
+      // Auto-post (fire-and-forget)
+      if (winnerId) {
+        maybeCreatePlayoffMatchResultPost(matchId).catch((e) =>
+          console.error("[feed] maybeCreatePlayoffMatchResultPost failed:", e),
+        );
       }
 
       // Retorna o bracket completo atualizado

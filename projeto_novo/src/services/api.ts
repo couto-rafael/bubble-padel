@@ -730,3 +730,34 @@ export const AthleteViewService = {
     return handleResponse<AthleteView>(res);
   },
 };
+
+// ─── Feed ─────────────────────────────────────────────────────────────────────
+
+export interface FeedPostAuthor {
+  id: string;
+  fullName: string;
+  nickname: string | null;
+  avatarUrl: string | null;
+}
+
+export interface FeedPost {
+  id: string;
+  athleteId: string;
+  type: "TROPHY" | "MATCH_RESULT" | "MANUAL";
+  content: string | null;
+  imageUrl: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+  athlete: FeedPostAuthor;
+}
+
+export const FeedService = {
+  get: async (cursor?: string): Promise<{ posts: FeedPost[]; nextCursor: string | null }> => {
+    const params = cursor ? `?cursor=${cursor}` : "";
+    const res = await fetch(`${API_URL}/athlete/feed${params}`, {
+      headers: authHeaders(),
+    });
+    const json = await handleResponse<{ posts: FeedPost[]; nextCursor: string | null }>(res);
+    return json;
+  },
+};

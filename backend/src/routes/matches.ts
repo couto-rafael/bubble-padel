@@ -2,6 +2,7 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { requireAuth, AuthRequest } from "../middlewares/auth";
 import { z } from "zod";
+import { maybeCreateMatchResultPost } from "../services/PostService";
 
 export const matchRoutes = Router();
 
@@ -141,6 +142,11 @@ matchRoutes.patch(
           matches: true,
         },
       });
+
+      // Auto-post (fire-and-forget)
+      maybeCreateMatchResultPost(match.id).catch((e) =>
+        console.error("[feed] maybeCreateMatchResultPost failed:", e),
+      );
 
       return res.json({ data: updatedGroup });
     } catch (err) {

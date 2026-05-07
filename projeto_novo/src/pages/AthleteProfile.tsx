@@ -1582,6 +1582,12 @@ const AthleteProfile: React.FC = () => {
             <span className="text-xl leading-none">🏠</span>Início
           </Link>
           <Link
+            to="/athlete/feed"
+            className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-bold transition-colors ${pathname === "/athlete/feed" ? "text-[#00e87a]" : "text-[#6b7a99]"}`}
+          >
+            <span className="text-xl leading-none">📰</span>Feed
+          </Link>
+          <Link
             to="/tournaments"
             className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-bold transition-colors ${pathname === "/tournaments" ? "text-[#00e87a]" : "text-[#6b7a99]"}`}
           >

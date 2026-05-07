@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import { prisma } from "../lib/prisma";
 import { processCompletedTournament } from "../services/GamificationService";
+import { createTrophyPost } from "../services/PostService";
 
 /**
  * Task 1.5 — ONGOING automático por data/hora
@@ -144,15 +145,70 @@ export async function syncTournamentStatuses(): Promise<void> {
       );
 
       // ── Sprint 5: dispara gamificação em background ───────────────────────
-      // Não bloqueia o cron — erro de gamificação não afeta o status do torneio
       processCompletedTournament(tournament.id).catch((err) =>
         console.error(
           `❌ [GAMIFICATION] Falha ao processar torneio ${tournament.id}:`,
           err,
         ),
       );
+
+      // ── Sprint 8: gera TROPHY posts para campeão/vice de cada categoria ───
+      generateTrophyPosts(tournament.id).catch((err) =>
+        console.error(`❌ [FEED] Falha ao gerar trophy posts ${tournament.id}:`, err),
+      );
     } catch (err) {
       console.error(`[cron] Erro ao completar torneio ${tournament.id}:`, err);
+    }
+  }
+}
+
+// ─── TROPHY posts — chamado após COMPLETED ────────────────────────────────────
+
+async function generateTrophyPosts(tournamentId: string): Promise<void> {
+  const tournament = await prisma.tournament.findUnique({
+    where: { id: tournamentId },
+    select: { id: true, name: true },
+  });
+  if (!tournament) return;
+
+  const brackets = await prisma.playoffBracket.findMany({
+    where: { tournamentId },
+    include: { matches: true },
+  });
+
+  for (const bracket of brackets) {
+    const final = bracket.matches.find((m) => m.roundSize === 1 && m.played);
+    if (!final || !final.winnerId || !final.team1Id || !final.team2Id) continue;
+
+    const championTeamId = final.winnerId;
+    const runnerUpTeamId =
+      final.team1Id === final.winnerId ? final.team2Id : final.team1Id;
+
+    for (const [teamId, position] of [
+      [championTeamId, 1],
+      [runnerUpTeamId, 2],
+    ] as [string, 1 | 2][]) {
+      const team = await prisma.team.findUnique({
+        where: { id: teamId },
+        select: { player1Email: true, player2Email: true },
+      });
+      if (!team) continue;
+
+      for (const email of [team.player1Email, team.player2Email]) {
+        const user = await prisma.user.findUnique({
+          where: { email },
+          select: { athlete: { select: { id: true } } },
+        });
+        if (!user?.athlete?.id) continue;
+
+        await createTrophyPost({
+          athleteId: user.athlete.id,
+          tournamentId: tournament.id,
+          tournamentName: tournament.name,
+          category: bracket.category,
+          position,
+        });
+      }
     }
   }
 }
