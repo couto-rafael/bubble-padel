@@ -176,9 +176,10 @@ model Athlete {
   sponsors          AthleteSponsor[]
 
   // Sprint 10 — social
-  friendshipsSent   AthleteFriendship[] @relation("FriendshipSent")
+  friendshipsSent     AthleteFriendship[] @relation("FriendshipSent")
   friendshipsReceived AthleteFriendship[] @relation("FriendshipReceived")
-  followingClubs    AthleteFollowsClub[] @relation("AthleteFollowsClubs")
+  followingClubs      AthleteFollowsClub[] @relation("AthleteFollowsClubs")
+  posts               AthletePost[]
 
   // Configurações de privacidade e notificações
   settings          Json      @default("{}")
@@ -564,6 +565,14 @@ enum FriendshipStatus {
   PENDING
   ACCEPTED
   REJECTED
+  BLOCKED
+}
+
+enum PostType {
+  MANUAL
+  TROPHY
+  TOURNAMENT_JOIN
+  MATCH_RESULT
 }
 
 enum NotificationType {
@@ -583,11 +592,28 @@ model AthleteFriendship {
   receiverId String
   receiver   Athlete          @relation("FriendshipReceived", fields: [receiverId], references: [id], onDelete: Cascade)
   status     FriendshipStatus @default(PENDING)
+  acceptedAt DateTime?
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
 
   @@unique([senderId, receiverId])
+  @@index([receiverId, status])
+  @@index([senderId, status])
   @@map("athlete_friendships")
+}
+
+model AthletePost {
+  id         String    @id @default(cuid())
+  athleteId  String
+  athlete    Athlete   @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  type       PostType  @default(MANUAL)
+  content    String?
+  imageUrl   String?
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+
+  @@index([athleteId, createdAt])
+  @@map("athlete_posts")
 }
 
 model AthleteFollowsClub {
