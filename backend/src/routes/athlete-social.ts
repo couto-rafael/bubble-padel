@@ -106,7 +106,10 @@ socialRoutes.patch(
 
       const updated = await prisma.athleteFriendship.update({
         where: { id: friendship.id },
-        data: { status: action === "accept" ? "ACCEPTED" : "REJECTED" },
+        data: {
+          status: action === "accept" ? "ACCEPTED" : "REJECTED",
+          ...(action === "accept" ? { acceptedAt: new Date() } : {}),
+        },
       });
 
       if (action === "accept") {
@@ -255,6 +258,30 @@ socialRoutes.get(
           isSender: friendship.senderId === myId,
         },
       });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// ─── GET /api/social/connections/count — total de conexões aceitas ───────────
+
+socialRoutes.get(
+  "/connections/count",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const myId = await getAthleteId(req.userId!);
+      if (!myId) return res.json({ data: { count: 0 } });
+
+      const count = await prisma.athleteFriendship.count({
+        where: {
+          status: "ACCEPTED",
+          OR: [{ senderId: myId }, { receiverId: myId }],
+        },
+      });
+
+      return res.json({ data: { count } });
     } catch (err) {
       next(err);
     }
