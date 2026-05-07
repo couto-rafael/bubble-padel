@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { PublicAthleteService, AuthService, type PublicAthlete } from "../services/api";
 import SEOHead from "../components/SEOHead";
+import { shareAthleteProfile } from "../utils/share";
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -32,6 +33,7 @@ const PublicAthleteProfile: React.FC = () => {
   const [athlete, setAthlete] = useState<PublicAthlete | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const currentUser = AuthService.getCurrentUser();
   const isOwnProfile = !!currentUser && currentUser.athleteId === id;
@@ -95,14 +97,24 @@ const PublicAthleteProfile: React.FC = () => {
 
   const PUBLIC_DOMAIN = import.meta.env.VITE_PUBLIC_DOMAIN || "bubblepadel.com";
   const profileUrl = `https://${PUBLIC_DOMAIN}/athletes/${athlete.id}`;
+  const ogImage = `https://${PUBLIC_DOMAIN}/og-athlete-default.png`;
   const seoTitle = `${athlete.fullName}${athlete.nickname ? ` (${athlete.nickname})` : ""} — Bubble Padel`;
   const seoDesc = `Perfil de ${athlete.fullName}, atleta de ${athlete.sports.map((s) => SPORT_LABELS[s] ?? s).join(", ")}${location ? `, ${location}` : ""}. Bubble Padel.`;
+
+  const handleShare = async () => {
+    const result = await shareAthleteProfile({ id: athlete.id, fullName: athlete.fullName });
+    if (result.method === "clipboard") {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0e1a] text-white">
       <SEOHead
         title={seoTitle}
         description={seoDesc}
+        image={ogImage}
         url={profileUrl}
         type="profile"
       />
@@ -127,15 +139,25 @@ const PublicAthleteProfile: React.FC = () => {
             </div>
             <span className="text-lg font-bold tracking-tight">Bubble</span>
           </Link>
-          {isOwnProfile && (
-            <Link
-              to="/athlete/profile/edit"
-              className="px-3 py-1.5 bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.12] rounded-lg text-sm font-semibold transition-colors"
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleShare}
+              className="px-3 py-1.5 bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.12] rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5"
             >
-              Editar perfil
-            </Link>
-          )}
-          {!isOwnProfile && <div className="w-16" />}
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+              {copied ? "Link copiado!" : "Compartilhar"}
+            </button>
+            {isOwnProfile && (
+              <Link
+                to="/athlete/profile/edit"
+                className="px-3 py-1.5 bg-white/[0.08] hover:bg-white/[0.14] border border-white/[0.12] rounded-lg text-sm font-semibold transition-colors"
+              >
+                Editar perfil
+              </Link>
+            )}
+          </div>
         </div>
       </nav>
 
