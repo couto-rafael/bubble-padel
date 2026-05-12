@@ -6,7 +6,6 @@ import {
   Navigate,
 } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "./contexts/AuthContext";
 
 import Home from "./pages/Home";
 import Tournaments from "./pages/Tournaments";
@@ -53,9 +52,8 @@ const App = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
-          <AuthProvider>
-            <Router>
-              <Routes>
+          <Router>
+            <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/tournaments" element={<Tournaments />} />
                 <Route
@@ -130,7 +128,6 @@ const App = () => {
                 <Route path="/pay/:token" element={<PaymentPage />} />
               </Routes>
             </Router>
-          </AuthProvider>
         </ToastProvider>
       </QueryClientProvider>
     </ErrorBoundary>

@@ -9,8 +9,8 @@ import { AuthService } from "../services/api";
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface AuthContextValue extends AuthState {
-  login: (email: string, password: string) => Promise<void>;
-  register: (data: Record<string, any>) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ user: User; token: string }>;
+  register: (data: Record<string, any>) => Promise<{ user: User; token: string }>;
   logout: () => Promise<void>;
 }
 
@@ -24,7 +24,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading: true,
   });
 
-  // Recarrega sessão ao montar (token no localStorage)
   useEffect(() => {
     const user = AuthService.getCurrentUser();
     const token = AuthService.getToken();
@@ -39,11 +38,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     const { token, user } = await AuthService.login(email, password);
     setState({ user, token, isAuthenticated: true, isLoading: false });
+    return { user, token };
   };
 
   const register = async (data: Record<string, any>) => {
     const { token, user } = await AuthService.register(data);
     setState({ user, token, isAuthenticated: true, isLoading: false });
+    return { user, token };
   };
 
   const logout = async () => {

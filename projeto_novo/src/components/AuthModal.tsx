@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthService } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 
 // ─── TIPOS ────────────────────────────────────────────────────────────────────
 
@@ -160,6 +161,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
   defaultView,
 }) => {
   const navigate = useNavigate();
+  const { login, register } = useAuth();
   const [view, setView] = useState<ModalView>(defaultView ?? "login");
 
   useEffect(() => {
@@ -251,14 +253,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
     setLoading(true);
     setApiError("");
     try {
-      const { user } = await AuthService.login(
+      const { user } = await login(
         loginData.email,
         loginData.password,
       );
       if (returnUrl) {
         navigate(returnUrl);
       } else {
-        navigate(user.type === "CLUB" ? "/dashboard" : "/athlete/dashboard");
+        navigate(user.type?.toUpperCase() === "CLUB" ? "/dashboard" : "/athlete/dashboard");
       }
       handleClose();
     } catch (err: any) {
@@ -289,7 +291,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
     setLoading(true);
     setApiError("");
     try {
-      await AuthService.register({
+      await register({
         name: `${athleteData.firstName.trim()} ${athleteData.lastName.trim()}`,
         email: athleteData.email,
         password: athleteData.password,
@@ -327,7 +329,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
     setLoading(true);
     setApiError("");
     try {
-      await AuthService.register({
+      await register({
         name: clubData.clubName.trim(),
         email: clubData.email,
         password: clubData.password,

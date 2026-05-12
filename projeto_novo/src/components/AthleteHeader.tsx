@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthService } from "../services/api";
+import { useToast } from "./Toast";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
 
 const AthleteHeader: React.FC = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isTorneiosOpen, setIsTorneiosOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -222,7 +224,10 @@ const AthleteHeader: React.FC = () => {
           {/* Right side - Actions */}
           <div className="flex items-center gap-3">
             {/* Search */}
-            <button className="p-2 text-gray-600 hover:text-gray-900 transition-colors">
+            <button
+              onClick={() => toast.success("Busca em breve 🔍")}
+              className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -332,10 +337,9 @@ const AthleteHeader: React.FC = () => {
               {/* Profile Dropdown Menu */}
               {isProfileOpen && (
                 <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                  <Link
-                    to="/athlete/find-athletes"
-                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                    onClick={() => setIsProfileOpen(false)}
+                  <button
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
+                    onClick={() => { setIsProfileOpen(false); toast.success("Busca em breve 🔍"); }}
                   >
                     <svg
                       className="w-4 h-4"
@@ -351,7 +355,7 @@ const AthleteHeader: React.FC = () => {
                       />
                     </svg>
                     Encontre Atletas
-                  </Link>
+                  </button>
                   <Link
                     to="/athlete/profile"
                     className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
