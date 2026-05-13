@@ -49,10 +49,38 @@ socialRoutes.post(
           ],
         },
       });
-      if (existing)
-        return res
-          .status(400)
-          .json({ error: "Convite já existe ou já são conectados." });
+
+      if (existing) {
+        if (existing.status === "ACCEPTED") {
+          return res.status(409).json({ error: "Vocês já estão conectados." });
+        }
+        if (existing.status === "PENDING") {
+          return res.status(409).json({ error: "Já existe um pedido pendente." });
+        }
+        if (existing.status === "REJECTED") {
+          // Reativar pedido — senderId/receiverId podem ter invertido
+          const reactivated = await prisma.athleteFriendship.update({
+            where: { id: existing.id },
+            data: { senderId, receiverId, status: "PENDING", acceptedAt: null },
+          });
+
+          const senderAthlete = await prisma.athlete.findUnique({
+            where: { id: senderId },
+            select: { fullName: true },
+          });
+          await createNotification({
+            userId: receiver.userId,
+            type: "CONNECTION_REQUEST",
+            title: "Novo pedido de conexão",
+            body: `${senderAthlete?.fullName ?? "Um atleta"} quer se conectar com você.`,
+            payload: { friendshipId: reactivated.id, senderId },
+          });
+
+          return res.status(201).json({ data: reactivated });
+        }
+        // BLOCKED ou outro status desconhecido
+        return res.status(403).json({ error: "Não foi possível enviar o pedido." });
+      }
 
       const friendship = await prisma.athleteFriendship.create({
         data: { senderId, receiverId, status: "PENDING" },
@@ -130,6 +158,18 @@ socialRoutes.patch(
             payload: { athleteId },
           });
         }
+      } else {
+        // Rejeição silenciosa — apaga notification CONNECTION_REQUEST da inbox de B
+        await prisma.notification.deleteMany({
+          where: {
+            userId: req.userId!,
+            type: "CONNECTION_REQUEST",
+            payload: {
+              path: ["friendshipId"],
+              equals: friendship.id,
+            },
+          },
+        });
       }
 
       return res.json({ data: updated });
