@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import AthleteHeader from "../components/AthleteHeader";
 import SEOHead from "../components/SEOHead";
 import { AthleteViewService, type AthleteView } from "../services/api";
+import { RestrictedProfileCard } from "../components/RestrictedProfileCard";
 
 // ─── TIPOS LOCAIS ─────────────────────────────────────────────────────────────
 
@@ -359,36 +360,51 @@ const AthleteProfileById: React.FC = () => {
     );
   }
 
+  const handleConnect = async () => {
+    if (!token || !id) return;
+    setConnectLoading(true);
+    try {
+      if (connectStatus === "none") {
+        const r = await fetch(`${API_URL}/social/connect/${id}`, {
+          method: "POST",
+          headers: authH(),
+        });
+        const j = await r.json();
+        if (r.ok) {
+          setConnectStatus("pending_sent");
+          setConnectFriendshipId(j.data?.id ?? null);
+        }
+      } else if (connectStatus === "pending_received" && connectFriendshipId) {
+        await fetch(`${API_URL}/social/connect/${connectFriendshipId}`, {
+          method: "PATCH",
+          headers: authH(),
+          body: JSON.stringify({ action: "accept" }),
+        });
+        setConnectStatus("accepted");
+      } else if (connectStatus === "accepted") {
+        await fetch(`${API_URL}/social/connect/${id}`, {
+          method: "DELETE",
+          headers: authH(),
+        });
+        setConnectStatus("none");
+        setConnectFriendshipId(null);
+      }
+    } catch {
+      /* ignora */
+    } finally {
+      setConnectLoading(false);
+    }
+  };
+
   if (athlete.isFollowersOnly) {
     return (
-      <div className="min-h-screen bg-[#f8f9fc]">
-        <AthleteHeader />
-        <div className="flex flex-col items-center justify-center pt-32 gap-4 text-gray-500 px-4">
-          <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-3xl">
-            {athlete.avatarUrl ? (
-              <img src={athlete.avatarUrl} className="w-20 h-20 rounded-full object-cover" alt={athlete.fullName} />
-            ) : (
-              <span>{getInitials(athlete.fullName)}</span>
-            )}
-          </div>
-          <p className="font-semibold text-gray-800 text-lg">{athlete.nickname ?? athlete.fullName}</p>
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-            <span>Perfil restrito a conexões</span>
-          </div>
-          <p className="text-sm text-gray-400 text-center max-w-xs">
-            Conecte-se com {athlete.nickname ?? athlete.fullName} para ver o perfil completo.
-          </p>
-          <button
-            onClick={() => navigate(-1)}
-            className="text-blue-600 text-sm font-semibold hover:underline mt-2"
-          >
-            ← Voltar
-          </button>
-        </div>
-      </div>
+      <RestrictedProfileCard
+        fullName={athlete.fullName}
+        nickname={athlete.nickname}
+        avatarUrl={athlete.avatarUrl}
+        variant="non_friend"
+        onConnect={handleConnect}
+      />
     );
   }
 
@@ -446,42 +462,6 @@ const AthleteProfileById: React.FC = () => {
   const sportsLabel = athlete.sports?.length
     ? athlete.sports.join(", ")
     : "Padel";
-
-  const handleConnect = async () => {
-    if (!token || !id) return;
-    setConnectLoading(true);
-    try {
-      if (connectStatus === "none") {
-        const r = await fetch(`${API_URL}/social/connect/${id}`, {
-          method: "POST",
-          headers: authH(),
-        });
-        const j = await r.json();
-        if (r.ok) {
-          setConnectStatus("pending_sent");
-          setConnectFriendshipId(j.data?.id ?? null);
-        }
-      } else if (connectStatus === "pending_received" && connectFriendshipId) {
-        await fetch(`${API_URL}/social/connect/${connectFriendshipId}`, {
-          method: "PATCH",
-          headers: authH(),
-          body: JSON.stringify({ action: "accept" }),
-        });
-        setConnectStatus("accepted");
-      } else if (connectStatus === "accepted") {
-        await fetch(`${API_URL}/social/connect/${id}`, {
-          method: "DELETE",
-          headers: authH(),
-        });
-        setConnectStatus("none");
-        setConnectFriendshipId(null);
-      }
-    } catch {
-      /* ignora */
-    } finally {
-      setConnectLoading(false);
-    }
-  };
 
   const connectLabel = () => {
     if (connectLoading) return "...";

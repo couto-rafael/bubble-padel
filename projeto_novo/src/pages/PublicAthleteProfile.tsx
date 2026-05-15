@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { PublicAthleteService, AuthService, type PublicAthlete } from "../services/api";
 import SEOHead from "../components/SEOHead";
 import { shareAthleteProfile } from "../utils/share";
+import { RestrictedProfileCard } from "../components/RestrictedProfileCard";
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -35,6 +36,7 @@ const PublicAthleteProfile: React.FC = () => {
   const [notFound, setNotFound] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const navigate = useNavigate();
   const currentUser = AuthService.getCurrentUser();
   const isOwnProfile = !!currentUser && currentUser.athleteId === id;
 
@@ -68,24 +70,13 @@ const PublicAthleteProfile: React.FC = () => {
   // Followers-only wall
   if (athlete.isFollowersOnly) {
     return (
-      <div className="min-h-screen bg-[#0a0e1a] text-white flex flex-col items-center justify-center gap-6 px-4">
-        <SEOHead title={`${athlete.fullName} — Bubble Padel`} />
-        <div className="w-20 h-20 rounded-full bg-[#00e87a]/10 border border-[#00e87a]/20 flex items-center justify-center text-3xl font-extrabold text-[#00e87a]">
-          {athlete.avatarUrl
-            ? <img src={athlete.avatarUrl} alt={athlete.fullName} className="w-full h-full rounded-full object-cover" />
-            : getInitials(athlete.fullName)}
-        </div>
-        <div className="text-center">
-          <h1 className="text-2xl font-black mb-1">{athlete.fullName}</h1>
-          {athlete.nickname && <p className="text-[#00ccff] font-bold">@{athlete.nickname}</p>}
-        </div>
-        <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 text-center max-w-sm">
-          <p className="text-2xl mb-3">🔒</p>
-          <p className="font-bold text-white mb-1">Perfil privado</p>
-          <p className="text-gray-400 text-sm">Este atleta compartilha o perfil apenas com conexões.</p>
-        </div>
-        <Link to="/tournaments" className="text-[#00ff88] hover:underline text-sm">← Torneios</Link>
-      </div>
+      <RestrictedProfileCard
+        fullName={athlete.fullName}
+        nickname={athlete.nickname}
+        avatarUrl={athlete.avatarUrl}
+        variant="anonymous"
+        onLogin={() => navigate("/login")}
+      />
     );
   }
 
