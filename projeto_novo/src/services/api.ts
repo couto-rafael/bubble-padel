@@ -620,8 +620,9 @@ export interface PublicAthlete {
   instagramUrl?: string | null;
   twitterUrl?: string | null;
   createdAt: string;
-  // 8.P1 additions
   isFollowersOnly?: boolean;
+  isOwner?: boolean;
+  connectionCount?: number;
   trophies?: PublicAthleteTrophy[];
   stats?: { totalMatches: number; wins: number; winRate: number | null } | null;
   sponsors?: Array<{ id: string; name: string; logoUrl?: string | null; websiteUrl?: string | null }>;
@@ -629,7 +630,9 @@ export interface PublicAthlete {
 
 export const PublicAthleteService = {
   get: async (id: string): Promise<PublicAthlete> => {
-    const res = await fetch(`${API_URL}/public/athletes/${id}`);
+    const res = await fetch(`${API_URL}/public/athletes/${id}`, {
+      headers: authHeaders(),
+    });
     return handleResponse<PublicAthlete>(res);
   },
 };
@@ -724,7 +727,7 @@ export interface AthleteView extends Omit<PublicAthlete, "trophies" | "stats"> {
 
 export const AthleteViewService = {
   get: async (id: string): Promise<AthleteView> => {
-    const res = await fetch(`${API_URL}/athlete/view/${id}`, {
+    const res = await fetch(`${API_URL}/public/athletes/${id}`, {
       headers: authHeaders(),
     });
     return handleResponse<AthleteView>(res);
