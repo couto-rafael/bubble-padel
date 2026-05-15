@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthService } from "../services/api";
 import { useToast } from "./Toast";
+import { useAuth } from "../contexts/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
 
 const AthleteHeader: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { logout } = useAuth();
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isTorneiosOpen, setIsTorneiosOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -66,7 +67,7 @@ const AthleteHeader: React.FC = () => {
 
   const handleLogout = async () => {
     setIsProfileOpen(false);
-    await AuthService.logout();
+    await logout();
     navigate("/");
   };
 

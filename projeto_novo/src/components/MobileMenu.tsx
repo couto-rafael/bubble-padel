@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
-import { AuthService } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 
 interface MobileMenuProps {
   onLoginClick: () => void;
@@ -10,6 +10,7 @@ interface MobileMenuProps {
 
 const MobileMenu: React.FC<MobileMenuProps> = ({ onLoginClick, currentUser }) => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
@@ -255,7 +256,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ onLoginClick, currentUser }) =>
                         <button
                           onClick={async () => {
                             closeMenu();
-                            await AuthService.logout();
+                            await logout();
                             navigate("/");
                           }}
                           className="w-full py-3 px-4 bg-white/5 border border-white/10 text-gray-400 rounded-lg font-bold transition-all flex items-center justify-center gap-2 text-sm hover:text-white hover:bg-white/10"

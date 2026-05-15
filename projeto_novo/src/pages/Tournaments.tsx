@@ -8,7 +8,6 @@ import SEOHead from "../components/SEOHead";
 import { useAuth } from "../contexts/AuthContext";
 import {
   PublicTournamentService,
-  AuthService,
   type PublicTournament,
 } from "../services/api";
 
@@ -95,7 +94,7 @@ const Tournaments = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, logout } = useAuth();
   const isAthlete = currentUser?.type?.toUpperCase() === "ATHLETE";
   const isClub = currentUser?.type?.toUpperCase() === "CLUB";
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -297,8 +296,8 @@ const Tournaments = () => {
                   </Link>
                   <button
                     onClick={async () => {
-                      await AuthService.logout();
-                      window.location.reload();
+                      await logout();
+                      navigate("/");
                     }}
                     className="px-4 py-2.5 text-gray-400 hover:text-white text-sm transition-colors"
                   >

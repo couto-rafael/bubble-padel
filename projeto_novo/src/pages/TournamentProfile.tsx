@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Link, useParams, useSearchParams, useLocation } from "react-router-dom";
+import { Link, useParams, useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import AuthModal from "../components/AuthModal";
 import { PaymentModal } from "../components/PaymentModal";
 import MobileMenu from "../components/MobileMenu";
@@ -147,7 +147,8 @@ const TournamentProfile = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Auth
-  const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
+  const { user: currentUser, logout } = useAuth();
   const isAthlete = currentUser?.type?.toUpperCase() === "ATHLETE";
   const isClub = currentUser?.type?.toUpperCase() === "CLUB";
   const { pathname } = useLocation();
@@ -531,8 +532,8 @@ const TournamentProfile = () => {
                   </Link>
                   <button
                     onClick={async () => {
-                      await AuthService.logout();
-                      window.location.reload();
+                      await logout();
+                      navigate("/");
                     }}
                     className="px-4 py-2.5 text-gray-400 hover:text-white text-sm transition-colors"
                   >
