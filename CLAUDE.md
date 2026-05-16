@@ -62,6 +62,22 @@ Workflow Orchestration
 
 ---
 
+## Prisma transactions + Neon/pgBouncer
+
+Default interactive transaction timeout (5000ms) é insuficiente com pooler serverless (~200-300ms por query de latência).
+
+Para transações com 3+ creates sequenciais, sempre passar:
+```ts
+prisma.$transaction(fn, { timeout: 30000 })
+```
+
+Regras adicionais:
+- Nunca chamar `bcrypt.hashSync` dentro da transação — é CPU-blocking e consome o timeout. Pré-computar todos os hashes **antes** de abrir a transação.
+- Seed scripts em `backend/scripts/` usam `tsx` direto (fora do `rootDir: src` do tsconfig) — não precisam de compilação.
+- Backend corre na porta `3001` (default). Configurável via `PORT` env var.
+
+---
+
 ## Stack
 
 - **Frontend**: React + TypeScript + Tailwind + Vite — `projeto_novo/src/` — porta 5173

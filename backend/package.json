@@ -11,7 +11,11 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "seed:smoke": "tsx scripts/seed-smoke-test-athletes.ts",
-    "seed:smoke:dry": "tsx scripts/seed-smoke-test-athletes.ts --dry-run"
+    "seed:smoke:dry": "tsx scripts/seed-smoke-test-athletes.ts --dry-run",
+    "seed:tournament": "tsx scripts/seed-tournament-regular.ts",
+    "seed:tournament:dry": "tsx scripts/seed-tournament-regular.ts --dry-run",
+    "seed:scores": "tsx scripts/seed-tournament-scores.ts",
+    "seed:scores:dry": "tsx scripts/seed-tournament-scores.ts --dry-run"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.2",
