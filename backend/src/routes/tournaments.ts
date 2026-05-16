@@ -276,6 +276,35 @@ tournamentRoutes.patch(
   async (req: AuthRequest, res, next) => {
     try {
       const data = tournamentSchema.partial().parse(req.body);
+
+      // Guard: block category removal when groups or playoff brackets exist for that category
+      if (data.categories !== undefined) {
+        const current = await prisma.tournament.findFirst({
+          where: { id: req.params.id, clubId: req.clubId! },
+          select: { categories: true },
+        });
+        if (current) {
+          const removed = current.categories.filter(
+            (c) => !data.categories!.includes(c),
+          );
+          if (removed.length > 0) {
+            const [groupCount, bracketCount] = await Promise.all([
+              prisma.group.count({
+                where: { tournamentId: req.params.id, category: { in: removed } },
+              }),
+              prisma.playoffBracket.count({
+                where: { tournamentId: req.params.id, category: { in: removed } },
+              }),
+            ]);
+            if (groupCount > 0 || bracketCount > 0) {
+              return res.status(409).json({
+                error: `Não é possível remover "${removed.join('", "')}" — existem grupos ou playoffs gerados para essa categoria. Refaça os grupos primeiro.`,
+              });
+            }
+          }
+        }
+      }
+
       const { status, ...rest } = data;
       const tournament = await prisma.tournament.updateMany({
         where: { id: req.params.id, clubId: req.clubId! },

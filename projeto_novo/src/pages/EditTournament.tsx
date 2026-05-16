@@ -425,6 +425,12 @@ const EditTournament = () => {
   };
 
   const handleDeleteCategory = (cat: string) => {
+    if (groups.some((g) => g.category === cat)) {
+      alert(
+        `Não é possível excluir "${cat}": existem grupos gerados para esta categoria. Refaça os grupos primeiro.`,
+      );
+      return;
+    }
     const count = teams.filter((t) => t.category === cat).length;
     if (
       count > 0 &&
@@ -1340,24 +1346,39 @@ const EditTournament = () => {
                           >
                             {cat}
                           </h4>
-                          {!isLocked && <button
-                            onClick={() => handleDeleteCategory(cat)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100 shrink-0"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={2}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
-                          </button>}
+                          {!isLocked && (() => {
+                            const hasGroups = groups.some((g) => g.category === cat);
+                            return (
+                              <button
+                                onClick={() => handleDeleteCategory(cat)}
+                                disabled={hasGroups}
+                                title={
+                                  hasGroups
+                                    ? "Existem grupos gerados para esta categoria"
+                                    : "Excluir categoria"
+                                }
+                                className={`p-1.5 rounded-lg transition-colors shrink-0 opacity-0 group-hover:opacity-100 ${
+                                  hasGroups
+                                    ? "text-gray-300 cursor-not-allowed"
+                                    : "text-gray-400 hover:text-red-600 hover:bg-red-50"
+                                }`}
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                  strokeWidth={2}
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
+                                </svg>
+                              </button>
+                            );
+                          })()}
                         </div>
                         <div className="mt-4 mb-3 flex items-end gap-1.5">
                           <span className={`text-4xl font-black ${color.text}`}>

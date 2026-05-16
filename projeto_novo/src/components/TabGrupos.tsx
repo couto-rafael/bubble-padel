@@ -434,7 +434,9 @@ export default function TabGrupos({
   const groupsByCategory = tournament.categories.reduce<
     Record<string, Group[]>
   >((acc, cat) => {
-    const cg = groups.filter((g) => g.category === cat);
+    const cg = groups
+      .filter((g) => g.category === cat)
+      .sort((a, b) => a.name.localeCompare(b.name));
     if (cg.length > 0) acc[cat] = cg;
     return acc;
   }, {});
@@ -1264,7 +1266,22 @@ function GroupCard({
         </div>
 
         <div className="px-3 space-y-1.5">
-          {group.matches.map((match) => {
+          {[...group.matches]
+            .sort((a, b) => {
+              const sa = schedule[a.id];
+              const sb = schedule[b.id];
+              const hasA = !!sa?.date;
+              const hasB = !!sb?.date;
+              if (hasA && !hasB) return -1;
+              if (!hasA && hasB) return 1;
+              if (hasA && hasB) {
+                const dtA = sa.date + (sa.time ?? "");
+                const dtB = sb.date + (sb.time ?? "");
+                if (dtA !== dtB) return dtA < dtB ? -1 : 1;
+              }
+              return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+            })
+            .map((match) => {
             // Pega ambos os nomes de cada dupla
             const fullName1 = getTeamName(match.team1Id); // "Fulano / Ciclano"
             const fullName2 = getTeamName(match.team2Id);
@@ -1374,24 +1391,24 @@ function GroupCard({
                     )}
                   </div>
                 </div>
-                {/* Quadra / data / hora */}
+                {/* Data / hora / quadra */}
                 {(() => {
                   const s = schedule[match.id];
                   if (!s?.court && !s?.date) return null;
                   return (
                     <div className="flex items-center gap-2 px-3 pb-2 -mt-0.5">
-                      {s.court && (
-                        <span className="text-[10px] font-semibold text-blue-500 truncate">
-                          {s.court}
-                        </span>
-                      )}
-                      {s.court && s.date && (
-                        <span className="text-[10px] text-gray-300">·</span>
-                      )}
                       {s.date && (
-                        <span className="text-[10px] text-gray-400 tabular-nums">
+                        <span className="text-[10px] font-semibold text-blue-500 tabular-nums">
                           {s.date.split("-").reverse().join("/")}
                           {s.time ? ` ${s.time}` : ""}
+                        </span>
+                      )}
+                      {s.date && s.court && (
+                        <span className="text-[10px] text-gray-300">·</span>
+                      )}
+                      {s.court && (
+                        <span className="text-[10px] text-gray-400 truncate">
+                          {s.court}
                         </span>
                       )}
                     </div>
