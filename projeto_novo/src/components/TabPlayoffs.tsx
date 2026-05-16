@@ -175,6 +175,13 @@ const MatchBox = ({ match, teams, onClick, isClickable }: MatchBoxProps) => {
           : "bg-white border-gray-200",
       ].join(" ")}
     >
+      {!match.isBye && match.number != null && (
+        <div className="px-3 pt-1 pb-0 flex justify-end">
+          <span className="text-[9px] font-bold text-gray-400 tabular-nums">
+            #{match.number}
+          </span>
+        </div>
+      )}
       {/* Time 1 */}
       <div
         className={`flex items-center gap-1 px-3 py-2 border-b border-gray-100 ${t1Won ? "bg-emerald-50" : t2Won ? "bg-red-50/40" : "bg-white"}`}

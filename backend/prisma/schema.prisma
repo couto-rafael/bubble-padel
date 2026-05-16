@@ -327,6 +327,7 @@ model Match {
   played    Boolean  @default(false)
   wo        Int?
   sets      Json?
+  number    Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -372,6 +373,7 @@ model PlayoffMatch {
   winnerId   String?
   isBye      Boolean        @default(false)
   played     Boolean        @default(false)
+  number     Int?
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 }

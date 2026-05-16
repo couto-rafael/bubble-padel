@@ -738,10 +738,17 @@ export default function TabJogos({
                             </span>
                           )}
                         </div>
-                        {/* Linha 2: grupo · jogo */}
-                        <span className="text-[10px] font-semibold text-gray-500 truncate">
-                          {matchLabel(sm.group, sm.matchIndex)}
-                        </span>
+                        {/* Linha 2: #N · grupo · jogo */}
+                        <div className="flex items-center gap-1">
+                          {sm.match.number != null && (
+                            <span className="text-[9px] font-bold text-gray-500 tabular-nums shrink-0">
+                              #{sm.match.number}
+                            </span>
+                          )}
+                          <span className="text-[10px] font-semibold text-gray-500 truncate">
+                            {matchLabel(sm.group, sm.matchIndex)}
+                          </span>
+                        </div>
                         {/* Linha 3: quadra */}
                         {sm.court ? (
                           <span
@@ -1022,9 +1029,16 @@ export default function TabJogos({
                   >
                     {/* Info */}
                     <div className="shrink-0 w-28 flex flex-col gap-0.5">
-                      <span className="text-xs font-semibold text-gray-500 truncate">
-                        {roundLabel}
-                      </span>
+                      <div className="flex items-center gap-1">
+                        {sp.match.number != null && (
+                          <span className="text-[9px] font-bold text-gray-500 tabular-nums shrink-0">
+                            #{sp.match.number}
+                          </span>
+                        )}
+                        <span className="text-xs font-semibold text-gray-500 truncate">
+                          {roundLabel}
+                        </span>
+                      </div>
                       <span className="text-[10px] font-semibold text-blue-500 truncate">
                         {sp.bracket.category}
                       </span>
@@ -1311,9 +1325,16 @@ export default function TabJogos({
                     }}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-semibold text-gray-400 truncate">
-                        {matchLabel(sm.group, sm.matchIndex)}
-                      </span>
+                      <div className="flex items-center gap-1 min-w-0">
+                        {sm.match.number != null && (
+                          <span className="text-[9px] font-bold text-gray-500 tabular-nums shrink-0">
+                            #{sm.match.number}
+                          </span>
+                        )}
+                        <span className="text-[10px] font-semibold text-gray-400 truncate">
+                          {matchLabel(sm.group, sm.matchIndex)}
+                        </span>
+                      </div>
                       <span className="text-[10px] font-bold text-blue-500 shrink-0 ml-1">
                         {sm.group.category}
                       </span>

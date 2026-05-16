@@ -121,6 +121,7 @@ export interface Match {
   played: boolean;
   wo?: 1 | 2; // 1 = team1 venceu por WO, 2 = team2 venceu por WO
   sets?: Set[]; // resultado por sets
+  number?: number; // número global da partida no torneio
 }
 
 export interface GroupTeam {

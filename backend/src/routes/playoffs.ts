@@ -70,24 +70,83 @@ playoffTournamentRoutes.post(
         await prisma.playoffBracket.delete({ where: { id: existing.id } });
       }
 
-      // Cria novo bracket com matches
+      // MAX(number) no torneio para continuar a sequência global
+      const [gAgg, pAgg] = await Promise.all([
+        prisma.match.aggregate({
+          where: { group: { tournamentId } },
+          _max: { number: true },
+        }),
+        prisma.playoffMatch.aggregate({
+          where: { bracket: { tournamentId } },
+          _max: { number: true },
+        }),
+      ]);
+      let nextNumber =
+        Math.max(gAgg._max.number ?? 0, pAgg._max.number ?? 0) + 1;
+
+      // Ordena roundSize DESC → matchIndex ASC e atribui números
+      type NumberedMatch = (typeof matches)[0] & {
+        number: number;
+        team1Label: string | null;
+        team2Label: string | null;
+      };
+      const firstRoundSize = Math.max(...matches.map((m) => m.roundSize));
+      const sorted: NumberedMatch[] = [...matches]
+        .sort((a, b) =>
+          b.roundSize !== a.roundSize
+            ? b.roundSize - a.roundSize
+            : a.matchIndex - b.matchIndex,
+        )
+        .map((m) => ({
+          ...m,
+          team1Label: m.team1Label ?? null,
+          team2Label: m.team2Label ?? null,
+          number: nextNumber++,
+        }));
+
+      // Índice (roundSize:matchIndex) → match para propagação de labels
+      const lookup = new Map<string, NumberedMatch>();
+      for (const m of sorted) lookup.set(`${m.roundSize}:${m.matchIndex}`, m);
+
+      // Propaga labels para quartas/semis/final (itera oitavas→final em ordem)
+      for (const m of sorted) {
+        if (m.roundSize === firstRoundSize) continue; // oitavas têm labels do frontend
+        const leftFeeder = lookup.get(`${m.roundSize * 2}:${m.matchIndex * 2}`);
+        const rightFeeder = lookup.get(
+          `${m.roundSize * 2}:${m.matchIndex * 2 + 1}`,
+        );
+        // BYE feeder → propaga label da dupla que avançou; jogo real → "Vencedor #N"
+        m.team1Label = leftFeeder
+          ? leftFeeder.isBye
+            ? (leftFeeder.team1Label ?? leftFeeder.team2Label ?? null)
+            : `Vencedor #${leftFeeder.number}`
+          : null;
+        m.team2Label = rightFeeder
+          ? rightFeeder.isBye
+            ? (rightFeeder.team1Label ?? rightFeeder.team2Label ?? null)
+            : `Vencedor #${rightFeeder.number}`
+          : null;
+      }
+
+      // Cria novo bracket com matches numerados e labels propagados
       const bracket = await prisma.playoffBracket.create({
         data: {
           tournamentId,
           category,
           matches: {
-            create: matches.map((m) => ({
+            create: sorted.map((m) => ({
               roundSize: m.roundSize,
               matchIndex: m.matchIndex,
               team1Id: m.team1Id ?? null,
               team2Id: m.team2Id ?? null,
-              team1Label: m.team1Label ?? null,
-              team2Label: m.team2Label ?? null,
+              team1Label: m.team1Label,
+              team2Label: m.team2Label,
               score1: m.score1 ?? null,
               score2: m.score2 ?? null,
               winnerId: m.winnerId ?? null,
               isBye: m.isBye ?? false,
               played: m.played ?? false,
+              number: m.number,
             })),
           },
         },

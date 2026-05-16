@@ -1317,6 +1317,13 @@ function GroupCard({
                     : "bg-white border-dashed border-gray-200 hover:bg-gray-50"
                 }`}
               >
+                {match.number != null && (
+                  <div className="px-3 pt-1.5 pb-0 flex justify-end">
+                    <span className="text-[9px] font-bold text-gray-400 tabular-nums">
+                      #{match.number}
+                    </span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2 px-3 py-2">
                   {/* Dupla 1 — dois nomes em linhas */}
                   <div

@@ -384,6 +384,7 @@ export interface PlayoffMatchData {
   winnerId: string | null;
   isBye: boolean;
   played: boolean;
+  number?: number; // número global da partida no torneio
 }
 
 export interface PlayoffBracketData {

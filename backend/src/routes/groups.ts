@@ -49,50 +49,75 @@ groupRoutes.post(
       const { groups } = saveGroupsSchema.parse(req.body);
       const tournamentId = req.params.tournamentId;
 
-      // Remove grupos anteriores
-      await prisma.group.deleteMany({ where: { tournamentId } });
+      const created = await prisma.$transaction(async (tx) => {
+        // 1. Remove grupos anteriores (cascata apaga Match records)
+        await tx.group.deleteMany({ where: { tournamentId } });
 
-      // Busca as duplas do torneio para gerar as partidas
-      const teams = await prisma.team.findMany({ where: { tournamentId } });
+        // 2. MAX(number) restante no torneio (só playoff matches sobrevivem à deleção acima)
+        const [gAgg, pAgg] = await Promise.all([
+          tx.match.aggregate({
+            where: { group: { tournamentId } },
+            _max: { number: true },
+          }),
+          tx.playoffMatch.aggregate({
+            where: { bracket: { tournamentId } },
+            _max: { number: true },
+          }),
+        ]);
+        let nextNumber =
+          Math.max(gAgg._max.number ?? 0, pAgg._max.number ?? 0) + 1;
 
-      // Cria os grupos com duplas e partidas
-      const created = await Promise.all(
-        groups.map(async (g) => {
-          const groupTeamIds = g.teams.map((t) => t.teamId);
+        // 3. Ordena grupos (categoria ASC → nome ASC) para numeração determinística
+        const sorted = [...groups].sort((a, b) =>
+          a.category !== b.category
+            ? a.category.localeCompare(b.category)
+            : a.name.localeCompare(b.name),
+        );
 
-          // Gera todas as combinações de partidas (round-robin)
-          const matches: { team1Id: string; team2Id: string }[] = [];
-          for (let i = 0; i < groupTeamIds.length; i++) {
-            for (let j = i + 1; j < groupTeamIds.length; j++) {
-              matches.push({
-                team1Id: groupTeamIds[i],
-                team2Id: groupTeamIds[j],
-              });
-            }
-          }
+        // 4. Pré-atribui números a todos os matches antes de criar
+        const numberMap = new Map<string, number[]>();
+        for (const g of sorted) {
+          const n = g.teams.length;
+          const nums: number[] = [];
+          for (let i = 0; i < n; i++)
+            for (let j = i + 1; j < n; j++) nums.push(nextNumber++);
+          numberMap.set(`${g.category}|${g.name}`, nums);
+        }
 
-          return prisma.group.create({
-            data: {
-              tournamentId,
-              name: g.name,
-              category: g.category,
-              teams: {
-                create: g.teams.map((t) => ({
-                  teamId: t.teamId,
-                  position: t.position,
-                })),
+        // 5. Cria grupos com matches numerados (pode ser paralelo — números já definidos)
+        return Promise.all(
+          groups.map(async (g) => {
+            const teamIds = g.teams.map((t) => t.teamId);
+            const nums = numberMap.get(`${g.category}|${g.name}`) ?? [];
+            const matches: { team1Id: string; team2Id: string; number: number }[] =
+              [];
+            let idx = 0;
+            for (let i = 0; i < teamIds.length; i++)
+              for (let j = i + 1; j < teamIds.length; j++)
+                matches.push({
+                  team1Id: teamIds[i],
+                  team2Id: teamIds[j],
+                  number: nums[idx++],
+                });
+
+            return tx.group.create({
+              data: {
+                tournamentId,
+                name: g.name,
+                category: g.category,
+                teams: {
+                  create: g.teams.map((t) => ({
+                    teamId: t.teamId,
+                    position: t.position,
+                  })),
+                },
+                matches: { create: matches },
               },
-              matches: {
-                create: matches,
-              },
-            },
-            include: {
-              teams: { include: { team: true } },
-              matches: true,
-            },
-          });
-        }),
-      );
+              include: { teams: { include: { team: true } }, matches: true },
+            });
+          }),
+        );
+      }, { timeout: 30000 });
 
       return res.status(201).json({ data: created });
     } catch (err) {
