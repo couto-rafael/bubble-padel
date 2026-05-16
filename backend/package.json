@@ -9,7 +9,9 @@
     "start": "node dist/server.js",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "seed:smoke": "tsx scripts/seed-smoke-test-athletes.ts",
+    "seed:smoke:dry": "tsx scripts/seed-smoke-test-athletes.ts --dry-run"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.2",
