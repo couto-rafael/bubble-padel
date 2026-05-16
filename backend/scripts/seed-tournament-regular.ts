@@ -1,13 +1,15 @@
 /**
  * Seed script: Regular tournament + team registrations for Sprint 8.5 smoke test
  * Usage:
- *   CLUB_PASSWORD=<pwd> npm run seed:tournament:dry   (dry-run)
- *   CLUB_PASSWORD=<pwd> npm run seed:tournament       (real run)
+ *   npm run seed:tournament:dry   (dry-run — reads CLUB_PASSWORD from backend/.env)
+ *   npm run seed:tournament       (real run — reads CLUB_PASSWORD from backend/.env)
  *
  * Requires backend running at BASE_URL (default: http://localhost:3001)
  */
 
 import { PrismaClient, UserType } from "@prisma/client";
+import fs from "fs";
+import path from "path";
 
 const prisma = new PrismaClient({ log: [] });
 
@@ -16,7 +18,21 @@ const DRY_RUN =
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3001";
 const CLUB_EMAIL = "rafaelcouto.ca@gmail.com";
-const CLUB_PASSWORD = process.env.CLUB_PASSWORD ?? "";
+
+// Read CLUB_PASSWORD from backend/.env (never from argv to avoid shell history leaks)
+function readClubPassword(): string {
+  // Prefer explicit env var (CI / shell export)
+  if (process.env.CLUB_PASSWORD) return process.env.CLUB_PASSWORD;
+
+  // Fall back to .env file two directories up from scripts/
+  const envPath = path.resolve(__dirname, "..", ".env");
+  if (!fs.existsSync(envPath)) return "";
+  const content = fs.readFileSync(envPath, "utf8");
+  const match = content.match(/^CLUB_PASSWORD=(.*)$/m);
+  return match ? match[1].trim() : "";
+}
+
+const CLUB_PASSWORD = readClubPassword();
 
 // ── Tournament definition ─────────────────────────────────────────────────────
 const TODAY = new Date();
@@ -184,7 +200,8 @@ async function main() {
   console.log("=".repeat(60));
 
   if (!DRY_RUN && !CLUB_PASSWORD) {
-    console.error("[ERROR] Set CLUB_PASSWORD env var before running.");
+    console.error("[ERROR] CLUB_PASSWORD not found.");
+    console.error("  Add  CLUB_PASSWORD=<senha>  to backend/.env and retry.");
     process.exit(1);
   }
 
@@ -250,13 +267,66 @@ async function main() {
 
   if (DRY_RUN) {
     console.log("\n[DRY-RUN SUMMARY]");
-    console.log(`  Tournament to create: "${TOURNAMENT_DEF.name}"`);
-    console.log(`  Status flow: DRAFT → OPEN`);
-    for (const [cat, pairs] of Object.entries(plan)) {
-      console.log(`  Registrations ${cat}: ${pairs.length} duplas`);
+
+    // Routes
+    console.log("\n  Routes to be called:");
+    console.log(`    POST   ${BASE_URL}/api/auth/login`);
+    if (!existing) {
+      console.log(`    POST   ${BASE_URL}/api/tournaments`);
+    } else {
+      console.log(`    POST   ${BASE_URL}/api/tournaments  → SKIP (tournament exists)`);
     }
+    const currentStatus = existing?.status ?? "DRAFT";
+    if (currentStatus !== "OPEN") {
+      console.log(`    PATCH  ${BASE_URL}/api/tournaments/<id>  { status: "OPEN" }`);
+    } else {
+      console.log(`    PATCH  ${BASE_URL}/api/tournaments/<id>  → SKIP (already OPEN)`);
+    }
+    console.log(`    POST   ${BASE_URL}/api/tournaments/<id>/register  (public, per dupla)`);
+
+    // Tournament
+    console.log("\n  Tournament:");
+    console.log(`    name:       "${TOURNAMENT_DEF.name}"`);
+    console.log(`    status flow: ${currentStatus} → OPEN`);
+    console.log(`    categories: ${TOURNAMENT_DEF.categories.join(", ")}`);
+
+    // Per-category detail
+    console.log("\n  Registration plan:");
+    for (const [cat, pairs] of Object.entries(plan)) {
+      const aEntry = pairs.find(([p1, p2]) => p1 === EMAIL_A || p2 === EMAIL_A);
+      const dEntry = pairs.find(([p1, p2]) => p1 === EMAIL_D || p2 === EMAIL_D);
+      const eEntry = pairs.find(([p1, p2]) => p1 === EMAIL_E || p2 === EMAIL_E);
+
+      const aPartner = aEntry?.find((e) => e !== EMAIL_A) ?? "—";
+      const dPartner = dEntry?.find((e) => e !== EMAIL_D) ?? "—";
+      const ePartner = eEntry?.find((e) => e !== EMAIL_E) ?? "—";
+
+      // Verify A, D, E are in separate duplas (different partners, different rows)
+      const aIdx  = pairs.findIndex(([p1, p2]) => p1 === EMAIL_A || p2 === EMAIL_A);
+      const dIdx  = pairs.findIndex(([p1, p2]) => p1 === EMAIL_D || p2 === EMAIL_D);
+      const eIdx  = pairs.findIndex(([p1, p2]) => p1 === EMAIL_E || p2 === EMAIL_E);
+      const separated = aIdx !== dIdx && aIdx !== eIdx && dIdx !== eIdx
+        && aPartner !== EMAIL_D && aPartner !== EMAIL_E
+        && dPartner !== EMAIL_A && ePartner !== EMAIL_A;
+
+      console.log(`\n    ── ${cat} (${pairs.length} duplas) ──`);
+      console.log(`    dupla A  [${aIdx}]: ${EMAIL_A} ↔ ${aPartner}`);
+      console.log(`    dupla D  [${dIdx}]: ${EMAIL_D} ↔ ${dPartner}`);
+      console.log(`    dupla E  [${eIdx}]: ${EMAIL_E} ↔ ${ePartner}`);
+      console.log(`    A, D, E em duplas separadas: ${separated ? "✓ SIM" : "✗ NÃO — REVISAR"}`);
+      console.log(`    Amostra (primeiras 3 + última):`);
+      pairs.slice(0, 3).forEach(([p1, p2], i) =>
+        console.log(`      [${i}] ${p1} ↔ ${p2}`)
+      );
+      if (pairs.length > 3) {
+        const last = pairs.length - 1;
+        console.log(`      ... (${pairs.length - 4} omitidas)`);
+        console.log(`      [${last}] ${pairs[last][0]} ↔ ${pairs[last][1]}`);
+      }
+    }
+
     const total = Object.values(plan).reduce((s, p) => s + p.length, 0);
-    console.log(`  Total registrations: ${total}`);
+    console.log(`\n  Total registrations: ${total} duplas (${total * 2} atleta-slots)`);
     console.log("\n[DRY-RUN] No API calls made. Set CLUB_PASSWORD and run without --dry-run.");
     return;
   }
