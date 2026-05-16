@@ -845,9 +845,16 @@ export default function TabGrupos({
                                       </span>
                                     )}
                                   </div>
-                                  <span className="text-[10px] font-semibold text-gray-500 truncate">
-                                    {roundLabel}
-                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    {pm.number != null && (
+                                      <span className="text-[9px] font-bold text-gray-500 tabular-nums shrink-0">
+                                        #{pm.number}
+                                      </span>
+                                    )}
+                                    <span className="text-[10px] font-semibold text-gray-500 truncate">
+                                      {roundLabel}
+                                    </span>
+                                  </div>
                                   {s?.court ? (
                                     <span className="inline-flex items-center gap-1 text-[10px] font-bold truncate text-gray-600">
                                       <span
