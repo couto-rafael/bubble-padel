@@ -236,10 +236,12 @@ async function main() {
   console.log("\n[ATHLETES] Loading pool from DB...");
   const athletes = await prisma.user.findMany({
     where: { type: UserType.ATHLETE },
-    select: { email: true },
+    select: { email: true, name: true },
     orderBy: { createdAt: "asc" },
   });
   const allEmails = athletes.map((a) => a.email);
+  const nameByEmail: Record<string, string> = {};
+  athletes.forEach((a) => { nameByEmail[a.email] = a.name; });
   console.log(`  Found ${allEmails.length} athletes in DB`);
 
   // Verify A, D, E exist in pool
@@ -282,7 +284,7 @@ async function main() {
     } else {
       console.log(`    PATCH  ${BASE_URL}/api/tournaments/<id>  → SKIP (already OPEN)`);
     }
-    console.log(`    POST   ${BASE_URL}/api/tournaments/<id>/register  (public, per dupla)`);
+    console.log(`    POST   ${BASE_URL}/api/public/tournaments/<id>/register  (public, per dupla)`);
 
     // Tournament
     console.log("\n  Tournament:");
@@ -336,8 +338,9 @@ async function main() {
   const loginRes = await apiPost("/api/auth/login", {
     email: CLUB_EMAIL,
     password: CLUB_PASSWORD,
-  }) as { token: string };
-  const token = loginRes.token;
+  }) as { data: { token: string } };
+  const token = loginRes.data.token;
+  if (!token) throw new Error("Login succeeded but token missing in response.data.token");
   console.log(`  ✓ JWT obtained`);
 
   // ── Step 6: Create or reuse tournament ─────────────────────────────────────
@@ -348,9 +351,9 @@ async function main() {
   } else {
     console.log("\n[TOURNAMENT] Creating...");
     const created = await apiPost("/api/tournaments", TOURNAMENT_DEF, token) as {
-      id: string;
+      data: { id: string };
     };
-    tournamentId = created.id;
+    tournamentId = created.data.id;
     console.log(`  ✓ Created  id=${tournamentId}`);
   }
 
@@ -382,37 +385,32 @@ async function main() {
       )
     );
 
-    for (const [p1Email, p2Email] of pairs) {
+    // Use Prisma directly — public register endpoint has a 5 req/hr rate limiter
+    // which makes it unusable for bulk seeding from the same IP.
+    const teamsToCreate = pairs.filter(([p1Email, p2Email]) => {
       const key = [p1Email, p2Email].sort().join("|");
-      if (existingSet.has(key)) {
-        counts[category].skipped++;
-        continue;
-      }
+      return !existingSet.has(key);
+    });
 
-      // Derive display names from email prefix
-      const p1Name = p1Email.split("@")[0].replace("seed.", "").replace(".", " ");
-      const p2Name = p2Email.split("@")[0].replace("seed.", "").replace(".", " ");
-
-      try {
-        await apiPost(`/api/tournaments/${tournamentId}/register`, {
-          player1Name: p1Name,
-          player1Email: p1Email,
-          player2Name: p2Name,
-          player2Email: p2Email,
-          category,
-        });
-        counts[category].created++;
-        existingSet.add(key);
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        // Duplicate key / already registered — treat as skip
-        if (msg.includes("409") || msg.includes("já inscrito") || msg.includes("already")) {
-          counts[category].skipped++;
-        } else {
-          throw err;
-        }
-      }
+    if (teamsToCreate.length > 0) {
+      await prisma.$transaction(
+        teamsToCreate.map(([p1Email, p2Email]) =>
+          prisma.team.create({
+            data: {
+              tournamentId,
+              category,
+              player1Name: nameByEmail[p1Email] ?? p1Email.split("@")[0],
+              player1Email: p1Email,
+              player2Name: nameByEmail[p2Email] ?? p2Email.split("@")[0],
+              player2Email: p2Email,
+            },
+          })
+        ),
+        { timeout: 30000 }
+      );
+      counts[category].created = teamsToCreate.length;
     }
+    counts[category].skipped = pairs.length - teamsToCreate.length;
 
     console.log(
       `  ${category}: ${counts[category].created} created, ${counts[category].skipped} skipped`

@@ -137,8 +137,9 @@ async function main() {
     const loginRes = await apiPost("/api/auth/login", {
       email: CLUB_EMAIL,
       password: CLUB_PASSWORD,
-    }, "") as { token: string };
-    token = loginRes.token;
+    }, "") as { data: { token: string } };
+    token = loginRes.data.token;
+    if (!token) throw new Error("Login succeeded but token missing in response.data.token");
     console.log("  ✓ JWT obtained");
   }
 
