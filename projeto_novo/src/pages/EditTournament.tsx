@@ -156,6 +156,11 @@ const EditTournament = () => {
   } = useTeams(id);
   const { groups, loading: groupsLoading } = useGroups(id);
   const [activeTab, setActiveTab] = useState<Tab>("torneio");
+  const [visitedTabs, setVisitedTabs] = useState<Set<Tab>>(new Set<Tab>(["torneio"]));
+  const navigateTab = (tab: Tab) => {
+    setActiveTab(tab);
+    setVisitedTabs((prev) => new Set<Tab>(prev).add(tab));
+  };
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
@@ -645,7 +650,7 @@ const EditTournament = () => {
               {tabs.map((tab) => (
                 <button
                   key={tab.key}
-                  onClick={() => setActiveTab(tab.key as Tab)}
+                  onClick={() => navigateTab(tab.key as Tab)}
                   className={`flex items-center gap-2 px-4 py-3 text-[13px] font-bold transition-all relative border-b-2 -mb-px whitespace-nowrap ${activeTab === tab.key ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"}`}
                 >
                   <svg
@@ -1460,19 +1465,25 @@ const EditTournament = () => {
             />
           )}
 
-          {/* TAB CONTENT - Grupos */}
-          {activeTab === "grupos" && (
-            <TabGrupos teams={teams} tournament={tournament} />
+          {/* TAB CONTENT - Grupos (keep-alive: stays mounted after first visit) */}
+          {visitedTabs.has("grupos") && (
+            <div className={activeTab !== "grupos" ? "hidden" : ""}>
+              <TabGrupos teams={teams} tournament={tournament} />
+            </div>
           )}
 
-          {/* TAB CONTENT - Jogos */}
-          {activeTab === "jogos" && (
-            <TabJogos teams={teams} tournament={tournament} />
+          {/* TAB CONTENT - Jogos (keep-alive) */}
+          {visitedTabs.has("jogos") && (
+            <div className={activeTab !== "jogos" ? "hidden" : ""}>
+              <TabJogos teams={teams} tournament={tournament} />
+            </div>
           )}
 
-          {/* TAB CONTENT - Playoffs */}
-          {activeTab === "playoffs" && (
-            <TabPlayoffs tournament={tournament} teams={teams} />
+          {/* TAB CONTENT - Playoffs (keep-alive) */}
+          {visitedTabs.has("playoffs") && (
+            <div className={activeTab !== "playoffs" ? "hidden" : ""}>
+              <TabPlayoffs tournament={tournament} teams={teams} />
+            </div>
           )}
           {activeTab === "seeds" && id && (
             <div className="bg-white rounded-2xl border border-gray-200 p-6">
@@ -1480,7 +1491,7 @@ const EditTournament = () => {
               <TabSeeds
                 tournamentId={id}
                 categories={(tournament as any).categories ?? []}
-                onBracketGenerated={() => setActiveTab("playoffs")}
+                onBracketGenerated={() => navigateTab("playoffs")}
               />
             </div>
           )}
