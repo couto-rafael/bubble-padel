@@ -28,6 +28,7 @@ interface TabFinanceiroProps {
   pixKey: string;
   priceSecondCategory: number;
   onFieldChange: (field: any, value: any, label: string) => void;
+  readOnly?: boolean;
   isSuper8?: boolean;
 }
 
@@ -48,6 +49,7 @@ export default function TabFinanceiro({
   pixKey,
   priceSecondCategory,
   onFieldChange,
+  readOnly = false,
   isSuper8 = false,
 }: TabFinanceiroProps) {
   const [data, setData] = useState<FinancialSummary | null>(null);
@@ -130,6 +132,7 @@ export default function TabFinanceiro({
             <input
               type="number"
               value={priceFirstCategory}
+              disabled={readOnly}
               onChange={(e) =>
                 onFieldChange(
                   "priceFirstCategory",
@@ -137,7 +140,7 @@ export default function TabFinanceiro({
                   "o preço da 1ª categoria",
                 )
               }
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors disabled:opacity-70 disabled:cursor-default disabled:hover:bg-gray-50"
             />
           </div>
           {!isSuper8 && (
@@ -148,6 +151,7 @@ export default function TabFinanceiro({
             <input
               type="number"
               value={priceSecondCategory || 0}
+              disabled={readOnly}
               onChange={(e) =>
                 onFieldChange(
                   "priceSecondCategory",
@@ -155,7 +159,7 @@ export default function TabFinanceiro({
                   "o preço da 2ª+ categoria",
                 )
               }
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors disabled:opacity-70 disabled:cursor-default disabled:hover:bg-gray-50"
             />
           </div>
           )}
@@ -166,10 +170,11 @@ export default function TabFinanceiro({
             <input
               type="text"
               value={pixKey || ""}
+              disabled={readOnly}
               onChange={(e) =>
                 onFieldChange("pixKey", e.target.value, "a chave PIX")
               }
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 cursor-pointer hover:bg-gray-100 transition-colors disabled:opacity-70 disabled:cursor-default disabled:hover:bg-gray-50"
               placeholder="Clique para alterar"
             />
           </div>
