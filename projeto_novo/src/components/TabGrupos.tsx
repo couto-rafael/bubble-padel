@@ -103,8 +103,8 @@ const COURT_COLORS = [
 ];
 
 function formatDate(iso: string) {
-  const [y, m, d] = iso.split("-");
-  return `${d}/${m}/${y}`;
+  const [, m, d] = iso.split("-");
+  return `${d}/${m}`;
 }
 
 export default function TabGrupos({
@@ -868,9 +868,9 @@ export default function TabGrupos({
                                     </span>
                                   )}
                                   {s?.date ? (
-                                    <span className="text-[10px] text-gray-400 tabular-nums">
-                                      {formatDate(s.date)}
-                                      {s.time ? ` · ${s.time}` : ""}
+                                    <span className="flex items-center gap-1 tabular-nums">
+                                      <span className="text-[10px] text-gray-400">{formatDate(s.date)}</span>
+                                      {s.time && <span className="text-[10px] font-semibold text-blue-500">{s.time}</span>}
                                     </span>
                                   ) : (
                                     <span className="text-[10px] text-gray-300 italic">
@@ -1412,9 +1412,9 @@ function GroupCard({
                   return (
                     <div className="flex items-center gap-2 px-3 pb-2 -mt-0.5">
                       {s.date && (
-                        <span className="text-[10px] font-semibold text-blue-500 tabular-nums">
-                          {s.date.split("-").reverse().join("/")}
-                          {s.time ? ` ${s.time}` : ""}
+                        <span className="flex items-center gap-1 tabular-nums">
+                          <span className="text-[10px] text-gray-400">{formatDate(s.date)}</span>
+                          {s.time && <span className="text-[10px] font-semibold text-blue-500">{s.time}</span>}
                         </span>
                       )}
                       {s.date && s.court && (

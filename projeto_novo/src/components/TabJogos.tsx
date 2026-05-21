@@ -111,8 +111,8 @@ function getTeamNames(
 
 function formatDate(iso: string | null) {
   if (!iso) return null;
-  const [y, m, d] = iso.split("-");
-  return `${d}/${m}/${y}`;
+  const [, m, d] = iso.split("-");
+  return `${d}/${m}`;
 }
 
 function matchLabel(group: Group, matchIndex: number) {
@@ -766,9 +766,9 @@ export default function TabJogos({
                         )}
                         {/* Linha 4: data + hora */}
                         {sm.date ? (
-                          <span className="text-[10px] text-gray-400 tabular-nums">
-                            {formatDate(sm.date)}
-                            {sm.time ? ` · ${sm.time}` : ""}
+                          <span className="flex items-center gap-1 tabular-nums">
+                            <span className="text-[10px] text-gray-400">{formatDate(sm.date)}</span>
+                            {sm.time && <span className="text-[10px] font-semibold text-blue-500">{sm.time}</span>}
                           </span>
                         ) : (
                           <span className="text-[10px] text-gray-300 italic">
@@ -1057,9 +1057,9 @@ export default function TabJogos({
                         </span>
                       )}
                       {sp.date ? (
-                        <span className="text-[10px] text-gray-400 tabular-nums">
-                          {formatDate(sp.date)}
-                          {sp.time ? ` · ${sp.time}` : ""}
+                        <span className="flex items-center gap-1 tabular-nums">
+                          <span className="text-[10px] text-gray-400">{formatDate(sp.date)}</span>
+                          {sp.time && <span className="text-[10px] font-semibold text-blue-500">{sp.time}</span>}
                         </span>
                       ) : (
                         <span className="text-[10px] text-gray-300 italic">
@@ -1341,9 +1341,9 @@ export default function TabJogos({
                     </div>
                     {sm.date ? (
                       <div className="flex items-center justify-between gap-1 mb-2">
-                        <span className="text-[10px] text-gray-400 tabular-nums">
-                          {formatDate(sm.date)}
-                          {sm.time ? ` · ${sm.time}` : ""}
+                        <span className="flex items-center gap-1 tabular-nums">
+                          <span className="text-[10px] text-gray-400">{formatDate(sm.date)}</span>
+                          {sm.time && <span className="text-[10px] font-semibold text-blue-500">{sm.time}</span>}
                         </span>
                         {!sm.match.played && (
                           <span className="text-[9px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full border border-amber-200 whitespace-nowrap">
@@ -1517,9 +1517,9 @@ export default function TabJogos({
                     </div>
                     {sp.date ? (
                       <div className="flex items-center justify-between gap-1 mb-2">
-                        <span className="text-[10px] text-gray-400 tabular-nums">
-                          {formatDate(sp.date)}
-                          {sp.time ? ` · ${sp.time}` : ""}
+                        <span className="flex items-center gap-1 tabular-nums">
+                          <span className="text-[10px] text-gray-400">{formatDate(sp.date)}</span>
+                          {sp.time && <span className="text-[10px] font-semibold text-blue-500">{sp.time}</span>}
                         </span>
                         {!sp.match.played &&
                           sp.match.team1Id &&
