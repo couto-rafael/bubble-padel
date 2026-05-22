@@ -423,7 +423,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
                   <div className="px-5 py-3 border-t border-white/10 text-center">
                     <Link
-                      to="/dashboard/notifications"
+                      to="/athlete/notifications"
                       onClick={() => setNotifOpen(false)}
                       className="text-xs text-[#00ccff] hover:text-[#00aadd] font-medium transition-colors"
                     >

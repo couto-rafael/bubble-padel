@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useToast } from "./Toast";
 import { useAuth } from "../contexts/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
 
 const AthleteHeader: React.FC = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { logout } = useAuth();
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
   const [isTorneiosOpen, setIsTorneiosOpen] = useState(false);
@@ -204,46 +202,11 @@ const AthleteHeader: React.FC = () => {
                 )}
               </div>
 
-              {/* Últimos Jogos */}
-              <Link
-                to="/ultimos-jogos"
-                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
-              >
-                Últimos Jogos
-              </Link>
-
-              {/* Marketplace */}
-              <Link
-                to="/marketplace"
-                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
-              >
-                Marketplace
-              </Link>
             </nav>
           </div>
 
           {/* Right side - Actions */}
           <div className="flex items-center gap-3">
-            {/* Search */}
-            <button
-              onClick={() => toast.success("Busca em breve 🔍")}
-              className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </button>
-
             {/* Messages — desktop only */}
             <Link
               to="/athlete/messages"
@@ -338,25 +301,6 @@ const AthleteHeader: React.FC = () => {
               {/* Profile Dropdown Menu */}
               {isProfileOpen && (
                 <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                  <button
-                    className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 w-full text-left"
-                    onClick={() => { setIsProfileOpen(false); toast.success("Busca em breve 🔍"); }}
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                      />
-                    </svg>
-                    Encontre Atletas
-                  </button>
                   <Link
                     to="/athlete/profile"
                     className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
