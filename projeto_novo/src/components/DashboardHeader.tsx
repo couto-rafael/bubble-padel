@@ -1,44 +1,36 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useClub } from "../hooks/useClub";
 
-// ── mock ──────────────────────────────────────────────────
-const CLUB = {
-  name: "São Paulo Padel Club",
-  initials: "SP",
-  email: "contato@sppadelclub.com.br",
-};
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001/api";
 
-const NOTIFICATIONS = [
-  {
-    id: 1,
-    title: "Nova dupla inscrita",
-    desc: "Rafael Souza / Beatriz Alves – Primavera Open",
-    time: "2h atrás",
-    read: false,
-  },
-  {
-    id: 2,
-    title: "Pagamento confirmado",
-    desc: "R$ 150,00 – Dupla 14",
-    time: "3h atrás",
-    read: false,
-  },
-  {
-    id: 3,
-    title: "Partida finalizada",
-    desc: "Quadra 1 – 6-4, 6-3",
-    time: "5h atrás",
-    read: true,
-  },
-  {
-    id: 4,
-    title: "Torneio iniciou",
-    desc: "League Semanal – Rodada 4",
-    time: "1d atrás",
-    read: true,
-  },
-];
+interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  readAt: string | null;
+  createdAt: string;
+}
+
+function timeAgo(date: string) {
+  const diff = (Date.now() - new Date(date).getTime()) / 1000;
+  if (diff < 60) return "agora";
+  if (diff < 3600) return `${Math.floor(diff / 60)}min`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  return `${Math.floor(diff / 86400)}d`;
+}
+
+function clubInitials(name: string | undefined): string {
+  if (!name) return "C";
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+}
 
 interface DashboardHeaderProps {
   activePage?: "dashboard" | "tournaments" | "leagues" | "marketplace";
@@ -48,11 +40,17 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   activePage = "dashboard",
 }) => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const { club } = useClub();
+
   const [dropOpen, setDropOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [navDashOpen, setNavDashOpen] = useState(false);
   const [navTournOpen, setNavTournOpen] = useState(false);
+
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifLoading, setNotifLoading] = useState(false);
+
   const dropRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const navDashRef = useRef<HTMLDivElement>(null);
@@ -76,7 +74,32 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     return () => document.removeEventListener("mousedown", close);
   }, []);
 
-  const unreadCount = NOTIFICATIONS.filter((n) => !n.read).length;
+  useEffect(() => {
+    const token = localStorage.getItem("auth_token");
+    if (!token) return;
+    setNotifLoading(true);
+    fetch(`${API_URL}/notifications`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((j) => setNotifications(j.data ?? []))
+      .catch(() => {})
+      .finally(() => setNotifLoading(false));
+  }, []);
+
+  const unreadCount = notifications.filter((n) => n.readAt === null).length;
+
+  const markAllRead = async () => {
+    const token = localStorage.getItem("auth_token");
+    if (!token) return;
+    await fetch(`${API_URL}/notifications/read-all`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+    }).catch(() => {});
+    setNotifications((prev) =>
+      prev.map((n) => ({ ...n, readAt: new Date().toISOString() })),
+    );
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0e27]/95 backdrop-blur-sm border-b border-white/5">
@@ -352,40 +375,60 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 <div className="absolute top-full right-0 mt-2 w-80 bg-[#1a1f4a] border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-fade-in">
                   <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between">
                     <h3 className="font-bold text-sm">Notificações</h3>
-                    <button className="text-xs text-[#00ff88] hover:text-[#00dd77] font-medium transition-colors">
-                      Marcar todas como lidas
-                    </button>
-                  </div>
-                  <div className="max-h-64 overflow-y-auto">
-                    {NOTIFICATIONS.map((n) => (
-                      <div
-                        key={n.id}
-                        className={`flex items-start gap-3 px-5 py-3.5 border-b border-white/5 last:border-0 transition-colors hover:bg-white/5 ${!n.read ? "bg-[#00ff88]/4" : ""}`}
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllRead}
+                        className="text-xs text-[#00ff88] hover:text-[#00dd77] font-medium transition-colors"
                       >
-                        {/* dot */}
-                        <div
-                          className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${!n.read ? "bg-[#00ff88]" : "bg-transparent"}`}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p
-                            className={`text-sm ${!n.read ? "font-semibold" : "font-medium text-gray-300"}`}
-                          >
-                            {n.title}
-                          </p>
-                          <p className="text-xs text-gray-500 truncate">
-                            {n.desc}
-                          </p>
-                        </div>
-                        <span className="text-xs text-gray-600 flex-shrink-0 whitespace-nowrap">
-                          {n.time}
-                        </span>
-                      </div>
-                    ))}
+                        Marcar todas como lidas
+                      </button>
+                    )}
                   </div>
+
+                  <div className="max-h-64 overflow-y-auto">
+                    {notifLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="w-5 h-5 border-2 border-white/10 border-t-[#00ff88] rounded-full animate-spin" />
+                      </div>
+                    ) : notifications.length === 0 ? (
+                      <p className="text-center text-xs text-gray-500 py-8">
+                        Nenhuma notificação ainda.
+                      </p>
+                    ) : (
+                      notifications.slice(0, 10).map((n) => (
+                        <div
+                          key={n.id}
+                          className={`flex items-start gap-3 px-5 py-3.5 border-b border-white/5 last:border-0 transition-colors hover:bg-white/5 ${n.readAt === null ? "bg-[#00ff88]/4" : ""}`}
+                        >
+                          <div
+                            className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${n.readAt === null ? "bg-[#00ff88]" : "bg-transparent"}`}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p
+                              className={`text-sm ${n.readAt === null ? "font-semibold" : "font-medium text-gray-300"}`}
+                            >
+                              {n.title}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {n.body}
+                            </p>
+                          </div>
+                          <span className="text-xs text-gray-600 flex-shrink-0 whitespace-nowrap">
+                            {timeAgo(n.createdAt)}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
                   <div className="px-5 py-3 border-t border-white/10 text-center">
-                    <button className="text-xs text-[#00ccff] hover:text-[#00aadd] font-medium transition-colors">
+                    <Link
+                      to="/dashboard/notifications"
+                      onClick={() => setNotifOpen(false)}
+                      className="text-xs text-[#00ccff] hover:text-[#00aadd] font-medium transition-colors"
+                    >
                       Ver todas as notificações
-                    </button>
+                    </Link>
                   </div>
                 </div>
               )}
@@ -436,13 +479,15 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                   <div className="px-4 py-3.5 border-b border-white/10 flex items-center gap-3">
                     <div className="w-9 h-9 bg-gradient-to-br from-[#00ff88] to-[#00cc6a] rounded-lg flex items-center justify-center flex-shrink-0">
                       <span className="text-[#0a0e27] text-xs font-bold">
-                        {CLUB.initials}
+                        {clubInitials(club?.name)}
                       </span>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold truncate">{CLUB.name}</p>
+                      <p className="text-sm font-bold truncate">
+                        {club?.name ?? "…"}
+                      </p>
                       <p className="text-xs text-gray-500 truncate">
-                        {CLUB.email}
+                        {user?.email ?? ""}
                       </p>
                     </div>
                   </div>
