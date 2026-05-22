@@ -1,0 +1,15 @@
+#!/bin/sh
+
+echo "→ tsc: backend"
+if ! (cd backend && npx tsc --noEmit); then
+  echo "✗ TypeScript errors in backend/ — commit aborted."
+  exit 1
+fi
+
+echo "→ tsc: projeto_novo"
+if ! (cd projeto_novo && npx tsc --noEmit); then
+  echo "✗ TypeScript errors in projeto_novo/ — commit aborted."
+  exit 1
+fi
+
+echo "✓ tsc ok"

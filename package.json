@@ -1,8 +1,14 @@
 {
+  "name": "bubble-padel-monorepo",
+  "private": true,
+  "scripts": {
+    "prepare": "husky"
+  },
   "dependencies": {
     "qrcode.react": "^4.2.0"
   },
   "devDependencies": {
-    "@types/qrcode.react": "^1.0.5"
+    "@types/qrcode.react": "^1.0.5",
+    "husky": "^9.1.7"
   }
 }
