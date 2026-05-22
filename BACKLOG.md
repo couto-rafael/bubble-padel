@@ -29,6 +29,12 @@ Itens pendentes que não entraram na sprint atual. Cada item tem: prioridade, sp
 - `generatePlayoffSeeding` em `projeto_novo/src/utils/groupUtils.ts` (linha 260) — ninguém chama. Deletar.
 - `buildSeeds` local em `projeto_novo/src/components/TabPlayoffs.tsx` (linha 27) — versão duplicada, fallback raríssimo. Avaliar se deleta ou mantém.
 
+## Auditoria UX/UI
+
+- Ver `UX_AUDIT.md` — 39 achados (6 🔴 / 19 🟡 / 14 🟢).
+- Atacar o grosso na Sprint 15 (UX/UI refinement).
+- Revisar os 6 achados 🔴 antes do lançamento — alguns podem ser bloqueadores.
+
 ## Sprint 9 backlog (já existente, manter aqui pra consolidar)
 
 - Theme dark/light unificar
