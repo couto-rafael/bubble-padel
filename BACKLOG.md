@@ -35,6 +35,10 @@ Itens pendentes que não entraram na sprint atual. Cada item tem: prioridade, sp
 - Atacar o grosso na Sprint 15 (UX/UI refinement).
 - Revisar os 6 achados 🔴 antes do lançamento — alguns podem ser bloqueadores.
 
+### Página de notificações do clube
+- **Sprint sugerida:** 15
+- `NotificationsPage` hoje é exclusiva de atleta: `AthleteHeader` hardcoded + `navigate` apontando para `/athlete/...`. Clube não tem página de notificações dedicada. Resolver na Sprint 15: tornar `NotificationsPage` agnóstica de header/navigate (prop ou contexto), **OU** criar rota própria do clube. Não duplicar a página.
+
 ## Sprint 9 backlog (já existente, manter aqui pra consolidar)
 
 - Theme dark/light unificar
