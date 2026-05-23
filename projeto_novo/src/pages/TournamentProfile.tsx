@@ -5,6 +5,7 @@ import { PaymentModal } from "../components/PaymentModal";
 import MobileMenu from "../components/MobileMenu";
 import AthleteHeader from "../components/AthleteHeader";
 import SEOHead from "../components/SEOHead";
+import { EmptyState } from "../components/ui/EmptyState";
 import { useAuth } from "../contexts/AuthContext";
 import {
   PublicTournamentService,
@@ -12,119 +13,6 @@ import {
   type PublicTournament,
 } from "../services/api";
 
-// Mock data
-const MOCK_TOURNAMENT = {
-  id: "1",
-  name: "Campeonato Primavera Open 2026",
-  club: "São Paulo Padel Club",
-  city: "São Paulo",
-  state: "SP",
-  dateRange: "12–14 Mar",
-  status: "Aberto",
-  sport: "Padel",
-  teams: 24,
-  maxTeams: 32,
-  description:
-    "Torneio de padel para todas as categorias. Venha participar do maior evento de padel da primavera! Este torneio conta com quadras profissionais, arbitragem certificada e premiação para os três primeiros colocados de cada categoria.",
-  inscriptionStart: "01 Mar 2026",
-  inscriptionEnd: "10 Mar 2026",
-  price: "R$ 150,00",
-  address: "Rua das Flores, 123 - Jardins, São Paulo - SP",
-  phone: "(11) 98765-4321",
-  email: "contato@sppadelclub.com.br",
-  website: "www.sppadelclub.com.br",
-  rules: [
-    "Cada dupla deve ter no mínimo 1 jogador federado",
-    "Uso de equipamentos de segurança obrigatório",
-    "Atrasos superiores a 15 minutos resultam em W.O.",
-    "Respeito aos adversários e árbitros é fundamental",
-    "Equipamentos devem estar em conformidade com regulamento da federação",
-    "Vestuário adequado é obrigatório durante as partidas",
-  ],
-  faq: [
-    {
-      q: "Posso me inscrever sozinho?",
-      a: "Não, as inscrições são apenas para duplas completas.",
-    },
-    {
-      q: "Há estacionamento no local?",
-      a: "Sim, estacionamento gratuito para participantes.",
-    },
-    {
-      q: "Qual a política de cancelamento?",
-      a: "Reembolso de 80% até 7 dias antes do evento.",
-    },
-    {
-      q: "Posso trocar de parceiro após a inscrição?",
-      a: "Sim, até 48 horas antes do início do torneio.",
-    },
-    {
-      q: "Há premiação?",
-      a: "Sim! Troféus e medalhas para os 3 primeiros lugares de cada categoria.",
-    },
-  ],
-  categories: ["Iniciante", "Intermediário", "Avançado", "Elite"],
-  mapUrl: "https://maps.google.com/?q=-23.5505,-46.6333",
-};
-
-const confirmedTeams = [
-  {
-    id: 1,
-    player1: "João Silva",
-    player2: "Maria Santos",
-    category: "Elite",
-    status: "Confirmado",
-  },
-  {
-    id: 2,
-    player1: "Pedro Oliveira",
-    player2: "Ana Costa",
-    category: "Avançado",
-    status: "Confirmado",
-  },
-  {
-    id: 3,
-    player1: "Carlos Mendes",
-    player2: "Juliana Lima",
-    category: "Intermediário",
-    status: "Pendente",
-  },
-  {
-    id: 4,
-    player1: "Rafael Souza",
-    player2: "Beatriz Alves",
-    category: "Elite",
-    status: "Confirmado",
-  },
-  {
-    id: 5,
-    player1: "Lucas Ferreira",
-    player2: "Camila Rocha",
-    category: "Avançado",
-    status: "Confirmado",
-  },
-  {
-    id: 6,
-    player1: "Bruno Dias",
-    player2: "Fernanda Nunes",
-    category: "Iniciante",
-    status: "Confirmado",
-  },
-  {
-    id: 7,
-    player1: "Thiago Martins",
-    player2: "Patricia Gomes",
-    category: "Intermediário",
-    status: "Confirmado",
-  },
-  {
-    id: 8,
-    player1: "Rodrigo Castro",
-    player2: "Amanda Silva",
-    category: "Elite",
-    status: "Confirmado",
-  },
-];
 
 const TournamentProfile = () => {
   const { id } = useParams();
@@ -406,13 +294,21 @@ const TournamentProfile = () => {
 
   if (notFound || !tournament)
     return (
-      <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center text-white">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">Torneio não encontrado</h2>
-          <Link to="/tournaments" className="text-[#00ff88] hover:underline">
-            Ver todos os torneios
-          </Link>
-        </div>
+      <div className="min-h-screen bg-[#0a0e27] flex items-center justify-center px-4">
+        <EmptyState
+          theme="dark"
+          icon="🎾"
+          title="Torneio não encontrado"
+          description="O torneio que você está procurando não existe ou foi removido."
+          action={
+            <Link
+              to="/tournaments"
+              className="inline-block mt-2 px-5 py-2.5 bg-[#00ff88] text-[#0a0e1a] text-sm font-extrabold rounded-xl hover:bg-[#00dd77] transition-colors"
+            >
+              Ver todos os torneios
+            </Link>
+          }
+        />
       </div>
     );
 
