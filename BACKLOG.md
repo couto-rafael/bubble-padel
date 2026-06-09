@@ -2,18 +2,6 @@
 
 Itens pendentes que não entraram na sprint atual. Cada item tem: prioridade, sprint sugerida, descrição.
 
-## UX / Visual
-
-### Hierarquia visual do card de jogo
-- **Prioridade:** Média
-- **Sprint sugerida:** 9
-- Data completa `DD/MM/YYYY` + hora `HH:MM` ambas em azul ficam confusas. Propostas: data abreviada (`16/05`), hierarquia tipográfica diferente entre data e hora, ou cores distintas. Validar em TabGrupos, TabJogos, TabPlayoffs.
-
-### Cinzar tabs bloqueadas em torneio ONGOING/COMPLETED
-- **Prioridade:** Média
-- **Sprint sugerida:** 9
-- Quando torneio status = ONGOING/COMPLETED: reduzir opacity + cursor not-allowed nas tabs Estrutura, Inscrições, Categorias, Financeiro. Substituir banner por tooltip nas tabs. Manter Grupos, Jogos, Playoffs ativos.
-
 ## Validação / Backend
 
 ### Validação de gênero por categoria
@@ -21,19 +9,11 @@ Itens pendentes que não entraram na sprint atual. Cada item tem: prioridade, sp
 - **Sprint sugerida:** 9
 - Bloquear inscrição quando gênero do atleta não bate com categoria. Masculino: só MALE. Feminino: só FEMALE. Mista: ambos. Validar backend (POST `/api/tournaments/:id/register`) e frontend (autocomplete filtrado). Pré-requisito: confirmar `Athlete.gender` no schema + backfill nos atletas existentes.
 
-## Cleanup / Dívida técnica
-
-### Remover código morto de seeding
-- **Prioridade:** Baixa
-- **Sprint sugerida:** 9 ou 10
-- `generatePlayoffSeeding` em `projeto_novo/src/utils/groupUtils.ts` (linha 260) — ninguém chama. Deletar.
-- `buildSeeds` local em `projeto_novo/src/components/TabPlayoffs.tsx` (linha 27) — versão duplicada, fallback raríssimo. Avaliar se deleta ou mantém.
-
 ## Auditoria UX/UI
 
 - Ver `UX_AUDIT.md` — 39 achados (6 🔴 / 19 🟡 / 14 🟢).
+- Todos os 6 achados 🔴 resolvidos (commits 045f54e → fc3f9fb).
 - Atacar o grosso na Sprint 15 (UX/UI refinement).
-- Revisar os 6 achados 🔴 antes do lançamento — alguns podem ser bloqueadores.
 
 ### Página de notificações do clube
 - **Sprint sugerida:** 15
