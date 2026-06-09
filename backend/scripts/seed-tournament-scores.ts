@@ -191,10 +191,11 @@ async function main() {
 
   // ── Fetch playoff brackets ──────────────────────────────────────────────────
   console.log("\n[PLAYOFFS] Fetching brackets...");
-  const brackets = (await apiGet(
+  const bracketsRes = (await apiGet(
     `/api/tournaments/${tournamentId}/playoffs`,
     token
-  )) as ApiPlayoffBracket[];
+  )) as { data: ApiPlayoffBracket[] };
+  const brackets = bracketsRes.data ?? [];
   console.log(`  Found ${brackets.length} brackets`);
 
   // ── Fill playoff match scores ───────────────────────────────────────────────
