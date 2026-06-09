@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Footer from "../components/Footer";
-import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import AthleteBottomNav from "../components/AthleteBottomNav";
 import AuthModal from "../components/AuthModal";
 import MobileMenu from "../components/MobileMenu";
 import AthleteHeader from "../components/AthleteHeader";
@@ -92,7 +93,6 @@ function mapPublicTournament(t: PublicTournament): Tournament {
 
 const Tournaments = () => {
   const navigate = useNavigate();
-  const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const { user: currentUser, logout } = useAuth();
   const isAthlete = currentUser?.type?.toUpperCase() === "ATHLETE";
@@ -1084,44 +1084,7 @@ const Tournaments = () => {
       {/* Footer */}
       <Footer />
 
-      {/* ── Bottom Nav — Mobile Atleta ──────────────────────────────────────── */}
-      {isAthlete && (
-        <div className="fixed bottom-0 left-0 right-0 md:hidden bg-[#0a0e1a]/95 backdrop-blur-xl border-t border-white/[0.08] pb-safe z-50">
-          <div className="flex">
-            <Link
-              to="/athlete/dashboard"
-              className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-bold transition-colors ${pathname === "/athlete/dashboard" ? "text-[#00e87a]" : "text-[#6b7a99]"}`}
-            >
-              <span className="text-xl leading-none">🏠</span>Início
-            </Link>
-            <Link
-              to="/athlete/feed"
-              className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-bold transition-colors ${pathname === "/athlete/feed" ? "text-[#00e87a]" : "text-[#6b7a99]"}`}
-            >
-              <span className="text-xl leading-none">📰</span>Feed
-            </Link>
-            <Link
-              to="/tournaments"
-              className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-bold transition-colors ${pathname === "/tournaments" ? "text-[#00e87a]" : "text-[#6b7a99]"}`}
-            >
-              <span className="text-xl leading-none">🎾</span>Torneios
-            </Link>
-            <Link
-              to="/athlete/profile"
-              state={{ tab: "trophies" }}
-              className="flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-bold text-[#6b7a99] transition-colors"
-            >
-              <span className="text-xl leading-none">🏆</span>Troféus
-            </Link>
-            <Link
-              to="/athlete/profile"
-              className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-[10px] font-bold transition-colors ${pathname === "/athlete/profile" ? "text-[#00e87a]" : "text-[#6b7a99]"}`}
-            >
-              <span className="text-xl leading-none">👤</span>Perfil
-            </Link>
-          </div>
-        </div>
-      )}
+      {isAthlete && <AthleteBottomNav />}
     </div>
   );
 };
