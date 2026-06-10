@@ -178,6 +178,7 @@ async function getProfile(): Promise<AthleteData> {
   const res = await fetch(`${API_URL}/athlete/profile`, {
     headers: authHeaders(),
   });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return (await res.json()).data;
 }
 
@@ -185,6 +186,7 @@ async function getTournaments(): Promise<TournamentEntry[]> {
   const res = await fetch(`${API_URL}/athlete/tournaments`, {
     headers: authHeaders(),
   });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return (await res.json()).data ?? [];
 }
 
@@ -479,6 +481,7 @@ const AthleteProfile: React.FC = () => {
     }[]
   >([]);
   const [showConnections, setShowConnections] = useState(false);
+  const [profileError, setProfileError] = useState("");
 
   const { state: navState } = useLocation();
 
@@ -496,7 +499,9 @@ const AthleteProfile: React.FC = () => {
         setStats(athleteStats);
         setSponsors(athleteSponsors);
       })
-      .catch(console.error)
+      .catch((err) =>
+        setProfileError(err instanceof Error ? err.message : "Erro desconhecido"),
+      )
       .finally(() => setLoading(false));
 
     // Fetch connection count
@@ -525,9 +530,10 @@ const AthleteProfile: React.FC = () => {
     return (
       <div className="min-h-screen bg-[#f8f9fc]">
         <AthleteHeader />
-        <div className="pt-24 text-center text-gray-500 text-sm">
-          Erro ao carregar perfil.
+        <div className="pt-24 text-center text-gray-500 text-sm px-4">
+          Erro ao carregar perfil{profileError ? ` (${profileError})` : "."}
         </div>
+        <AthleteBottomNav />
       </div>
     );
   }

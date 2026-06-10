@@ -23,7 +23,11 @@ const FeedPage: React.FC = () => {
       }
       setNextCursor(nc);
     } catch (err) {
-      setError("Erro ao carregar feed.");
+      setError(
+        err instanceof Error
+          ? `Erro ao carregar feed (${err.message})`
+          : "Erro ao carregar feed.",
+      );
     }
   }, []);
 
