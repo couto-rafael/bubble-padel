@@ -19,6 +19,21 @@ Itens pendentes que não entraram na sprint atual. Cada item tem: prioridade, sp
 - **Sprint sugerida:** 15
 - `NotificationsPage` hoje é exclusiva de atleta: `AthleteHeader` hardcoded + `navigate` apontando para `/athlete/...`. Clube não tem página de notificações dedicada. Resolver na Sprint 15: tornar `NotificationsPage` agnóstica de header/navigate (prop ou contexto), **OU** criar rota própria do clube. Não duplicar a página.
 
+### Card MATCH_RESULT no feed — informação insuficiente
+- **Prioridade:** Média
+- **Sprint sugerida:** 15 (UX/UI refinement) ou Sprint 9 se Feed Social v1 for prioridade
+- Card atual mostra só "Vitória/Derrota 6×7 · Categoria · Torneio". Falta: parceiro do autor (pra saber com quem ele jogou), dupla adversária (contra quem), fase/rodada (Grupo X · Quartas · Final), link clicável pro perfil dos envolvidos e pro torneio. Hoje é impossível entender o contexto do jogo só pelo card.
+
+### Navegação do atleta — acesso ao dashboard pouco descoberto
+- **Prioridade:** Média
+- **Sprint sugerida:** 9 ou 15
+- Único caminho pra voltar do feed/perfil pro dashboard do atleta é clicar no logo da Bubble — não óbvio. Dropdown do header só tem "Feed" e "Clubes". Adicionar "Meu Dashboard" e "Meu Perfil" no dropdown (ou repensar a IA do header).
+
+### Torneios no perfil do atleta — sem classificação final
+- **Prioridade:** Baixa
+- **Sprint sugerida:** 15
+- Lista de torneios no perfil mostra nome/data/categoria mas não exibe a classificação final (campeão / vice / eliminado em quartas / fase de grupos). Justamente a prova social que o app deveria celebrar. Adicionar badge ou linha extra com o resultado.
+
 ## Sprint 9 backlog (já existente, manter aqui pra consolidar)
 
 - Theme dark/light unificar
