@@ -22,9 +22,16 @@ Itens pendentes que não entraram na sprint atual. Cada item tem: prioridade, sp
 ## Sprint 9 backlog (já existente, manter aqui pra consolidar)
 
 - Theme dark/light unificar
-- Race condition 401 no mount endpoints `/athlete/profile|tournaments|stats`
+- Race condition 401 no mount endpoints `/athlete/profile|tournaments|stats` _(reproduzido em produção 2026-06-09 — sintoma: perfil/feed exibem "Erro ao carregar" no primeiro mount; segundo acesso funciona)_
 - Pre-commit hook `npm ci && tsc`
 - Renomear marca "Bubble"
 - LGPD Settings/Conta excluir + exportar
 - Feature busca de atletas
 - Feed composer manual + likes + comentários
+
+## Scripts / Dev tooling
+
+### seed-tournament-scores.ts — single-pass
+- **Prioridade:** Baixa
+- **Sprint sugerida:** sem data
+- Script faz 1 passada nos brackets, propaga winners no banco mas dados locais ficam stale → quartas/semis/final não preenchem na mesma execução. Hoje requer 4 runs manuais até cascata completa (oitavas → quartas → semis → final). Fix: loop multi-pass até `matches.ready === 0` em todos os rounds, ou re-fetch dos brackets após cada save.
