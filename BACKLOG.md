@@ -37,6 +37,7 @@ Itens pendentes que não entraram na sprint atual. Cada item tem: prioridade, sp
 ## Sprint 9 backlog (já existente, manter aqui pra consolidar)
 
 - Theme dark/light unificar
+- **Bug crítico — Super 8 não gera auto-posts no feed:** `Super8Match` não dispara `maybeCreateMatchResultPost` nem `maybeCreateTrophyPost`. Atletas que jogam Super 8 não veem os jogos no feed — quebra engajamento social do formato. Implementar `maybeCreateSuper8MatchResultPost` adaptando lógica de `maybeCreateMatchResultPost` (atenção: Super 8 tem 4 atletas únicos por partida, parceiros rotativos — gate "amigo na partida" precisa considerar todos os 4). Prioridade: Alta. Pré-lançamento.
 - Race condition 401 no mount endpoints `/athlete/profile|tournaments|stats` _(reproduzido em produção 2026-06-09 — sintoma: perfil/feed exibem "Erro ao carregar" no primeiro mount; segundo acesso funciona)_
 - Pre-commit hook `npm ci && tsc`
 - Renomear marca "Bubble"
