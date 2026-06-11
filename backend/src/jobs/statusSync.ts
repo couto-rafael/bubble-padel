@@ -164,7 +164,7 @@ export async function syncTournamentStatuses(): Promise<void> {
 
 // ─── TROPHY posts — chamado após COMPLETED ────────────────────────────────────
 
-async function generateTrophyPosts(tournamentId: string): Promise<void> {
+export async function generateTrophyPosts(tournamentId: string): Promise<void> {
   const tournament = await prisma.tournament.findUnique({
     where: { id: tournamentId },
     select: { id: true, name: true },

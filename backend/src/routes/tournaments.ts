@@ -12,6 +12,7 @@ import {
   sendRelatorioRepasse,
   COMMISSION_PER_ATHLETE,
 } from "../services/EmailService";
+import { generateTrophyPosts } from "../jobs/statusSync";
 
 export const tournamentRoutes = Router();
 
@@ -433,6 +434,9 @@ tournamentRoutes.post(
           );
           dispatchReconciliacao(req.params.id).catch((err: unknown) =>
             console.error("[reconciliacao] falhou:", err),
+          );
+          generateTrophyPosts(req.params.id).catch((err: unknown) =>
+            console.error("[feed] trophy posts falhou:", err),
           );
         }
       }
