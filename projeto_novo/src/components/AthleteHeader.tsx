@@ -129,6 +129,13 @@ const AthleteHeader: React.FC = () => {
                 {isDashboardOpen && (
                   <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                     <Link
+                      to="/athlete/dashboard"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      onClick={() => setIsDashboardOpen(false)}
+                    >
+                      Meu Dashboard
+                    </Link>
+                    <Link
                       to="/athlete/feed"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       onClick={() => setIsDashboardOpen(false)}
