@@ -747,6 +747,8 @@ export interface FeedPostAuthor {
 export interface FeedPost {
   id: string;
   athleteId: string;
+  likeCount: number;
+  likedByMe: boolean;
   type: "TROPHY" | "MATCH_RESULT" | "MANUAL";
   content: string | null;
   imageUrl: string | null;
@@ -771,5 +773,19 @@ export const FeedService = {
       body: JSON.stringify({ content }),
     });
     return handleResponse<FeedPost>(res);
+  },
+  like: async (postId: string): Promise<{ liked: boolean; likeCount: number }> => {
+    const res = await fetch(`${API_URL}/athlete/posts/${postId}/like`, {
+      method: "POST",
+      headers: authHeaders(),
+    });
+    return handleResponse<{ liked: boolean; likeCount: number }>(res);
+  },
+  unlike: async (postId: string): Promise<{ liked: boolean; likeCount: number }> => {
+    const res = await fetch(`${API_URL}/athlete/posts/${postId}/like`, {
+      method: "DELETE",
+      headers: authHeaders(),
+    });
+    return handleResponse<{ liked: boolean; likeCount: number }>(res);
   },
 };

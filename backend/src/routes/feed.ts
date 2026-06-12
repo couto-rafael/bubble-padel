@@ -52,6 +52,7 @@ feedRoutes.get(
               avatarUrl: true,
             },
           },
+          _count: { select: { likes: true } },
         },
       });
 
@@ -59,7 +60,22 @@ feedRoutes.get(
       const items = hasMore ? posts.slice(0, limit) : posts;
       const nextCursor = hasMore ? items[items.length - 1].id : null;
 
-      return res.json({ data: { posts: items, nextCursor } });
+      const myLikes = await prisma.postLike.findMany({
+        where: {
+          athleteId,
+          postId: { in: items.map((p) => p.id) },
+        },
+        select: { postId: true },
+      });
+      const likedSet = new Set(myLikes.map((l) => l.postId));
+
+      const enriched = items.map(({ _count, ...p }) => ({
+        ...p,
+        likeCount: _count?.likes ?? 0,
+        likedByMe: likedSet.has(p.id),
+      }));
+
+      return res.json({ data: { posts: enriched, nextCursor } });
     } catch (err) {
       next(err);
     }
@@ -102,6 +118,69 @@ feedRoutes.post(
       });
 
       return res.status(201).json({ data: post });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// ─── POST /api/athlete/posts/:postId/like ─────────────────────────────────────
+
+feedRoutes.post(
+  "/posts/:postId/like",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const athlete = await prisma.athlete.findUnique({
+        where: { userId: req.userId! },
+        select: { id: true },
+      });
+      if (!athlete) return res.status(404).json({ error: "Atleta não encontrado" });
+
+      const post = await prisma.athletePost.findUnique({
+        where: { id: req.params.postId },
+        select: { id: true },
+      });
+      if (!post) return res.status(404).json({ error: "Post não encontrado" });
+
+      await prisma.postLike.upsert({
+        where: {
+          postId_athleteId: {
+            postId: post.id,
+            athleteId: athlete.id,
+          },
+        },
+        create: { postId: post.id, athleteId: athlete.id },
+        update: {},
+      });
+
+      const likeCount = await prisma.postLike.count({ where: { postId: post.id } });
+      return res.json({ data: { liked: true, likeCount } });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// ─── DELETE /api/athlete/posts/:postId/like ───────────────────────────────────
+
+feedRoutes.delete(
+  "/posts/:postId/like",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const athlete = await prisma.athlete.findUnique({
+        where: { userId: req.userId! },
+        select: { id: true },
+      });
+      if (!athlete) return res.status(404).json({ error: "Atleta não encontrado" });
+
+      await prisma.postLike.deleteMany({
+        where: { postId: req.params.postId, athleteId: athlete.id },
+      });
+
+      const likeCount = await prisma.postLike.count({ where: { postId: req.params.postId } });
+      return res.json({ data: { liked: false, likeCount } });
     } catch (err) {
       next(err);
     }
