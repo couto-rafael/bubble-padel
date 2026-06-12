@@ -67,62 +67,62 @@ enum AchievementTier {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String
-  type         UserType
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  club         Club?
-  athlete      Athlete?
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  name          String
+  type          UserType
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  club          Club?
+  athlete       Athlete?
   notifications Notification[]
 
   @@map("users")
 }
 
 model Club {
-  id               String         @id @default(cuid())
-  userId           String         @unique
-  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name             String
-  cnpj             String?
-  city             String         @default("")
-  state            String         @default("")
-  phone            String?
-  logoUrl          String?
-  courts           String[]       @default([])
-  matchDuration    Int            @default(60)
-  defaultStartTime String         @default("08:00")
-  defaultEndTime   String         @default("20:00")
+  id                String           @id @default(cuid())
+  userId            String           @unique
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name              String
+  cnpj              String?
+  city              String           @default("")
+  state             String           @default("")
+  phone             String?
+  logoUrl           String?
+  courts            String[]         @default([])
+  matchDuration     Int              @default(60)
+  defaultStartTime  String           @default("08:00")
+  defaultEndTime    String           @default("20:00")
   // Sprint 7B — endereço completo
-  cep              String?
-  street           String?
-  addressNumber    String?
-  neighborhood     String?
+  cep               String?
+  street            String?
+  addressNumber     String?
+  neighborhood      String?
   // perfil público
-  coverUrl         String?
-  slogan           String?
-  description      String?
-  sports           Sport[]        @default([])
-  amenities        String[]       @default([])
-  businessHours    Json?
-  paymentMethods   Json?
-  pixKeys          Json?
-  whatsappNumber   String?
-  instagramUrl     String?
-  youtubeUrl       String?
-  twitterUrl       String?
-  threadsUrl       String?
-  instructors      ClubInstructor[]
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  tournaments      Tournament[]
-  leaguesCreated   League[]       @relation("LeaguesCreated")
+  coverUrl          String?
+  slogan            String?
+  description       String?
+  sports            Sport[]          @default([])
+  amenities         String[]         @default([])
+  businessHours     Json?
+  paymentMethods    Json?
+  pixKeys           Json?
+  whatsappNumber    String?
+  instagramUrl      String?
+  youtubeUrl        String?
+  twitterUrl        String?
+  threadsUrl        String?
+  instructors       ClubInstructor[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  tournaments       Tournament[]
+  leaguesCreated    League[]         @relation("LeaguesCreated")
   leagueMemberships LeagueMember[]
 
   // Sprint 10 — social
-  followers         AthleteFollowsClub[] @relation("ClubFollowers")
+  followers AthleteFollowsClub[] @relation("ClubFollowers")
 
   @@map("clubs")
 }
@@ -142,30 +142,30 @@ model ClubInstructor {
 }
 
 model Athlete {
-  id           String    @id @default(cuid())
-  userId       String    @unique
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fullName     String
-  cpf          String?
-  phone        String?
-  birthDate    DateTime?
-  city         String?
-  state        String?
-  avatarUrl    String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName  String
+  cpf       String?
+  phone     String?
+  birthDate DateTime?
+  city      String?
+  state     String?
+  avatarUrl String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   // Sprint 7 — perfil Strava
-  firstName    String?           // Nome (separado do sobrenome)
-  lastName     String?           // Sobrenome
-  nickname     String?           // Apelido/nome de guerra
-  bio          String?           // Bio pública (max 300 chars)
-  gender       String?           // MASCULINO | FEMININO | NAO_INFORMAR
-  bannerUrl    String?           // URL do banner do perfil
-  sports       Sport[]           @default([])  // Esportes que pratica
-  rackets      String[]          @default([])  // Marcas/modelos das raquetes
-  instagramUrl String?           // Handle ou URL do Instagram
-  twitterUrl   String?           // Handle ou URL do Twitter/X
+  firstName    String? // Nome (separado do sobrenome)
+  lastName     String? // Sobrenome
+  nickname     String? // Apelido/nome de guerra
+  bio          String? // Bio pública (max 300 chars)
+  gender       String? // MASCULINO | FEMININO | NAO_INFORMAR
+  bannerUrl    String? // URL do banner do perfil
+  sports       Sport[]  @default([]) // Esportes que pratica
+  rackets      String[] @default([]) // Marcas/modelos das raquetes
+  instagramUrl String? // Handle ou URL do Instagram
+  twitterUrl   String? // Handle ou URL do Twitter/X
 
   // Sprint 5 — gamificação
   trophies     AthleteTrophy[]
@@ -173,16 +173,18 @@ model Athlete {
   leaguePoints LeaguePoints[]
 
   // Sprint 9 — patrocinadores
-  sponsors          AthleteSponsor[]
+  sponsors AthleteSponsor[]
 
   // Sprint 10 — social
-  friendshipsSent     AthleteFriendship[] @relation("FriendshipSent")
-  friendshipsReceived AthleteFriendship[] @relation("FriendshipReceived")
+  friendshipsSent     AthleteFriendship[]  @relation("FriendshipSent")
+  friendshipsReceived AthleteFriendship[]  @relation("FriendshipReceived")
   followingClubs      AthleteFollowsClub[] @relation("AthleteFollowsClubs")
   posts               AthletePost[]
+  postLikes           PostLike[]
+  postComments        PostComment[]
 
   // Configurações de privacidade e notificações
-  settings          Json      @default("{}")
+  settings Json @default("{}")
 
   @@map("athletes")
 }
@@ -192,31 +194,31 @@ model Athlete {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Tournament {
-  id                     String           @id @default(cuid())
+  id                     String            @id @default(cuid())
   clubId                 String
-  club                   Club             @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  club                   Club              @relation(fields: [clubId], references: [id], onDelete: Cascade)
   name                   String
-  sport                  Sport            @default(PADEL)
-  tournamentType         String           @default("Grupos + Playoffs")
+  sport                  Sport             @default(PADEL)
+  tournamentType         String            @default("Grupos + Playoffs")
   startDate              DateTime
   endDate                DateTime
   registrationStartDate  DateTime?
   registrationEndDate    DateTime?
-  description            String           @default("")
-  status                 TournamentStatus @default(DRAFT)
-  maxTeams               Int              @default(32)
-  priceFirstCategory     Float            @default(0)
-  hasSecondCategoryPrice Boolean          @default(false)
-  priceSecondCategory    Float            @default(0)
-  pixKey                 String           @default("")
-  clubSede               String           @default("")
+  description            String            @default("")
+  status                 TournamentStatus  @default(DRAFT)
+  maxTeams               Int               @default(32)
+  priceFirstCategory     Float             @default(0)
+  hasSecondCategoryPrice Boolean           @default(false)
+  priceSecondCategory    Float             @default(0)
+  pixKey                 String            @default("")
+  clubSede               String            @default("")
   categories             String[]
-  matchDuration          Int              @default(60)
-  daySchedules           Json             @default("[]")
+  matchDuration          Int               @default(60)
+  daySchedules           Json              @default("[]")
   courts                 String[]
   reminderSentAt         DateTime?
-  createdAt              DateTime         @default(now())
-  updatedAt              DateTime         @updatedAt
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
   teams                  Team[]
   groups                 Group[]
   playoffs               PlayoffBracket[]
@@ -435,22 +437,22 @@ model Reconciliation {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model League {
-  id              String   @id @default(cuid())
+  id              String             @id @default(cuid())
   name            String
-  description     String   @default("")
+  description     String             @default("")
   sport           Sport?
   createdByClubId String
-  createdByClub   Club     @relation("LeaguesCreated", fields: [createdByClubId], references: [id], onDelete: Cascade)
-  pointsChampion  Int      @default(100)
-  pointsRunnerUp  Int      @default(70)
-  pointsSemi      Int      @default(45)
-  pointsQuarter   Int      @default(25)
-  pointsGroup     Int      @default(10)
+  createdByClub   Club               @relation("LeaguesCreated", fields: [createdByClubId], references: [id], onDelete: Cascade)
+  pointsChampion  Int                @default(100)
+  pointsRunnerUp  Int                @default(70)
+  pointsSemi      Int                @default(45)
+  pointsQuarter   Int                @default(25)
+  pointsGroup     Int                @default(10)
   pointsRound16   Int?
   pointsRound32   Int?
-  status          String   @default("ACTIVE")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  status          String             @default("ACTIVE")
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
   members         LeagueMember[]
   tournaments     LeagueTournament[]
   points          LeaguePoints[]
@@ -527,14 +529,14 @@ model AthleteTrophy {
 }
 
 model AthleteAchievement {
-  id         String           @id @default(cuid())
+  id         String          @id @default(cuid())
   athleteId  String
-  athlete    Athlete          @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  athlete    Athlete         @relation(fields: [athleteId], references: [id], onDelete: Cascade)
   key        String
   tier       AchievementTier
-  progress   Int              @default(0)
+  progress   Int             @default(0)
   unlockedAt DateTime?
-  updatedAt  DateTime         @updatedAt
+  updatedAt  DateTime        @updatedAt
 
   @@unique([athleteId, key])
   @@map("athlete_achievements")
@@ -605,17 +607,50 @@ model AthleteFriendship {
 }
 
 model AthletePost {
-  id         String    @id @default(cuid())
-  athleteId  String
-  athlete    Athlete   @relation(fields: [athleteId], references: [id], onDelete: Cascade)
-  type       PostType  @default(MANUAL)
-  content    String?
-  imageUrl   String?
-  metadata   Json?
-  createdAt  DateTime  @default(now())
+  id                  String        @id @default(cuid())
+  athleteId           String
+  athlete             Athlete       @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  type                PostType      @default(MANUAL)
+  content             String?
+  imageUrl            String?
+  metadata            Json?
+  mentionedAthleteIds String[]      @default([])
+  createdAt           DateTime      @default(now())
+  likes               PostLike[]
+  comments            PostComment[]
 
   @@index([athleteId, createdAt])
   @@map("athlete_posts")
+}
+
+model PostLike {
+  id        String      @id @default(cuid())
+  postId    String
+  post      AthletePost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  athleteId String
+  athlete   Athlete     @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
+
+  @@unique([postId, athleteId])
+  @@index([postId])
+  @@index([athleteId])
+  @@map("post_likes")
+}
+
+model PostComment {
+  id                  String      @id @default(cuid())
+  postId              String
+  post                AthletePost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  athleteId           String
+  athlete             Athlete     @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  content             String
+  mentionedAthleteIds String[]    @default([])
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  @@index([postId, createdAt])
+  @@index([athleteId])
+  @@map("post_comments")
 }
 
 model AthleteFollowsClub {
@@ -631,14 +666,14 @@ model AthleteFollowsClub {
 }
 
 model Message {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   senderId     String
   senderType   UserType
   receiverId   String
   receiverType UserType
   content      String
   readAt       DateTime?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime  @default(now())
 
   @@map("messages")
 }
