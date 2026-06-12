@@ -14,6 +14,8 @@ export interface User {
   email: string;
   type: UserType;
   avatarUrl?: string;
+  athleteId?: string;
+  clubId?: string;
   createdAt: string;
 }
 

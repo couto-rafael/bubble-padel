@@ -52,7 +52,7 @@ feedRoutes.get(
               avatarUrl: true,
             },
           },
-          _count: { select: { likes: true } },
+          _count: { select: { likes: true, comments: true } },
         },
       });
 
@@ -72,6 +72,7 @@ feedRoutes.get(
       const enriched = items.map(({ _count, ...p }) => ({
         ...p,
         likeCount: _count?.likes ?? 0,
+        commentCount: _count?.comments ?? 0,
         likedByMe: likedSet.has(p.id),
       }));
 
@@ -181,6 +182,118 @@ feedRoutes.delete(
 
       const likeCount = await prisma.postLike.count({ where: { postId: req.params.postId } });
       return res.json({ data: { liked: false, likeCount } });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// ─── POST /api/athlete/posts/:postId/comments ─────────────────────────────────
+
+const createCommentSchema = z.object({
+  content: z.string().min(1).max(1000),
+});
+
+feedRoutes.post(
+  "/posts/:postId/comments",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const body = createCommentSchema.safeParse(req.body);
+      if (!body.success) return res.status(400).json({ error: body.error.flatten() });
+
+      const athlete = await prisma.athlete.findUnique({
+        where: { userId: req.userId! },
+        select: { id: true },
+      });
+      if (!athlete) return res.status(404).json({ error: "Atleta não encontrado" });
+
+      const post = await prisma.athletePost.findUnique({
+        where: { id: req.params.postId },
+        select: { id: true },
+      });
+      if (!post) return res.status(404).json({ error: "Post não encontrado" });
+
+      const comment = await prisma.postComment.create({
+        data: {
+          postId: post.id,
+          athleteId: athlete.id,
+          content: body.data.content.trim(),
+        },
+        include: {
+          athlete: {
+            select: { id: true, fullName: true, nickname: true, avatarUrl: true },
+          },
+        },
+      });
+
+      return res.status(201).json({ data: comment });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// ─── GET /api/athlete/posts/:postId/comments?cursor=<id>&limit=20 ─────────────
+
+feedRoutes.get(
+  "/posts/:postId/comments",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const limit = Math.min(Number(req.query.limit) || 20, 50);
+      const cursor = req.query.cursor as string | undefined;
+
+      const comments = await prisma.postComment.findMany({
+        where: { postId: req.params.postId },
+        orderBy: { createdAt: "asc" },
+        take: limit + 1,
+        ...(cursor && { skip: 1, cursor: { id: cursor } }),
+        include: {
+          athlete: {
+            select: { id: true, fullName: true, nickname: true, avatarUrl: true },
+          },
+        },
+      });
+
+      const hasMore = comments.length > limit;
+      const items = hasMore ? comments.slice(0, limit) : comments;
+      const nextCursor = hasMore ? items[items.length - 1].id : null;
+
+      return res.json({ data: { comments: items, nextCursor } });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// ─── DELETE /api/athlete/posts/:postId/comments/:commentId ────────────────────
+
+feedRoutes.delete(
+  "/posts/:postId/comments/:commentId",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const athlete = await prisma.athlete.findUnique({
+        where: { userId: req.userId! },
+        select: { id: true },
+      });
+      if (!athlete) return res.status(404).json({ error: "Atleta não encontrado" });
+
+      const comment = await prisma.postComment.findUnique({
+        where: { id: req.params.commentId },
+        select: { id: true, athleteId: true, postId: true },
+      });
+      if (!comment) return res.status(404).json({ error: "Comentário não encontrado" });
+      if (comment.postId !== req.params.postId) {
+        return res.status(404).json({ error: "Comentário não pertence ao post" });
+      }
+      if (comment.athleteId !== athlete.id) {
+        return res.status(403).json({ error: "Sem permissão" });
+      }
+
+      await prisma.postComment.delete({ where: { id: comment.id } });
+      return res.status(204).send();
     } catch (err) {
       next(err);
     }

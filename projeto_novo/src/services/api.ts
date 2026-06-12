@@ -744,11 +744,27 @@ export interface FeedPostAuthor {
   avatarUrl: string | null;
 }
 
+export interface PostComment {
+  id: string;
+  postId: string;
+  athleteId: string;
+  content: string;
+  mentionedAthleteIds: string[];
+  createdAt: string;
+  athlete: {
+    id: string;
+    fullName: string;
+    nickname: string | null;
+    avatarUrl: string | null;
+  };
+}
+
 export interface FeedPost {
   id: string;
   athleteId: string;
   likeCount: number;
   likedByMe: boolean;
+  commentCount: number;
   type: "TROPHY" | "MATCH_RESULT" | "MANUAL";
   content: string | null;
   imageUrl: string | null;
@@ -787,5 +803,33 @@ export const FeedService = {
       headers: authHeaders(),
     });
     return handleResponse<{ liked: boolean; likeCount: number }>(res);
+  },
+  listComments: async (
+    postId: string,
+    cursor?: string,
+  ): Promise<{ comments: PostComment[]; nextCursor: string | null }> => {
+    const qs = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+    const res = await fetch(`${API_URL}/athlete/posts/${postId}/comments${qs}`, {
+      headers: authHeaders(),
+    });
+    return handleResponse<{ comments: PostComment[]; nextCursor: string | null }>(res);
+  },
+  createComment: async (postId: string, content: string): Promise<PostComment> => {
+    const res = await fetch(`${API_URL}/athlete/posts/${postId}/comments`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ content }),
+    });
+    return handleResponse<PostComment>(res);
+  },
+  deleteComment: async (postId: string, commentId: string): Promise<void> => {
+    const res = await fetch(
+      `${API_URL}/athlete/posts/${postId}/comments/${commentId}`,
+      { method: "DELETE", headers: authHeaders() },
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: "Erro desconhecido" }));
+      throw new Error(err.error ?? `HTTP ${res.status}`);
+    }
   },
 };
