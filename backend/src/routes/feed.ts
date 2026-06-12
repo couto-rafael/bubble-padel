@@ -5,6 +5,30 @@ import { prisma } from "../lib/prisma";
 
 export const feedRoutes = Router();
 
+// ─── helpers ─────────────────────────────────────────────────────────────────
+
+const mentionedIdsSchema = z
+  .array(z.string())
+  .max(10)
+  .optional()
+  .default([]);
+
+async function validateMentionedIds(ids: string[]): Promise<boolean> {
+  if (!ids.length) return true;
+  const found = await prisma.athlete.count({ where: { id: { in: ids } } });
+  return found === ids.length;
+}
+
+async function hydrateMentions(
+  ids: string[],
+): Promise<{ id: string; fullName: string; nickname: string | null; avatarUrl: string | null }[]> {
+  if (!ids.length) return [];
+  return prisma.athlete.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, fullName: true, nickname: true, avatarUrl: true },
+  });
+}
+
 // ─── GET /api/athlete/feed?cursor=<id>&limit=20 ───────────────────────────────
 
 feedRoutes.get(
@@ -23,7 +47,6 @@ feedRoutes.get(
       const limit = Math.min(Number(req.query.limit ?? 20), 50);
       const cursor = req.query.cursor as string | undefined;
 
-      // Amigos aceitos nos dois sentidos
       const friendships = await prisma.athleteFriendship.findMany({
         where: {
           status: "ACCEPTED",
@@ -45,12 +68,7 @@ feedRoutes.get(
         ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
         include: {
           athlete: {
-            select: {
-              id: true,
-              fullName: true,
-              nickname: true,
-              avatarUrl: true,
-            },
+            select: { id: true, fullName: true, nickname: true, avatarUrl: true },
           },
           _count: { select: { likes: true, comments: true } },
         },
@@ -61,19 +79,25 @@ feedRoutes.get(
       const nextCursor = hasMore ? items[items.length - 1].id : null;
 
       const myLikes = await prisma.postLike.findMany({
-        where: {
-          athleteId,
-          postId: { in: items.map((p) => p.id) },
-        },
+        where: { athleteId, postId: { in: items.map((p) => p.id) } },
         select: { postId: true },
       });
       const likedSet = new Set(myLikes.map((l) => l.postId));
+
+      // Hydrate all mentionedAthleteIds in one query
+      const allMentionedIds = [...new Set(items.flatMap((p) => p.mentionedAthleteIds))];
+      const mentionMap = new Map(
+        (await hydrateMentions(allMentionedIds)).map((a) => [a.id, a]),
+      );
 
       const enriched = items.map(({ _count, ...p }) => ({
         ...p,
         likeCount: _count?.likes ?? 0,
         commentCount: _count?.comments ?? 0,
         likedByMe: likedSet.has(p.id),
+        mentionedAthletes: p.mentionedAthleteIds
+          .map((id) => mentionMap.get(id))
+          .filter(Boolean),
       }));
 
       return res.json({ data: { posts: enriched, nextCursor } });
@@ -87,6 +111,7 @@ feedRoutes.get(
 
 const createPostSchema = z.object({
   content: z.string().min(1).max(2000),
+  mentionedAthleteIds: mentionedIdsSchema,
 });
 
 feedRoutes.post(
@@ -105,11 +130,16 @@ feedRoutes.post(
       if (!athlete)
         return res.status(404).json({ error: "Atleta não encontrado" });
 
+      const mentionedIds = body.data.mentionedAthleteIds;
+      if (!(await validateMentionedIds(mentionedIds)))
+        return res.status(400).json({ error: "ID de atleta mencionado inválido" });
+
       const post = await prisma.athletePost.create({
         data: {
           athleteId: athlete.id,
           type: "MANUAL",
           content: body.data.content.trim(),
+          mentionedAthleteIds: mentionedIds,
         },
         include: {
           athlete: {
@@ -145,12 +175,7 @@ feedRoutes.post(
       if (!post) return res.status(404).json({ error: "Post não encontrado" });
 
       await prisma.postLike.upsert({
-        where: {
-          postId_athleteId: {
-            postId: post.id,
-            athleteId: athlete.id,
-          },
-        },
+        where: { postId_athleteId: { postId: post.id, athleteId: athlete.id } },
         create: { postId: post.id, athleteId: athlete.id },
         update: {},
       });
@@ -192,6 +217,7 @@ feedRoutes.delete(
 
 const createCommentSchema = z.object({
   content: z.string().min(1).max(1000),
+  mentionedAthleteIds: mentionedIdsSchema,
 });
 
 feedRoutes.post(
@@ -214,11 +240,16 @@ feedRoutes.post(
       });
       if (!post) return res.status(404).json({ error: "Post não encontrado" });
 
+      const mentionedIds = body.data.mentionedAthleteIds;
+      if (!(await validateMentionedIds(mentionedIds)))
+        return res.status(400).json({ error: "ID de atleta mencionado inválido" });
+
       const comment = await prisma.postComment.create({
         data: {
           postId: post.id,
           athleteId: athlete.id,
           content: body.data.content.trim(),
+          mentionedAthleteIds: mentionedIds,
         },
         include: {
           athlete: {
@@ -227,7 +258,8 @@ feedRoutes.post(
         },
       });
 
-      return res.status(201).json({ data: comment });
+      const mentionedAthletes = await hydrateMentions(mentionedIds);
+      return res.status(201).json({ data: { ...comment, mentionedAthletes } });
     } catch (err) {
       next(err);
     }
@@ -260,7 +292,19 @@ feedRoutes.get(
       const items = hasMore ? comments.slice(0, limit) : comments;
       const nextCursor = hasMore ? items[items.length - 1].id : null;
 
-      return res.json({ data: { comments: items, nextCursor } });
+      const allMentionedIds = [...new Set(items.flatMap((c) => c.mentionedAthleteIds))];
+      const mentionMap = new Map(
+        (await hydrateMentions(allMentionedIds)).map((a) => [a.id, a]),
+      );
+
+      const enriched = items.map((c) => ({
+        ...c,
+        mentionedAthletes: c.mentionedAthleteIds
+          .map((id) => mentionMap.get(id))
+          .filter(Boolean),
+      }));
+
+      return res.json({ data: { comments: enriched, nextCursor } });
     } catch (err) {
       next(err);
     }
@@ -285,12 +329,10 @@ feedRoutes.delete(
         select: { id: true, athleteId: true, postId: true },
       });
       if (!comment) return res.status(404).json({ error: "Comentário não encontrado" });
-      if (comment.postId !== req.params.postId) {
+      if (comment.postId !== req.params.postId)
         return res.status(404).json({ error: "Comentário não pertence ao post" });
-      }
-      if (comment.athleteId !== athlete.id) {
+      if (comment.athleteId !== athlete.id)
         return res.status(403).json({ error: "Sem permissão" });
-      }
 
       await prisma.postComment.delete({ where: { id: comment.id } });
       return res.status(204).send();

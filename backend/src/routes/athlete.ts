@@ -1472,3 +1472,30 @@ publicAthleteRoutes.get("/:id", async (req, res, next) => {
     next(err);
   }
 });
+
+// ─── GET /api/athlete/search?q=<string>&limit=8 ───────────────────────────────
+
+athleteRoutes.get("/search", requireAuth, async (req: AuthRequest, res, next) => {
+  try {
+    const q = (req.query.q as string ?? "").trim();
+    if (q.length < 1) return res.json({ data: { athletes: [] } });
+
+    const limit = Math.min(Number(req.query.limit) || 8, 20);
+
+    const athletes = await prisma.athlete.findMany({
+      where: {
+        OR: [
+          { nickname: { contains: q, mode: "insensitive" } },
+          { fullName: { contains: q, mode: "insensitive" } },
+        ],
+      },
+      select: { id: true, fullName: true, nickname: true, avatarUrl: true, city: true },
+      orderBy: [{ nickname: "asc" }, { fullName: "asc" }],
+      take: limit,
+    });
+
+    return res.json({ data: { athletes } });
+  } catch (err) {
+    next(err);
+  }
+});

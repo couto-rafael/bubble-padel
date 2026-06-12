@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { FeedService } from "../services/api";
+import MentionTextarea from "./MentionTextarea";
 
 interface FeedComposerProps {
   onPostCreated: () => void;
@@ -9,10 +10,16 @@ interface FeedComposerProps {
 const FeedComposer: React.FC<FeedComposerProps> = ({ onPostCreated }) => {
   const { user } = useAuth();
   const [content, setContent] = useState("");
+  const [mentionedIds, setMentionedIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (!user || (user.type as string) !== "ATHLETE") return null;
+
+  const handleChange = (val: string, ids: string[]) => {
+    setContent(val.slice(0, 2000));
+    setMentionedIds(ids);
+  };
 
   const handleSubmit = async () => {
     const trimmed = content.trim();
@@ -20,8 +27,9 @@ const FeedComposer: React.FC<FeedComposerProps> = ({ onPostCreated }) => {
     setSubmitting(true);
     setError(null);
     try {
-      await FeedService.create(trimmed);
+      await FeedService.create(trimmed, mentionedIds);
       setContent("");
+      setMentionedIds([]);
       onPostCreated();
     } catch {
       setError("Não foi possível publicar. Tente novamente.");
@@ -34,13 +42,15 @@ const FeedComposer: React.FC<FeedComposerProps> = ({ onPostCreated }) => {
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 mb-4">
-      <textarea
+      <MentionTextarea
         value={content}
-        onChange={(e) => setContent(e.target.value.slice(0, 2000))}
+        onChange={handleChange}
         placeholder="O que está rolando na sua quadra?"
+        maxLength={2000}
+        multiline
         rows={3}
-        className="w-full resize-none border-0 focus:ring-0 text-[14px] text-gray-900 placeholder:text-gray-400 outline-none"
         disabled={submitting}
+        className="w-full resize-none border-0 focus:ring-0 text-[14px] text-gray-900 placeholder:text-gray-400 outline-none"
       />
       <div className="flex items-center justify-between pt-3 border-t border-gray-100">
         <span

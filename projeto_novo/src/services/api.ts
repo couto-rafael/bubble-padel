@@ -735,6 +735,29 @@ export const AthleteViewService = {
   },
 };
 
+// ─── AthleteService (autenticado) ────────────────────────────────────────────
+
+export interface MentionedAthlete {
+  id: string;
+  fullName: string;
+  nickname: string | null;
+  avatarUrl: string | null;
+  city?: string | null;
+}
+
+export const AthleteService = {
+  search: async (
+    q: string,
+    limit = 8,
+  ): Promise<{ athletes: MentionedAthlete[] }> => {
+    const qs = `q=${encodeURIComponent(q)}&limit=${limit}`;
+    const res = await fetch(`${API_URL}/athlete/search?${qs}`, {
+      headers: authHeaders(),
+    });
+    return handleResponse<{ athletes: MentionedAthlete[] }>(res);
+  },
+};
+
 // ─── Feed ─────────────────────────────────────────────────────────────────────
 
 export interface FeedPostAuthor {
@@ -750,6 +773,7 @@ export interface PostComment {
   athleteId: string;
   content: string;
   mentionedAthleteIds: string[];
+  mentionedAthletes: MentionedAthlete[];
   createdAt: string;
   athlete: {
     id: string;
@@ -769,6 +793,8 @@ export interface FeedPost {
   content: string | null;
   imageUrl: string | null;
   metadata: Record<string, unknown> | null;
+  mentionedAthleteIds: string[];
+  mentionedAthletes: MentionedAthlete[];
   createdAt: string;
   athlete: FeedPostAuthor;
 }
@@ -782,11 +808,11 @@ export const FeedService = {
     const json = await handleResponse<{ posts: FeedPost[]; nextCursor: string | null }>(res);
     return json;
   },
-  create: async (content: string): Promise<FeedPost> => {
+  create: async (content: string, mentionedAthleteIds?: string[]): Promise<FeedPost> => {
     const res = await fetch(`${API_URL}/athlete/posts`, {
       method: "POST",
       headers: authHeaders(),
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, mentionedAthleteIds: mentionedAthleteIds ?? [] }),
     });
     return handleResponse<FeedPost>(res);
   },
@@ -814,11 +840,15 @@ export const FeedService = {
     });
     return handleResponse<{ comments: PostComment[]; nextCursor: string | null }>(res);
   },
-  createComment: async (postId: string, content: string): Promise<PostComment> => {
+  createComment: async (
+    postId: string,
+    content: string,
+    mentionedAthleteIds?: string[],
+  ): Promise<PostComment> => {
     const res = await fetch(`${API_URL}/athlete/posts/${postId}/comments`, {
       method: "POST",
       headers: authHeaders(),
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, mentionedAthleteIds: mentionedAthleteIds ?? [] }),
     });
     return handleResponse<PostComment>(res);
   },

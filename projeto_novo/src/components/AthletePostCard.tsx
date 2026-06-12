@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { FeedPost, PostComment, FeedService } from "../services/api";
+import { FeedPost, PostComment, MentionedAthlete, FeedService } from "../services/api";
+import MentionTextarea from "./MentionTextarea";
 
 function timeAgo(iso: string): string {
   const diff = (Date.now() - new Date(iso).getTime()) / 1000;
@@ -19,6 +20,42 @@ function getInitials(name: string): string {
     .slice(0, 2)
     .join("")
     .toUpperCase();
+}
+
+function renderMentions(
+  content: string,
+  mentionedAthletes: MentionedAthlete[],
+): React.ReactNode {
+  if (!mentionedAthletes.length) return content;
+
+  const tokenMap = new Map<string, MentionedAthlete>();
+  for (const a of mentionedAthletes) {
+    tokenMap.set(a.nickname ?? a.fullName, a);
+  }
+
+  const parts = content.split(/(@\w+)/);
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (part.startsWith("@")) {
+          const token = part.slice(1);
+          const athlete = tokenMap.get(token);
+          if (athlete) {
+            return (
+              <Link
+                key={i}
+                to={`/athletes/${athlete.id}`}
+                className="text-[#00ff88] font-semibold hover:underline"
+              >
+                {part}
+              </Link>
+            );
+          }
+        }
+        return <React.Fragment key={i}>{part}</React.Fragment>;
+      })}
+    </>
+  );
 }
 
 interface Props {
@@ -59,13 +96,21 @@ const AthletePostCard: React.FC<Props> = ({ post }) => {
 
       {/* content by type */}
       {post.type === "TROPHY" && (
-        <TrophyCard content={post.content} meta={meta} />
+        <TrophyCard
+          content={post.content}
+          meta={meta}
+          mentionedAthletes={post.mentionedAthletes}
+        />
       )}
       {post.type === "MATCH_RESULT" && (
         <MatchResultCard meta={meta} />
       )}
       {post.type === "MANUAL" && (
-        <ManualCard content={post.content} imageUrl={post.imageUrl} />
+        <ManualCard
+          content={post.content}
+          imageUrl={post.imageUrl}
+          mentionedAthletes={post.mentionedAthletes}
+        />
       )}
 
       <PostFooter post={post} />
@@ -75,10 +120,11 @@ const AthletePostCard: React.FC<Props> = ({ post }) => {
 
 // ─── sub-cards ────────────────────────────────────────────────────────────────
 
-const TrophyCard: React.FC<{ content: string | null; meta: Record<string, unknown> }> = ({
-  content,
-  meta,
-}) => {
+const TrophyCard: React.FC<{
+  content: string | null;
+  meta: Record<string, unknown>;
+  mentionedAthletes: MentionedAthlete[];
+}> = ({ content, meta, mentionedAthletes }) => {
   const position = meta.position as number | undefined;
   const tournamentName = meta.tournamentName as string | undefined;
   const icon = position === 1 ? "🥇" : "🥈";
@@ -87,7 +133,9 @@ const TrophyCard: React.FC<{ content: string | null; meta: Record<string, unknow
       <span className="text-3xl leading-none">{icon}</span>
       <div>
         <p className="font-semibold text-gray-800 text-sm leading-snug">
-          {content ?? "Conquista no torneio"}
+          {content
+            ? renderMentions(content, mentionedAthletes)
+            : "Conquista no torneio"}
         </p>
         {tournamentName && (
           <p className="text-xs text-gray-500 mt-0.5">{tournamentName}</p>
@@ -123,12 +171,17 @@ const MatchResultCard: React.FC<{ meta: Record<string, unknown> }> = ({ meta }) 
   );
 };
 
-const ManualCard: React.FC<{ content: string | null; imageUrl: string | null }> = ({
-  content,
-  imageUrl,
-}) => (
+const ManualCard: React.FC<{
+  content: string | null;
+  imageUrl: string | null;
+  mentionedAthletes: MentionedAthlete[];
+}> = ({ content, imageUrl, mentionedAthletes }) => (
   <div>
-    {content && <p className="text-gray-800 text-sm leading-relaxed">{content}</p>}
+    {content && (
+      <p className="text-gray-800 text-sm leading-relaxed">
+        {renderMentions(content, mentionedAthletes)}
+      </p>
+    )}
     {imageUrl && (
       <img
         src={imageUrl}
@@ -156,6 +209,7 @@ const PostFooter: React.FC<{ post: FeedPost }> = ({ post }) => {
   const [comments, setComments] = useState<PostComment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
   const [newComment, setNewComment] = useState("");
+  const [commentMentionedIds, setCommentMentionedIds] = useState<string[]>([]);
   const [submittingComment, setSubmittingComment] = useState(false);
   const [commentCount, setCommentCount] = useState(post.commentCount);
 
@@ -195,10 +249,11 @@ const PostFooter: React.FC<{ post: FeedPost }> = ({ post }) => {
     if (!trimmed || submittingComment) return;
     setSubmittingComment(true);
     try {
-      const created = await FeedService.createComment(post.id, trimmed);
+      const created = await FeedService.createComment(post.id, trimmed, commentMentionedIds);
       setComments((prev) => [...prev, created]);
       setCommentCount((c) => c + 1);
       setNewComment("");
+      setCommentMentionedIds([]);
     } catch {
       // silently fail — user can retry
     } finally {
@@ -247,7 +302,7 @@ const PostFooter: React.FC<{ post: FeedPost }> = ({ post }) => {
           <span>{likeCount}</span>
         </button>
 
-        {/* comment toggle button */}
+        {/* comment toggle */}
         <button
           onClick={() => setCommentsOpen((v) => !v)}
           className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[12px] font-bold text-gray-500 hover:bg-gray-50 transition-colors"
@@ -300,7 +355,7 @@ const PostFooter: React.FC<{ post: FeedPost }> = ({ post }) => {
                         {c.athlete.nickname ?? c.athlete.fullName}
                       </p>
                       <p className="text-[13px] text-gray-700 whitespace-pre-wrap break-words">
-                        {c.content}
+                        {renderMentions(c.content, c.mentionedAthletes ?? [])}
                       </p>
                     </div>
                     <div className="flex items-center gap-3 mt-1 px-3">
@@ -322,13 +377,16 @@ const PostFooter: React.FC<{ post: FeedPost }> = ({ post }) => {
 
           {/* comment input */}
           <div className="flex items-center gap-2">
-            <input
-              type="text"
+            <MentionTextarea
               value={newComment}
-              onChange={(e) => setNewComment(e.target.value.slice(0, 1000))}
+              onChange={(val, ids) => {
+                setNewComment(val.slice(0, 1000));
+                setCommentMentionedIds(ids);
+              }}
               placeholder="Escreva um comentário..."
-              className="flex-1 px-3 py-2 border border-gray-200 rounded-2xl text-[13px] focus:outline-none focus:ring-2 focus:ring-[#00ff88]/30"
+              maxLength={1000}
               disabled={submittingComment}
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-2xl text-[13px] focus:outline-none focus:ring-2 focus:ring-[#00ff88]/30"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -339,7 +397,7 @@ const PostFooter: React.FC<{ post: FeedPost }> = ({ post }) => {
             <button
               onClick={handleSubmitComment}
               disabled={!newComment.trim() || submittingComment}
-              className="px-3 py-2 bg-[#00ff88] text-[#0a0e1a] rounded-2xl text-[12px] font-extrabold disabled:opacity-40"
+              className="px-3 py-2 bg-[#00ff88] text-[#0a0e1a] rounded-2xl text-[12px] font-extrabold disabled:opacity-40 flex-shrink-0"
             >
               {submittingComment ? "..." : "Enviar"}
             </button>
