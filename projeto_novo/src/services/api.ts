@@ -764,4 +764,12 @@ export const FeedService = {
     const json = await handleResponse<{ posts: FeedPost[]; nextCursor: string | null }>(res);
     return json;
   },
+  create: async (content: string): Promise<FeedPost> => {
+    const res = await fetch(`${API_URL}/athlete/posts`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ content }),
+    });
+    return handleResponse<FeedPost>(res);
+  },
 };

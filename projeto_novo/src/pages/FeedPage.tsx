@@ -3,9 +3,12 @@ import { Link } from "react-router-dom";
 import AthleteHeader from "../components/AthleteHeader";
 import AthleteBottomNav from "../components/AthleteBottomNav";
 import AthletePostCard from "../components/AthletePostCard";
+import FeedComposer from "../components/FeedComposer";
 import { FeedService, FeedPost } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 
 const FeedPage: React.FC = () => {
+  const { user } = useAuth();
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,6 +61,10 @@ const FeedPage: React.FC = () => {
 
       <main className="max-w-xl mx-auto px-4 pb-28 pt-6">
         <h1 className="text-xl font-extrabold text-gray-900 mb-5">Feed</h1>
+
+        {(user?.type as string) === "ATHLETE" && (
+          <FeedComposer onPostCreated={() => loadFeed()} />
+        )}
 
         {loading && (
           <div className="flex justify-center pt-16">

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { z } from "zod";
 import { requireAuth, AuthRequest } from "../middlewares/auth";
 import { prisma } from "../lib/prisma";
 
@@ -59,6 +60,48 @@ feedRoutes.get(
       const nextCursor = hasMore ? items[items.length - 1].id : null;
 
       return res.json({ data: { posts: items, nextCursor } });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// ─── POST /api/athlete/posts ──────────────────────────────────────────────────
+
+const createPostSchema = z.object({
+  content: z.string().min(1).max(2000),
+});
+
+feedRoutes.post(
+  "/posts",
+  requireAuth,
+  async (req: AuthRequest, res, next) => {
+    try {
+      const body = createPostSchema.safeParse(req.body);
+      if (!body.success)
+        return res.status(400).json({ error: body.error.flatten() });
+
+      const athlete = await prisma.athlete.findUnique({
+        where: { userId: req.userId! },
+        select: { id: true },
+      });
+      if (!athlete)
+        return res.status(404).json({ error: "Atleta não encontrado" });
+
+      const post = await prisma.athletePost.create({
+        data: {
+          athleteId: athlete.id,
+          type: "MANUAL",
+          content: body.data.content.trim(),
+        },
+        include: {
+          athlete: {
+            select: { id: true, fullName: true, nickname: true, avatarUrl: true },
+          },
+        },
+      });
+
+      return res.status(201).json({ data: post });
     } catch (err) {
       next(err);
     }
