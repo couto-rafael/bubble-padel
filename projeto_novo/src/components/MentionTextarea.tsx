@@ -71,7 +71,7 @@ const MentionTextarea: React.FC<MentionTextareaProps> = ({
       const after = value.slice(cursor);
       const match = before.match(/@([\w]{0,30})$/);
       if (!match) return;
-      const token = athlete.nickname ?? athlete.fullName;
+      const token = athlete.nickname ?? athlete.fullName.split(" ")[0];
       const newBefore = before.slice(0, before.length - match[0].length) + `@${token} `;
       const newVal = newBefore + after;
       const truncated = maxLength ? newVal.slice(0, maxLength) : newVal;

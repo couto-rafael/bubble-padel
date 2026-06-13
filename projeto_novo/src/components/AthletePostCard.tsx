@@ -30,7 +30,7 @@ function renderMentions(
 
   const tokenMap = new Map<string, MentionedAthlete>();
   for (const a of mentionedAthletes) {
-    tokenMap.set(a.nickname ?? a.fullName, a);
+    tokenMap.set(a.nickname ?? a.fullName.split(" ")[0], a);
   }
 
   const parts = content.split(/(@\w+)/);
