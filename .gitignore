@@ -2,3 +2,4 @@
 dist/
 .env
 *.zip
+.claude/settings.local.json
