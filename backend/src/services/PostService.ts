@@ -2,12 +2,28 @@ import { prisma } from "../lib/prisma";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-async function getAthleteIdByEmail(email: string): Promise<string | null> {
+interface PlayerInfo {
+  id: string | null;
+  name: string;
+}
+
+async function resolvePlayerInfo(
+  email: string,
+  teamPlayerName: string,
+): Promise<PlayerInfo> {
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { athlete: { select: { id: true } } },
+    select: {
+      athlete: { select: { id: true, fullName: true, nickname: true } },
+    },
   });
-  return user?.athlete?.id ?? null;
+  if (user?.athlete) {
+    return {
+      id: user.athlete.id,
+      name: user.athlete.nickname ?? user.athlete.fullName,
+    };
+  }
+  return { id: null, name: teamPlayerName };
 }
 
 function getPrivacy(settings: unknown): {
@@ -24,18 +40,18 @@ function getPrivacy(settings: unknown): {
   };
 }
 
-async function areFriendsMulti(
-  ids: string[],
-): Promise<Set<string>> {
+async function areFriendsMulti(ids: string[]): Promise<Set<string>> {
   if (ids.length < 2) return new Set();
   const friendships = await prisma.athleteFriendship.findMany({
     where: {
       status: "ACCEPTED",
-      OR: ids.map((id) => [
-        ...ids
-          .filter((other) => other !== id)
-          .map((other) => ({ senderId: id, receiverId: other })),
-      ]).flat(),
+      OR: ids
+        .map((id) =>
+          ids
+            .filter((other) => other !== id)
+            .map((other) => ({ senderId: id, receiverId: other })),
+        )
+        .flat(),
     },
     select: { senderId: true, receiverId: true },
   });
@@ -53,6 +69,70 @@ function formatScore(
 ): string {
   if (score1 == null || score2 == null) return "";
   return `${score1}×${score2}`;
+}
+
+function playoffPhase(roundSize: number): string {
+  switch (roundSize) {
+    case 2:  return "Final";
+    case 4:  return "Semifinal";
+    case 8:  return "Quartas";
+    case 16: return "Oitavas";
+    case 32: return "16-avos";
+    default: return `Top ${roundSize}`;
+  }
+}
+
+async function writeMatchPost(args: {
+  athleteId: string;
+  matchId: string;
+  tournamentId: string;
+  tournamentName: string;
+  category: string;
+  won: boolean;
+  score: string;
+  phase: string;
+  partnerPlayer: PlayerInfo | undefined;
+  opponentPlayers: PlayerInfo[];
+}): Promise<void> {
+  const athlete = await prisma.athlete.findUnique({
+    where: { id: args.athleteId },
+    select: { settings: true },
+  });
+  if (!athlete) return;
+
+  const priv = getPrivacy(athlete.settings);
+  if (priv.matches === "PRIVATE") return;
+
+  const existing = await prisma.athletePost.findFirst({
+    where: {
+      athleteId: args.athleteId,
+      type: "MATCH_RESULT",
+      metadata: { path: ["matchId"], equals: args.matchId },
+    },
+  });
+  if (existing) return;
+
+  await prisma.athletePost.create({
+    data: {
+      athleteId: args.athleteId,
+      type: "MATCH_RESULT",
+      metadata: {
+        matchId: args.matchId,
+        tournamentId: args.tournamentId,
+        tournamentName: args.tournamentName,
+        category: args.category,
+        won: args.won,
+        score: args.score,
+        phase: args.phase,
+        partnerAthleteId: args.partnerPlayer?.id ?? null,
+        partnerName: args.partnerPlayer?.name ?? "",
+        opponentAthleteIds: args.opponentPlayers
+          .map((p) => p.id)
+          .filter(Boolean),
+        opponentNames: args.opponentPlayers.map((p) => p.name),
+      },
+    },
+  });
 }
 
 // ─── createTrophyPost ─────────────────────────────────────────────────────────
@@ -117,6 +197,7 @@ export async function maybeCreateMatchResultPost(
       include: {
         group: {
           select: {
+            name: true,
             category: true,
             tournament: { select: { id: true, name: true } },
           },
@@ -130,94 +211,77 @@ export async function maybeCreateMatchResultPost(
     const [team1, team2] = await Promise.all([
       prisma.team.findUnique({
         where: { id: match.team1Id },
-        select: { player1Email: true, player2Email: true },
+        select: {
+          player1Email: true,
+          player1Name: true,
+          player2Email: true,
+          player2Name: true,
+        },
       }),
       prisma.team.findUnique({
         where: { id: match.team2Id },
-        select: { player1Email: true, player2Email: true },
+        select: {
+          player1Email: true,
+          player1Name: true,
+          player2Email: true,
+          player2Name: true,
+        },
       }),
     ]);
 
     if (!team1 || !team2) return;
 
-    const emails = [
-      team1.player1Email,
-      team1.player2Email,
-      team2.player1Email,
-      team2.player2Email,
-    ];
+    const [t1p1, t1p2, t2p1, t2p2] = await Promise.all([
+      resolvePlayerInfo(team1.player1Email, team1.player1Name),
+      resolvePlayerInfo(team1.player2Email, team1.player2Name),
+      resolvePlayerInfo(team2.player1Email, team2.player1Name),
+      resolvePlayerInfo(team2.player2Email, team2.player2Name),
+    ]);
 
-    const athleteByEmail: Record<string, string | null> = {};
-    await Promise.all(
-      emails.map(async (email) => {
-        athleteByEmail[email] = await getAthleteIdByEmail(email);
-      }),
-    );
+    const team1Players: PlayerInfo[] = [t1p1, t1p2];
+    const team2Players: PlayerInfo[] = [t2p1, t2p2];
+    const allAthIds = [...team1Players, ...team2Players]
+      .map((p) => p.id)
+      .filter(Boolean) as string[];
 
-    const team1AthIds = [
-      athleteByEmail[team1.player1Email],
-      athleteByEmail[team1.player2Email],
-    ].filter(Boolean) as string[];
+    if (allAthIds.length < 2) return;
 
-    const team2AthIds = [
-      athleteByEmail[team2.player1Email],
-      athleteByEmail[team2.player2Email],
-    ].filter(Boolean) as string[];
-
-    const allIds = [...team1AthIds, ...team2AthIds];
-    if (allIds.length < 2) return;
-
-    const friendPairs = await areFriendsMulti(allIds);
+    const friendPairs = await areFriendsMulti(allAthIds);
 
     const tournament = match.group.tournament;
     const category = match.group.category;
     const score = formatScore(match.score1, match.score2);
     const team1Won = match.score1 > match.score2;
+    const phase = `Grupo ${match.group.name}`;
 
-    for (const [teamIds, opponentIds, won] of [
-      [team1AthIds, team2AthIds, team1Won],
-      [team2AthIds, team1AthIds, !team1Won],
-    ] as [string[], string[], boolean][]) {
-      for (const athleteId of teamIds) {
-        const hasFriendInMatch = opponentIds.some((opId) =>
-          friendPairs.has(`${athleteId}:${opId}`),
+    for (const [myPlayers, opponentPlayers, won] of [
+      [team1Players, team2Players, team1Won],
+      [team2Players, team1Players, !team1Won],
+    ] as [PlayerInfo[], PlayerInfo[], boolean][]) {
+      for (const player of myPlayers) {
+        if (!player.id) continue;
+
+        const opponentAthIds = opponentPlayers
+          .map((p) => p.id)
+          .filter(Boolean) as string[];
+        const hasFriend = opponentAthIds.some((opId) =>
+          friendPairs.has(`${player.id}:${opId}`),
         );
-        if (!hasFriendInMatch) continue;
+        if (!hasFriend) continue;
 
-        const athlete = await prisma.athlete.findUnique({
-          where: { id: athleteId },
-          select: { settings: true },
-        });
-        if (!athlete) continue;
+        const partnerPlayer = myPlayers.find((p) => p !== player);
 
-        const priv = getPrivacy(athlete.settings);
-        if (priv.matches === "PRIVATE") continue;
-
-        const existing = await prisma.athletePost.findFirst({
-          where: {
-            athleteId,
-            type: "MATCH_RESULT",
-            metadata: {
-              path: ["matchId"],
-              equals: matchId,
-            },
-          },
-        });
-        if (existing) continue;
-
-        await prisma.athletePost.create({
-          data: {
-            athleteId,
-            type: "MATCH_RESULT",
-            metadata: {
-              matchId,
-              tournamentId: tournament.id,
-              tournamentName: tournament.name,
-              category,
-              won,
-              score,
-            },
-          },
+        await writeMatchPost({
+          athleteId: player.id,
+          matchId,
+          tournamentId: tournament.id,
+          tournamentName: tournament.name,
+          category,
+          won,
+          score,
+          phase,
+          partnerPlayer,
+          opponentPlayers,
         });
       }
     }
@@ -256,94 +320,77 @@ export async function maybeCreatePlayoffMatchResultPost(
     const [team1, team2] = await Promise.all([
       prisma.team.findUnique({
         where: { id: match.team1Id },
-        select: { player1Email: true, player2Email: true },
+        select: {
+          player1Email: true,
+          player1Name: true,
+          player2Email: true,
+          player2Name: true,
+        },
       }),
       prisma.team.findUnique({
         where: { id: match.team2Id },
-        select: { player1Email: true, player2Email: true },
+        select: {
+          player1Email: true,
+          player1Name: true,
+          player2Email: true,
+          player2Name: true,
+        },
       }),
     ]);
 
     if (!team1 || !team2) return;
 
-    const emails = [
-      team1.player1Email,
-      team1.player2Email,
-      team2.player1Email,
-      team2.player2Email,
-    ];
+    const [t1p1, t1p2, t2p1, t2p2] = await Promise.all([
+      resolvePlayerInfo(team1.player1Email, team1.player1Name),
+      resolvePlayerInfo(team1.player2Email, team1.player2Name),
+      resolvePlayerInfo(team2.player1Email, team2.player1Name),
+      resolvePlayerInfo(team2.player2Email, team2.player2Name),
+    ]);
 
-    const athleteByEmail: Record<string, string | null> = {};
-    await Promise.all(
-      emails.map(async (email) => {
-        athleteByEmail[email] = await getAthleteIdByEmail(email);
-      }),
-    );
+    const team1Players: PlayerInfo[] = [t1p1, t1p2];
+    const team2Players: PlayerInfo[] = [t2p1, t2p2];
+    const allAthIds = [...team1Players, ...team2Players]
+      .map((p) => p.id)
+      .filter(Boolean) as string[];
 
-    const team1AthIds = [
-      athleteByEmail[team1.player1Email],
-      athleteByEmail[team1.player2Email],
-    ].filter(Boolean) as string[];
+    if (allAthIds.length < 2) return;
 
-    const team2AthIds = [
-      athleteByEmail[team2.player1Email],
-      athleteByEmail[team2.player2Email],
-    ].filter(Boolean) as string[];
-
-    const allIds = [...team1AthIds, ...team2AthIds];
-    if (allIds.length < 2) return;
-
-    const friendPairs = await areFriendsMulti(allIds);
+    const friendPairs = await areFriendsMulti(allAthIds);
 
     const tournament = match.bracket.tournament;
     const category = match.bracket.category;
     const score = formatScore(match.score1, match.score2);
     const team1Won = match.team1Id === match.winnerId;
+    const phase = playoffPhase(match.roundSize);
 
-    for (const [teamIds, opponentIds, won] of [
-      [team1AthIds, team2AthIds, team1Won],
-      [team2AthIds, team1AthIds, !team1Won],
-    ] as [string[], string[], boolean][]) {
-      for (const athleteId of teamIds) {
-        const hasFriendInMatch = opponentIds.some((opId) =>
-          friendPairs.has(`${athleteId}:${opId}`),
+    for (const [myPlayers, opponentPlayers, won] of [
+      [team1Players, team2Players, team1Won],
+      [team2Players, team1Players, !team1Won],
+    ] as [PlayerInfo[], PlayerInfo[], boolean][]) {
+      for (const player of myPlayers) {
+        if (!player.id) continue;
+
+        const opponentAthIds = opponentPlayers
+          .map((p) => p.id)
+          .filter(Boolean) as string[];
+        const hasFriend = opponentAthIds.some((opId) =>
+          friendPairs.has(`${player.id}:${opId}`),
         );
-        if (!hasFriendInMatch) continue;
+        if (!hasFriend) continue;
 
-        const athlete = await prisma.athlete.findUnique({
-          where: { id: athleteId },
-          select: { settings: true },
-        });
-        if (!athlete) continue;
+        const partnerPlayer = myPlayers.find((p) => p !== player);
 
-        const priv = getPrivacy(athlete.settings);
-        if (priv.matches === "PRIVATE") continue;
-
-        const existing = await prisma.athletePost.findFirst({
-          where: {
-            athleteId,
-            type: "MATCH_RESULT",
-            metadata: {
-              path: ["matchId"],
-              equals: playoffMatchId,
-            },
-          },
-        });
-        if (existing) continue;
-
-        await prisma.athletePost.create({
-          data: {
-            athleteId,
-            type: "MATCH_RESULT",
-            metadata: {
-              matchId: playoffMatchId,
-              tournamentId: tournament.id,
-              tournamentName: tournament.name,
-              category,
-              won,
-              score,
-            },
-          },
+        await writeMatchPost({
+          athleteId: player.id,
+          matchId: playoffMatchId,
+          tournamentId: tournament.id,
+          tournamentName: tournament.name,
+          category,
+          won,
+          score,
+          phase,
+          partnerPlayer,
+          opponentPlayers,
         });
       }
     }

@@ -167,24 +167,97 @@ const MatchResultCard: React.FC<{ meta: Record<string, unknown> }> = ({ meta }) 
   const won = meta.won as boolean | undefined;
   const score = meta.score as string | undefined;
   const tournament = meta.tournamentName as string | undefined;
+  const tournamentId = meta.tournamentId as string | undefined;
   const category = meta.category as string | undefined;
+  const phase = meta.phase as string | undefined;
+  const partnerAthleteId = meta.partnerAthleteId as string | null | undefined;
+  const partnerName = meta.partnerName as string | undefined;
+  const opponentAthleteIds = (meta.opponentAthleteIds as string[] | undefined) ?? [];
+  const opponentNames = (meta.opponentNames as string[] | undefined) ?? [];
+
+  const hasEnriched = !!partnerName || opponentNames.length > 0;
 
   return (
-    <div
-      className={`flex items-start gap-3 rounded-xl p-3 ${won ? "bg-green-50" : "bg-red-50"}`}
-    >
-      <span className="text-2xl leading-none">{won ? "✅" : "❌"}</span>
-      <div>
-        <p className="font-semibold text-gray-800 text-sm">
+    <div className={`rounded-xl p-3 ${won ? "bg-green-50" : "bg-red-50"}`}>
+      {/* result + score */}
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-2xl leading-none">{won ? "✅" : "❌"}</span>
+        <span className="font-semibold text-gray-800 text-sm">
           {won ? "Vitória" : "Derrota"}
-          {score ? ` ${score}` : ""}
-        </p>
-        {(tournament || category) && (
-          <p className="text-xs text-gray-500 mt-0.5">
-            {[category, tournament].filter(Boolean).join(" · ")}
-          </p>
+        </span>
+        {score && (
+          <span
+            className={`ml-1 px-2 py-0.5 rounded-full text-[12px] font-bold ${
+              won ? "bg-green-200 text-green-800" : "bg-red-200 text-red-800"
+            }`}
+          >
+            {score}
+          </span>
         )}
       </div>
+
+      {/* partner + opponents (only for enriched posts) */}
+      {hasEnriched && (
+        <div className="text-[12px] text-gray-600 space-y-0.5 mb-2 ml-1">
+          {partnerName && (
+            <p>
+              {"Ao lado de "}
+              {partnerAthleteId ? (
+                <Link
+                  to={`/athletes/${partnerAthleteId}`}
+                  className="font-semibold text-gray-800 hover:underline"
+                >
+                  {partnerName}
+                </Link>
+              ) : (
+                <span className="font-semibold text-gray-800">{partnerName}</span>
+              )}
+            </p>
+          )}
+          {opponentNames.length > 0 && (
+            <p>
+              {"vs "}
+              {opponentNames.map((name, i) => {
+                const id = opponentAthleteIds[i];
+                return (
+                  <React.Fragment key={i}>
+                    {i > 0 && " / "}
+                    {id ? (
+                      <Link
+                        to={`/athletes/${id}`}
+                        className="font-semibold text-gray-800 hover:underline"
+                      >
+                        {name}
+                      </Link>
+                    ) : (
+                      <span className="font-semibold text-gray-800">{name}</span>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* phase · category · tournament */}
+      {(phase || category || tournament) && (
+        <p className="text-[11px] text-gray-500 ml-1">
+          {[phase, category].filter(Boolean).join(" · ")}
+          {tournament && (
+            <>
+              {(phase || category) ? " · " : ""}
+              {tournamentId ? (
+                <Link to={`/tournaments/${tournamentId}`} className="hover:underline">
+                  {tournament}
+                </Link>
+              ) : (
+                tournament
+              )}
+            </>
+          )}
+        </p>
+      )}
     </div>
   );
 };
