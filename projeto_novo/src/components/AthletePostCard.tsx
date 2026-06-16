@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "./Toast";
 import { FeedPost, PostComment, MentionedAthlete, FeedService } from "../services/api";
 import MentionTextarea from "./MentionTextarea";
 
@@ -56,6 +57,23 @@ function renderMentions(
       })}
     </>
   );
+}
+
+function getShareText(post: FeedPost): string {
+  const meta = (post.metadata ?? {}) as Record<string, unknown>;
+  switch (post.type) {
+    case "MANUAL":
+      return post.content ? post.content.slice(0, 100) : "Post no Bubble Padel";
+    case "MATCH_RESULT": {
+      const tournament = meta.tournamentName as string | undefined;
+      const category = meta.category as string | undefined;
+      return `Resultado de ${[category, tournament].filter(Boolean).join(" — ")}`;
+    }
+    case "TROPHY":
+      return post.content ?? "Conquista no Bubble Padel";
+    default:
+      return post.content ?? "Post no Bubble Padel";
+  }
 }
 
 interface Props {
@@ -196,6 +214,7 @@ const ManualCard: React.FC<{
 
 const PostFooter: React.FC<{ post: FeedPost }> = ({ post }) => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const isAthlete = user && (user.type as string) === "ATHLETE";
   const currentAthleteId = user?.athleteId;
 
@@ -222,7 +241,22 @@ const PostFooter: React.FC<{ post: FeedPost }> = ({ post }) => {
       .finally(() => setLoadingComments(false));
   }, [commentsOpen, post.id, comments.length]);
 
-  if (!isAthlete) return null;
+  const handleShare = async () => {
+    const url = `${window.location.origin}/athlete/feed?post=${post.id}`;
+    const text = getShareText(post);
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Bubble Padel", text, url });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(`${text}\n${url}`);
+        toast.success("Link copiado!");
+      } else {
+        prompt("Copie o link:", url);
+      }
+    } catch {
+      // usuário cancelou o share sheet — ignora
+    }
+  };
 
   const handleToggleLike = async () => {
     if (likePending) return;
@@ -275,38 +309,64 @@ const PostFooter: React.FC<{ post: FeedPost }> = ({ post }) => {
     <>
       {/* action row */}
       <div className="flex items-center gap-2 pt-3 mt-3 border-t border-gray-100">
-        {/* like button */}
-        <button
-          onClick={handleToggleLike}
-          disabled={likePending}
-          className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-[12px] font-bold transition-colors ${
-            liked
-              ? "text-[#00ff88] hover:bg-[#00ff88]/10"
-              : "text-gray-500 hover:bg-gray-50"
-          }`}
-          aria-label={liked ? "Descurtir" : "Curtir"}
-        >
-          <svg
-            className="w-4 h-4"
-            fill={liked ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth={2}
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
-            />
-          </svg>
-          <span>{likeCount}</span>
-        </button>
+        {isAthlete && (
+          <>
+            {/* like button */}
+            <button
+              onClick={handleToggleLike}
+              disabled={likePending}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-[12px] font-bold transition-colors ${
+                liked
+                  ? "text-[#00ff88] hover:bg-[#00ff88]/10"
+                  : "text-gray-500 hover:bg-gray-50"
+              }`}
+              aria-label={liked ? "Descurtir" : "Curtir"}
+            >
+              <svg
+                className="w-4 h-4"
+                fill={liked ? "currentColor" : "none"}
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
+                />
+              </svg>
+              <span>{likeCount}</span>
+            </button>
 
-        {/* comment toggle */}
+            {/* comment toggle */}
+            <button
+              onClick={() => setCommentsOpen((v) => !v)}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[12px] font-bold text-gray-500 hover:bg-gray-50 transition-colors"
+              aria-label="Comentários"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4-.8L3 20l1.3-3.9C3.47 14.94 3 13.52 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+              <span>{commentCount}</span>
+            </button>
+          </>
+        )}
+
+        {/* share button — sempre visível */}
         <button
-          onClick={() => setCommentsOpen((v) => !v)}
-          className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[12px] font-bold text-gray-500 hover:bg-gray-50 transition-colors"
-          aria-label="Comentários"
+          onClick={handleShare}
+          className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[12px] font-bold text-gray-500 hover:bg-gray-50 transition-colors ml-auto"
+          aria-label="Compartilhar"
         >
           <svg
             className="w-4 h-4"
@@ -318,10 +378,9 @@ const PostFooter: React.FC<{ post: FeedPost }> = ({ post }) => {
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4-.8L3 20l1.3-3.9C3.47 14.94 3 13.52 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+              d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"
             />
           </svg>
-          <span>{commentCount}</span>
         </button>
       </div>
 
@@ -375,8 +434,8 @@ const PostFooter: React.FC<{ post: FeedPost }> = ({ post }) => {
             </div>
           )}
 
-          {/* comment input */}
-          <div className="flex items-center gap-2">
+          {/* comment input — só atleta */}
+          {isAthlete && <div className="flex items-center gap-2">
             <MentionTextarea
               value={newComment}
               onChange={(val, ids) => {
@@ -401,7 +460,7 @@ const PostFooter: React.FC<{ post: FeedPost }> = ({ post }) => {
             >
               {submittingComment ? "..." : "Enviar"}
             </button>
-          </div>
+          </div>}
         </div>
       )}
     </>
