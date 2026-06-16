@@ -34,6 +34,11 @@ Itens pendentes que não entraram na sprint atual. Cada item tem: prioridade, sp
 - **Sprint sugerida:** 15
 - Lista de torneios no perfil mostra nome/data/categoria mas não exibe a classificação final (campeão / vice / eliminado em quartas / fase de grupos). Justamente a prova social que o app deveria celebrar. Adicionar badge ou linha extra com o resultado.
 
+## Sprint 10+ — UX polish do feed
+
+- **Highlight visual de mentions no composer (antes de publicar):** hoje @nickname só fica verde após o post ir pro feed. Não fica destacado enquanto o usuário digita. Padrão da indústria (LinkedIn, WhatsApp) é igual, mas se houver feedback de confusão de usuário, refatorar composer/comment input pra contentEditable com overlay. Custo: ~4h. Origem: Sprint 9 A4.
+- **Notificação in-app ao atleta mencionado:** quando @atleta é citado em post ou comment, gerar notificação. Bloqueado por sistema de notificações in-app pra atleta (NotificationsPage hoje só renderiza). Custo: depende do sistema. Origem: Sprint 9 A4 (D5 decidido como out-of-scope v1).
+
 ## Sprint 9 backlog (já existente, manter aqui pra consolidar)
 
 - Theme dark/light unificar
