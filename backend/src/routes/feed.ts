@@ -90,15 +90,46 @@ feedRoutes.get(
         (await hydrateMentions(allMentionedIds)).map((a) => [a.id, a]),
       );
 
-      const enriched = items.map(({ _count, ...p }) => ({
-        ...p,
-        likeCount: _count?.likes ?? 0,
-        commentCount: _count?.comments ?? 0,
-        likedByMe: likedSet.has(p.id),
-        mentionedAthletes: p.mentionedAthleteIds
-          .map((id) => mentionMap.get(id))
-          .filter(Boolean),
-      }));
+      // Hydrate tournamentName for TROPHY posts (read-time, no migration needed)
+      const trophyTournamentIds = [
+        ...new Set(
+          items
+            .filter((p) => p.type === "TROPHY")
+            .map((p) => {
+              const m = p.metadata as Record<string, unknown> | null;
+              return m?.tournamentId as string | undefined;
+            })
+            .filter((id): id is string => !!id),
+        ),
+      ];
+      const tournamentNameMap = new Map<string, string>();
+      if (trophyTournamentIds.length) {
+        const tournaments = await prisma.tournament.findMany({
+          where: { id: { in: trophyTournamentIds } },
+          select: { id: true, name: true },
+        });
+        for (const t of tournaments) tournamentNameMap.set(t.id, t.name);
+      }
+
+      const enriched = items.map(({ _count, ...p }) => {
+        let metadata = p.metadata as Record<string, unknown> | null;
+        if (p.type === "TROPHY" && metadata) {
+          const tid = metadata.tournamentId as string | undefined;
+          if (tid && tournamentNameMap.has(tid)) {
+            metadata = { ...metadata, tournamentName: tournamentNameMap.get(tid) };
+          }
+        }
+        return {
+          ...p,
+          metadata,
+          likeCount: _count?.likes ?? 0,
+          commentCount: _count?.comments ?? 0,
+          likedByMe: likedSet.has(p.id),
+          mentionedAthletes: p.mentionedAthleteIds
+            .map((id) => mentionMap.get(id))
+            .filter(Boolean),
+        };
+      });
 
       return res.json({ data: { posts: enriched, nextCursor } });
     } catch (err) {

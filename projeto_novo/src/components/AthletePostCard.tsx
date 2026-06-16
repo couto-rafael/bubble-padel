@@ -113,13 +113,7 @@ const AthletePostCard: React.FC<Props> = ({ post }) => {
       </div>
 
       {/* content by type */}
-      {post.type === "TROPHY" && (
-        <TrophyCard
-          content={post.content}
-          meta={meta}
-          mentionedAthletes={post.mentionedAthletes}
-        />
-      )}
+      {post.type === "TROPHY" && <TrophyCard meta={meta} />}
       {post.type === "MATCH_RESULT" && (
         <MatchResultCard meta={meta} />
       )}
@@ -138,27 +132,47 @@ const AthletePostCard: React.FC<Props> = ({ post }) => {
 
 // ─── sub-cards ────────────────────────────────────────────────────────────────
 
-const TrophyCard: React.FC<{
-  content: string | null;
-  meta: Record<string, unknown>;
-  mentionedAthletes: MentionedAthlete[];
-}> = ({ content, meta, mentionedAthletes }) => {
+const TrophyCard: React.FC<{ meta: Record<string, unknown> }> = ({ meta }) => {
   const position = meta.position as number | undefined;
+  const category = meta.category as string | undefined;
   const tournamentName = meta.tournamentName as string | undefined;
-  const icon = position === 1 ? "🥇" : "🥈";
+  const tournamentId = meta.tournamentId as string | undefined;
+
+  const isChampion = position === 1;
+  const label = isChampion ? "CAMPEÃO" : "VICE-CAMPEÃO";
+  const bg = isChampion ? "from-amber-50 to-yellow-100" : "from-gray-50 to-slate-100";
+  const iconColor = isChampion ? "text-amber-400" : "text-gray-400";
+  const badgeBg = isChampion ? "bg-amber-400" : "bg-gray-400";
+
   return (
-    <div className="flex items-start gap-3 bg-amber-50 rounded-xl p-3">
-      <span className="text-3xl leading-none">{icon}</span>
-      <div>
-        <p className="font-semibold text-gray-800 text-sm leading-snug">
-          {content
-            ? renderMentions(content, mentionedAthletes)
-            : "Conquista no torneio"}
-        </p>
-        {tournamentName && (
-          <p className="text-xs text-gray-500 mt-0.5">{tournamentName}</p>
-        )}
+    <div className={`rounded-xl p-5 bg-gradient-to-br ${bg} text-center`}>
+      <div className={`mx-auto mb-3 ${iconColor} flex items-center justify-center`}>
+        <svg viewBox="0 0 24 24" fill="currentColor" width="72" height="72" aria-hidden="true">
+          <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm7 6c-1.65 0-3-1.35-3-3V5h6v6c0 1.65-1.35 3-3 3zm7-6c0 1.3-.84 2.4-2 2.82V7h2v1z" />
+        </svg>
       </div>
+      <span
+        className={`inline-block ${badgeBg} text-white text-[11px] font-extrabold tracking-widest px-3 py-1 rounded-full mb-3`}
+      >
+        {label}
+      </span>
+      {category && (
+        <p className="font-extrabold text-gray-900 text-[17px] leading-tight mb-1">
+          {category}
+        </p>
+      )}
+      {tournamentName && (
+        tournamentId ? (
+          <Link
+            to={`/tournaments/${tournamentId}`}
+            className="text-[13px] text-gray-500 hover:underline"
+          >
+            {tournamentName}
+          </Link>
+        ) : (
+          <p className="text-[13px] text-gray-500">{tournamentName}</p>
+        )
+      )}
     </div>
   );
 };
