@@ -40,6 +40,10 @@ Itens pendentes que não entraram na sprint atual. Cada item tem: prioridade, sp
 - **Notificação in-app ao atleta mencionado:** quando @atleta é citado em post ou comment, gerar notificação. Bloqueado por sistema de notificações in-app pra atleta (NotificationsPage hoje só renderiza). Custo: depende do sistema. Origem: Sprint 9 A4 (D5 decidido como out-of-scope v1).
 - **AthleteProfileById: back nav hardcoded "Torneios":** quando atleta navega para /athlete/:id via mention click (do feed), comment, ou qualquer rota que não seja /tournaments, o botão "voltar" no header mostra "Torneios" — texto hardcoded. Deve ser context-aware (usar navigate(-1) ou label dinâmico baseado em document.referrer / location.state). Custo: ~30min. Origem: smoke test Sprint 9.
 
+## Sprint 10+ — Bug visual placar
+
+- **Inconsistência visual entre aba Jogos e aba Playoffs:** mesmo match (ex: playoff #41) exibido com placar invertido entre as duas abas. Banco está consistente (única row em PlayoffMatch); a aba Jogos provavelmente inverte ordem por viewer-as-team2. Confunde o clube e o atleta. Investigar e padronizar exibição (sempre team1 × team2, ou sempre "meu placar" × "adversário" com label claro). Custo: ~1h investigação + 1-2h fix. Origem: smoke test Sprint 9 B1.
+
 ## Sprint 10+ — UX clube
 
 - **Falta botão "Iniciar Torneio" (CLOSED → ONGOING):** hoje o clube só consegue mover o status para ONGOING indiretamente, salvando o primeiro placar (syncStatus detecta e flipa). Funciona mas é confuso e exige que o clube saiba dessa side-effect. Adicionar botão explícito "Iniciar Torneio" no dashboard quando status=CLOSED. Custo: ~1h. Origem: smoke test Sprint 9 B1.
