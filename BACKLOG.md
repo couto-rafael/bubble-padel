@@ -40,6 +40,12 @@ Itens pendentes que não entraram na sprint atual. Cada item tem: prioridade, sp
 - **Notificação in-app ao atleta mencionado:** quando @atleta é citado em post ou comment, gerar notificação. Bloqueado por sistema de notificações in-app pra atleta (NotificationsPage hoje só renderiza). Custo: depende do sistema. Origem: Sprint 9 A4 (D5 decidido como out-of-scope v1).
 - **AthleteProfileById: back nav hardcoded "Torneios":** quando atleta navega para /athlete/:id via mention click (do feed), comment, ou qualquer rota que não seja /tournaments, o botão "voltar" no header mostra "Torneios" — texto hardcoded. Deve ser context-aware (usar navigate(-1) ou label dinâmico baseado em document.referrer / location.state). Custo: ~30min. Origem: smoke test Sprint 9.
 
+## Sprint 10+ — Bugs torneio Playoffs
+
+- **Não consigo editar placar na aba Playoffs após salvar:** clube dono do torneio consegue reabrir e editar placar via aba Jogos (popup), mas a aba Playoffs não permite o mesmo. Inconsistência entre as duas abas. Padronizar — placar deve ser editável em ambos os lugares. Custo: ~1-2h. Origem: smoke test Sprint 9 B1.
+- **Sets adicionais não salvam:** ao adicionar mais de 1 set num placar (ex: 6×3 4×6 10×8) e clicar Salvar, apenas o primeiro set é persistido. Schema provavelmente armazena só score1/score2 e UI de múltiplos sets é desconectada. Investigar e implementar persistência de sets múltiplos OU bloquear UI de sets adicionais. Custo: depende do schema (~3-6h se schema change). Origem: smoke test Sprint 9 B1.
+- **Banner CAMPEÕES ausente no perfil público do torneio:** clube dono vê o banner "CAMPEÕES — [duplas] — Placar da Final" assim que a categoria conclui. Atleta acessando perfil público do torneio (TournamentProfile) NÃO vê o mesmo banner. Replicar o componente/seção no perfil público. Custo: ~1h. Origem: smoke test Sprint 9 B1.
+
 ## Sprint 10+ — Bug visual placar
 
 - **Inconsistência visual entre aba Jogos e aba Playoffs:** mesmo match (ex: playoff #41) exibido com placar invertido entre as duas abas. Banco está consistente (única row em PlayoffMatch); a aba Jogos provavelmente inverte ordem por viewer-as-team2. Confunde o clube e o atleta. Investigar e padronizar exibição (sempre team1 × team2, ou sempre "meu placar" × "adversário" com label claro). Custo: ~1h investigação + 1-2h fix. Origem: smoke test Sprint 9 B1.
