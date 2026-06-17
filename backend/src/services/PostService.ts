@@ -40,29 +40,6 @@ function getPrivacy(settings: unknown): {
   };
 }
 
-async function areFriendsMulti(ids: string[]): Promise<Set<string>> {
-  if (ids.length < 2) return new Set();
-  const friendships = await prisma.athleteFriendship.findMany({
-    where: {
-      status: "ACCEPTED",
-      OR: ids
-        .map((id) =>
-          ids
-            .filter((other) => other !== id)
-            .map((other) => ({ senderId: id, receiverId: other })),
-        )
-        .flat(),
-    },
-    select: { senderId: true, receiverId: true },
-  });
-  const pairs = new Set<string>();
-  for (const f of friendships) {
-    pairs.add(`${f.senderId}:${f.receiverId}`);
-    pairs.add(`${f.receiverId}:${f.senderId}`);
-  }
-  return pairs;
-}
-
 function formatScore(
   score1: number | null | undefined,
   score2: number | null | undefined,
@@ -240,13 +217,6 @@ export async function maybeCreateMatchResultPost(
 
     const team1Players: PlayerInfo[] = [t1p1, t1p2];
     const team2Players: PlayerInfo[] = [t2p1, t2p2];
-    const allAthIds = [...team1Players, ...team2Players]
-      .map((p) => p.id)
-      .filter(Boolean) as string[];
-
-    if (allAthIds.length < 2) return;
-
-    const friendPairs = await areFriendsMulti(allAthIds);
 
     const tournament = match.group.tournament;
     const category = match.group.category;
@@ -260,14 +230,6 @@ export async function maybeCreateMatchResultPost(
     ] as [PlayerInfo[], PlayerInfo[], boolean][]) {
       for (const player of myPlayers) {
         if (!player.id) continue;
-
-        const opponentAthIds = opponentPlayers
-          .map((p) => p.id)
-          .filter(Boolean) as string[];
-        const hasFriend = opponentAthIds.some((opId) =>
-          friendPairs.has(`${player.id}:${opId}`),
-        );
-        if (!hasFriend) continue;
 
         const partnerPlayer = myPlayers.find((p) => p !== player);
 
@@ -349,13 +311,6 @@ export async function maybeCreatePlayoffMatchResultPost(
 
     const team1Players: PlayerInfo[] = [t1p1, t1p2];
     const team2Players: PlayerInfo[] = [t2p1, t2p2];
-    const allAthIds = [...team1Players, ...team2Players]
-      .map((p) => p.id)
-      .filter(Boolean) as string[];
-
-    if (allAthIds.length < 2) return;
-
-    const friendPairs = await areFriendsMulti(allAthIds);
 
     const tournament = match.bracket.tournament;
     const category = match.bracket.category;
@@ -369,14 +324,6 @@ export async function maybeCreatePlayoffMatchResultPost(
     ] as [PlayerInfo[], PlayerInfo[], boolean][]) {
       for (const player of myPlayers) {
         if (!player.id) continue;
-
-        const opponentAthIds = opponentPlayers
-          .map((p) => p.id)
-          .filter(Boolean) as string[];
-        const hasFriend = opponentAthIds.some((opId) =>
-          friendPairs.has(`${player.id}:${opId}`),
-        );
-        if (!hasFriend) continue;
 
         const partnerPlayer = myPlayers.find((p) => p !== player);
 
