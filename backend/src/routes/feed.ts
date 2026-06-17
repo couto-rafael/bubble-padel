@@ -75,8 +75,25 @@ feedRoutes.get(
       });
 
       const hasMore = posts.length > limit;
-      const items = hasMore ? posts.slice(0, limit) : posts;
-      const nextCursor = hasMore ? items[items.length - 1].id : null;
+      const raw = hasMore ? posts.slice(0, limit) : posts;
+      const nextCursor = hasMore ? raw[raw.length - 1].id : null;
+
+      // Dedup MATCH_RESULT by matchId — prefer own post, else keep first in order
+      const dedupMap = new Map<string, typeof raw[0]>();
+      for (const post of raw) {
+        const meta = post.metadata as Record<string, unknown> | null;
+        const key =
+          post.type === "MATCH_RESULT" && meta?.matchId
+            ? (meta.matchId as string)
+            : post.id;
+        const existing = dedupMap.get(key);
+        if (!existing) {
+          dedupMap.set(key, post);
+        } else if (post.athleteId === athleteId && existing.athleteId !== athleteId) {
+          dedupMap.set(key, post);
+        }
+      }
+      const items = [...dedupMap.values()];
 
       const myLikes = await prisma.postLike.findMany({
         where: { athleteId, postId: { in: items.map((p) => p.id) } },
