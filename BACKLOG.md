@@ -38,6 +38,7 @@ Itens pendentes que não entraram na sprint atual. Cada item tem: prioridade, sp
 
 - **Highlight visual de mentions no composer (antes de publicar):** hoje @nickname só fica verde após o post ir pro feed. Não fica destacado enquanto o usuário digita. Padrão da indústria (LinkedIn, WhatsApp) é igual, mas se houver feedback de confusão de usuário, refatorar composer/comment input pra contentEditable com overlay. Custo: ~4h. Origem: Sprint 9 A4.
 - **Notificação in-app ao atleta mencionado:** quando @atleta é citado em post ou comment, gerar notificação. Bloqueado por sistema de notificações in-app pra atleta (NotificationsPage hoje só renderiza). Custo: depende do sistema. Origem: Sprint 9 A4 (D5 decidido como out-of-scope v1).
+- **AthleteProfileById: back nav hardcoded "Torneios":** quando atleta navega para /athlete/:id via mention click (do feed), comment, ou qualquer rota que não seja /tournaments, o botão "voltar" no header mostra "Torneios" — texto hardcoded. Deve ser context-aware (usar navigate(-1) ou label dinâmico baseado em document.referrer / location.state). Custo: ~30min. Origem: smoke test Sprint 9.
 
 ## Sprint 9 backlog (já existente, manter aqui pra consolidar)
 
