@@ -1,11 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode } from "react";
 import type { User, AuthState, UserType } from "../types";
 import { AuthService } from "../services/api";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AUTH CONTEXT
 // Disponibiliza user, token e funções de auth para toda a árvore de componentes.
-// Substitui os console.log("Login:...) do AuthModal.
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface AuthContextValue extends AuthState {
@@ -17,23 +16,18 @@ interface AuthContextValue extends AuthState {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AuthState>({
-    user: null,
-    token: null,
-    isAuthenticated: false,
-    isLoading: true,
-  });
-
-  useEffect(() => {
+  // Lazy initializer — lê localStorage de forma síncrona no primeiro render,
+  // eliminando o flash de isLoading:true/user:null que causava race na montagem.
+  const [state, setState] = useState<AuthState>(() => {
     const user = AuthService.getCurrentUser();
     const token = AuthService.getToken();
-    setState({
+    return {
       user,
       token,
       isAuthenticated: !!token && !!user,
       isLoading: false,
-    });
-  }, []);
+    };
+  });
 
   const login = async (email: string, password: string) => {
     const { token, user } = await AuthService.login(email, password);
