@@ -798,8 +798,8 @@ const Home = () => {
                       />
                     </svg>
                   ),
-                  title: "App Mobile Completo",
-                  description: "Experiência perfeita em qualquer dispositivo",
+                  title: "Funciona Direto no Celular",
+                  description: "Acesso pelo navegador em qualquer dispositivo — sem instalar nada.",
                 },
                 {
                   icon: (
@@ -817,9 +817,8 @@ const Home = () => {
                       />
                     </svg>
                   ),
-                  title: "Gestão Automática",
-                  description:
-                    "Chaves, agendamento e organização automatizados",
+                  title: "Chaves Geradas em 1 Clique",
+                  description: "A gente gera grupos e mata-mata na hora. Sem planilha.",
                 },
                 {
                   icon: (
@@ -881,9 +880,9 @@ const Home = () => {
                     💳 E as taxas de pagamento?
                   </h4>
                   <p className="text-gray-400 text-sm">
-                    Se você cobrar inscrição dos jogadores, haverá a taxa padrão
-                    do gateway de pagamento (Mercado Pago, PagSeguro, etc). Essa
-                    taxa não é do Bubble, é do parceiro de pagamento.
+                    Se você cobrar inscrição dos jogadores, há uma taxa do gateway PIX
+                    parceiro (cerca de 1% por transação). A taxa é do provedor de
+                    pagamento, não da Bubble.
                   </p>
                 </div>
                 <div>
