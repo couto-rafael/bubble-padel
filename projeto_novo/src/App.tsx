@@ -36,6 +36,7 @@ import MessageThreadPage from "./pages/MessageThreadPage";
 
 import { ToastProvider } from "./components/Toast";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,57 +63,62 @@ const App = () => {
                 />
                 <Route path="/contact" element={<Contact />} />
 
-                {/* Clube */}
-                <Route path="/dashboard" element={<ClubDashboard />} />
-                <Route
-                  path="/dashboard/profile"
-                  element={<ClubDashboardProfile />}
-                />
-                <Route path="/dashboard/settings" element={<ClubSettings />} />
-                <Route
-                  path="/dashboard/tournaments"
-                  element={<MyTournaments />}
-                />
-                <Route
-                  path="/dashboard/tournaments/create"
-                  element={<CreateTournament />}
-                />
-                <Route
-                  path="/dashboard/tournaments/:id/edit"
-                  element={<EditTournament />}
-                />
-                <Route
-                  path="/dashboard/tournaments/:id/results"
-                  element={<TournamentResultsPDF />}
-                />
-                <Route
-                  path="/dashboard/leagues"
-                  element={<LeaguesDashboard />}
-                />
+                {/* Clube — protegido */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/dashboard" element={<ClubDashboard />} />
+                  <Route
+                    path="/dashboard/profile"
+                    element={<ClubDashboardProfile />}
+                  />
+                  <Route path="/dashboard/settings" element={<ClubSettings />} />
+                  <Route
+                    path="/dashboard/tournaments"
+                    element={<MyTournaments />}
+                  />
+                  <Route
+                    path="/dashboard/tournaments/create"
+                    element={<CreateTournament />}
+                  />
+                  <Route
+                    path="/dashboard/tournaments/:id/edit"
+                    element={<EditTournament />}
+                  />
+                  <Route
+                    path="/dashboard/tournaments/:id/results"
+                    element={<TournamentResultsPDF />}
+                  />
+                  <Route
+                    path="/dashboard/leagues"
+                    element={<LeaguesDashboard />}
+                  />
+                </Route>
+
                 <Route path="/clubs/:id" element={<ClubProfile />} />
 
-                {/* Atleta */}
-                <Route
-                  path="/athlete/dashboard"
-                  element={<AthleteDashboard />}
-                />
-                <Route path="/athlete/profile" element={<AthleteProfile />} />
-                <Route
-                  path="/athlete/profile/edit"
-                  element={<AthleteEditProfile />}
-                />
-                <Route path="/athlete/settings" element={<AthleteSettings />} />
-                <Route path="/athlete/feed" element={<FeedPage />} />
-                <Route path="/athlete/:id" element={<AthleteProfileById />} />
-                <Route
-                  path="/athlete/notifications"
-                  element={<NotificationsPage />}
-                />
-                <Route path="/athlete/messages" element={<MessagesPage />} />
-                <Route
-                  path="/athlete/messages/:userId"
-                  element={<MessageThreadPage />}
-                />
+                {/* Atleta — protegido */}
+                <Route element={<ProtectedRoute />}>
+                  <Route
+                    path="/athlete/dashboard"
+                    element={<AthleteDashboard />}
+                  />
+                  <Route path="/athlete/profile" element={<AthleteProfile />} />
+                  <Route
+                    path="/athlete/profile/edit"
+                    element={<AthleteEditProfile />}
+                  />
+                  <Route path="/athlete/settings" element={<AthleteSettings />} />
+                  <Route path="/athlete/feed" element={<FeedPage />} />
+                  <Route path="/athlete/:id" element={<AthleteProfileById />} />
+                  <Route
+                    path="/athlete/notifications"
+                    element={<NotificationsPage />}
+                  />
+                  <Route path="/athlete/messages" element={<MessagesPage />} />
+                  <Route
+                    path="/athlete/messages/:userId"
+                    element={<MessageThreadPage />}
+                  />
+                </Route>
 
                 {/* Público */}
                 <Route
