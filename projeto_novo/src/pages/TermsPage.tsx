@@ -50,7 +50,7 @@ const TermsPage = () => {
           <h1 className="text-3xl font-black mb-2">
             Termos de Uso e Privacidade
           </h1>
-          <p className="text-gray-400 text-sm">Versão 1.0 — Março de 2026</p>
+          <p className="text-gray-400 text-sm">Versão 1.1 — Junho de 2026</p>
         </div>
 
         {/* Tabs */}
@@ -243,6 +243,14 @@ const TermsPage = () => {
                   publicar seu nome e resultado (classificação, categoria) na
                   página pública do torneio.
                 </p>
+                <p>
+                  Além da publicação em páginas públicas de torneio, seu nome,
+                  nickname e resultados podem aparecer no Feed Social da
+                  plataforma conforme descrito na Seção 3 da Política de
+                  Privacidade. Você pode limitar essa exposição alterando a
+                  configuração "Histórico de Partidas" para Privado nas suas
+                  Configurações.
+                </p>
               </Section>
 
               <Section title="7. Foro">
@@ -283,7 +291,93 @@ const TermsPage = () => {
                 </p>
               </Section>
 
-              <Section title="3. Para Que Usamos os Dados">
+              <Section title="3. Feed Social — Exposição de Dados">
+                <p>
+                  Ao criar uma conta como atleta, você passa a ter um perfil
+                  social na Bubble Padel. Suas atividades esportivas podem gerar
+                  posts automáticos e aparecer no feed de outros atletas.
+                </p>
+                <p>
+                  <strong>O que pode aparecer no feed:</strong>
+                </p>
+                <ul>
+                  <li>Seu nome e/ou nickname</li>
+                  <li>
+                    Resultado de partidas que você jogou (placar, parceiro,
+                    adversários, fase do torneio)
+                  </li>
+                  <li>
+                    Torneios em que você foi campeão ou vice (posts TROPHY)
+                  </li>
+                  <li>
+                    Menções feitas a você por outros atletas usando
+                    @seunickname
+                  </li>
+                  <li>Posts que você mesmo cria manualmente</li>
+                </ul>
+                <p>
+                  <strong>Quem vê:</strong> Todos os atletas cadastrados na
+                  Bubble Padel podem ver o feed público. Não há gate de
+                  "amigos" na versão atual.
+                </p>
+                <p>
+                  <strong>Base legal:</strong> Legítimo interesse (LGPD Art.
+                  7º, VI) — a exposição de resultado esportivo é inerente à
+                  natureza da participação em torneios públicos. A menção por
+                  outros atletas ocorre no contexto de relação social esportiva
+                  legítima.
+                </p>
+                <p>
+                  <strong>Como controlar sua exposição:</strong>
+                </p>
+                <ul>
+                  <li>
+                    Configuração "Histórico de Partidas" nas suas
+                    Configurações: alterar para "Privado" bloqueia a geração
+                    de posts automáticos (MATCH_RESULT e TROPHY) sobre suas
+                    partidas
+                  </li>
+                  <li>
+                    Posts que você criou manualmente podem ser deletados por
+                    você a qualquer momento
+                  </li>
+                  <li>
+                    Menções: você pode solicitar a remoção de menções
+                    específicas entrando em contato com{" "}
+                    <a
+                      href="mailto:privacidade@bubblepadel.com"
+                      className="text-[#00ff88]"
+                    >
+                      privacidade@bubblepadel.com
+                    </a>
+                  </li>
+                </ul>
+                <p>
+                  <strong>Direito de remoção:</strong>
+                </p>
+                <ul>
+                  <li>
+                    Você pode deletar qualquer post do qual seja autor
+                  </li>
+                  <li>
+                    Dados originais de placar são fato esportivo público e
+                    permanecem registrados para fins de ranking, mesmo que o
+                    post seja deletado
+                  </li>
+                  <li>
+                    Solicitação de anonimização de resultados históricos:{" "}
+                    <a
+                      href="mailto:privacidade@bubblepadel.com"
+                      className="text-[#00ff88]"
+                    >
+                      privacidade@bubblepadel.com
+                    </a>{" "}
+                    (LGPD Art. 18)
+                  </li>
+                </ul>
+              </Section>
+
+              <Section title="4. Para Que Usamos os Dados">
                 <table className="w-full text-sm border-collapse">
                   <thead>
                     <tr className="border-b border-white/[0.08]">
@@ -323,7 +417,7 @@ const TermsPage = () => {
                 </table>
               </Section>
 
-              <Section title="4. Por Quanto Tempo Guardamos os Dados">
+              <Section title="5. Por Quanto Tempo Guardamos os Dados">
                 <ul>
                   <li>
                     <strong>Dados de inscrição e resultados:</strong> 2 anos
@@ -339,7 +433,7 @@ const TermsPage = () => {
                 </ul>
               </Section>
 
-              <Section title="5. Compartilhamento de Dados">
+              <Section title="6. Compartilhamento de Dados">
                 <table className="w-full text-sm border-collapse">
                   <thead>
                     <tr className="border-b border-white/[0.08]">
@@ -371,7 +465,7 @@ const TermsPage = () => {
                 </table>
               </Section>
 
-              <Section title="6. Seus Direitos (LGPD)">
+              <Section title="7. Seus Direitos (LGPD)">
                 <p>
                   Você tem direito a: acesso, correção, exclusão, portabilidade
                   e revogação do consentimento dos seus dados.
@@ -388,7 +482,7 @@ const TermsPage = () => {
                 </p>
               </Section>
 
-              <Section title="7. Segurança">
+              <Section title="8. Segurança">
                 <p>
                   Adotamos criptografia em trânsito (HTTPS), autenticação via
                   tokens JWT e acesso ao banco de dados restrito a sistemas
@@ -396,7 +490,7 @@ const TermsPage = () => {
                 </p>
               </Section>
 
-              <Section title="8. Alterações desta Política">
+              <Section title="9. Alterações desta Política">
                 <p>
                   Alterações relevantes serão comunicadas por e-mail com pelo
                   menos <strong>15 dias de antecedência</strong>.
@@ -408,7 +502,7 @@ const TermsPage = () => {
 
         {/* Footer */}
         <div className="mt-16 pt-8 border-t border-white/[0.08] text-center text-sm text-gray-500">
-          <p>Bubble Padel · Versão 1.0 · Março 2026</p>
+          <p>Bubble Padel · Versão 1.1 · Junho 2026</p>
           <p className="mt-1">
             Dúvidas?{" "}
             <a
