@@ -67,11 +67,13 @@ Workflow Orchestration
 Default interactive transaction timeout (5000ms) é insuficiente com pooler serverless (~200-300ms por query de latência).
 
 Para transações com 3+ creates sequenciais, sempre passar:
+
 ```ts
-prisma.$transaction(fn, { timeout: 30000 })
+prisma.$transaction(fn, { timeout: 30000 });
 ```
 
 Regras adicionais:
+
 - Nunca chamar `bcrypt.hashSync` dentro da transação — é CPU-blocking e consome o timeout. Pré-computar todos os hashes **antes** de abrir a transação.
 - Seed scripts em `backend/scripts/` usam `tsx` direto (fora do `rootDir: src` do tsconfig) — não precisam de compilação.
 - Backend corre na porta `3001` (default). Configurável via `PORT` env var.
@@ -92,6 +94,25 @@ Regras adicionais:
 - **Raiz local**: `C:\Apps\Bubble 2.0\`
 
 ---
+
+## North Star Metric
+
+**Torneios pagos completados/mês.**
+
+Métrica única que combina:
+
+- Volume real (clube ativo criando torneio)
+- Monetização (PIX processado)
+- Conclusão (torneio rodou do início ao fim sem clube abandonar)
+
+Priorização de features segue esta métrica. Se uma proposta não move
+o NSM em prazo previsível, questionar antes de construir.
+
+Health metrics (não pode piorar): uptime, bounce rate email, erros
+Sentry, NPS, taxa de conclusão de torneio.
+
+Baseline coletado via `npm run kpi:snapshot` (S10-T12).
+Cadência de revisão: 1ª segunda-feira de cada mês.
 
 ## Regras Absolutas (nunca quebrar)
 
