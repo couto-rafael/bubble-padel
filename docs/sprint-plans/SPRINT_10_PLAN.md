@@ -380,6 +380,19 @@ Open-ended. Cadência sugerida: 10-15h/semana → fecha em 4-6 semanas.
 
 ---
 
+## Regra permanente — Gate 3 requer hash
+
+Todo Gate 3 (aprovação de task) exige hash de commit no relato do Code.
+
+Formato mínimo do relato:
+"T## concluída. Commit {hash}. Critérios de aceite: [...]"
+
+Sem hash reportado: task fica em "APROVADO PENDENTE COMMIT" até o hash aparecer. Zero exceção.
+
+**Motivação:** sessão pós-Sprint 9 descobriu que T01 (sets múltiplos) estava em working tree há sessões sem commit, apesar de ter sido "aprovada". Reset acidental teria evaporado a entrega.
+
+---
+
 ## 9. Primeira Task Sugerida
 
 **S10-T01 — Sets múltiplos persistindo.** Mais bloqueante (schema change, afeta T05/T06). Comece por aqui.
