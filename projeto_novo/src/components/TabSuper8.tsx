@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ScoreModal from "./ScoreModal";
 
 interface Super8Player {
   id: string;
@@ -21,6 +22,7 @@ interface Super8Match {
   score1: number | null;
   score2: number | null;
   played: boolean;
+  sets?: Array<{ s1: number; s2: number }>;
 }
 
 interface RegisteredAthlete {
@@ -64,11 +66,9 @@ export default function TabSuper8({ tournamentId, registeredAthletes, courts }: 
   const [matches, setMatches] = useState<Super8Match[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [savingMatchId, setSavingMatchId] = useState<string | null>(null);
-  const [scores, setScores] = useState<Record<string, { s1: string; s2: string }>>({});
-  const [editingMatchIds, setEditingMatchIds] = useState<Set<string>>(new Set());
   const [openRounds, setOpenRounds] = useState<Set<number>>(new Set([1]));
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [scoreModal, setScoreModal] = useState<Super8Match | null>(null);
 
   const confirmedAthletes = registeredAthletes.filter((a) => a.status === "confirmed");
 
@@ -84,14 +84,6 @@ export default function TabSuper8({ tournamentId, registeredAthletes, courts }: 
       const { players: pl, matches: ma } = j.data ?? { players: [], matches: [] };
       setPlayers(pl);
       setMatches(ma);
-      const init: Record<string, { s1: string; s2: string }> = {};
-      for (const m of ma) {
-        init[m.id] = {
-          s1: m.score1 != null ? String(m.score1) : "",
-          s2: m.score2 != null ? String(m.score2) : "",
-        };
-      }
-      setScores(init);
     } catch {
       setMsg({ type: "err", text: "Erro ao carregar dados." });
     } finally {
@@ -121,12 +113,6 @@ export default function TabSuper8({ tournamentId, registeredAthletes, courts }: 
       const { players: pl, matches: ma } = j.data;
       setPlayers(pl);
       setMatches(ma);
-      const init: Record<string, { s1: string; s2: string }> = {};
-      for (const m of ma) {
-        init[m.id] = { s1: "", s2: "" };
-      }
-      setScores(init);
-      setEditingMatchIds(new Set());
       setMsg({ type: "ok", text: "Partidas geradas!" });
     } catch (e: any) {
       setMsg({ type: "err", text: e.message });
@@ -135,25 +121,16 @@ export default function TabSuper8({ tournamentId, registeredAthletes, courts }: 
     }
   }
 
-  async function handleSaveScore(match: Super8Match) {
-    const sc = scores[match.id];
-    if (!sc || sc.s1 === "" || sc.s2 === "") {
-      setMsg({ type: "err", text: "Preencha os dois placares." });
-      return;
-    }
-    const s1 = parseInt(sc.s1, 10);
-    const s2 = parseInt(sc.s2, 10);
-    if (isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0) {
-      setMsg({ type: "err", text: "Placares devem ser números positivos." });
-      return;
-    }
-    setSavingMatchId(match.id);
+  async function handleSaveScore(
+    match: Super8Match,
+    payload: { score1: number; score2: number; sets: Array<{ s1: number; s2: number }> },
+  ) {
     setMsg(null);
     try {
       const r = await fetch(`${API_URL}/super8/${tournamentId}/matches/${match.id}`, {
         method: "PUT",
         headers: authHeaders(),
-        body: JSON.stringify({ score1: s1, score2: s2 }),
+        body: JSON.stringify(payload),
       });
       if (!r.ok) {
         const e = await r.json();
@@ -162,21 +139,10 @@ export default function TabSuper8({ tournamentId, registeredAthletes, courts }: 
       const j = await r.json();
       setPlayers(j.data.players);
       setMatches(j.data.matches);
-      // Sai do modo edição para este match
-      setEditingMatchIds((prev) => {
-        const next = new Set(prev);
-        next.delete(match.id);
-        return next;
-      });
+      setScoreModal(null);
     } catch (e: any) {
       setMsg({ type: "err", text: e.message });
-    } finally {
-      setSavingMatchId(null);
     }
-  }
-
-  function enterEdit(matchId: string) {
-    setEditingMatchIds((prev) => new Set([...prev, matchId]));
   }
 
   const nameByOrder = new Map(players.map((p) => [p.order, p.name]));
@@ -267,6 +233,7 @@ export default function TabSuper8({ tournamentId, registeredAthletes, courts }: 
 
   // Partidas geradas
   return (
+    <>
     <div className="space-y-6">
       {msg && (
         <div className={`px-4 py-3 rounded-xl text-sm font-medium ${msg.type === "ok" ? "bg-green-50 border border-green-200 text-green-700" : "bg-red-50 border border-red-200 text-red-700"}`}>
@@ -303,13 +270,16 @@ export default function TabSuper8({ tournamentId, registeredAthletes, courts }: 
                 {isOpen && (
                   <div className="divide-y divide-gray-100">
                     {roundMatches.map((match) => {
-                      const sc = scores[match.id] ?? { s1: "", s2: "" };
-                      const t1 = `${nameByOrder.get(match.team1p1) ?? "?"} + ${nameByOrder.get(match.team1p2) ?? "?"}`;
-                      const t2 = `${nameByOrder.get(match.team2p1) ?? "?"} + ${nameByOrder.get(match.team2p2) ?? "?"}`;
-                      const isSaving = savingMatchId === match.id;
-                      const isEditing = editingMatchIds.has(match.id);
-                      const isSaved = match.played && !isEditing;
+                      const t1 = `${nameByOrder.get(match.team1p1) ?? "?"} / ${nameByOrder.get(match.team1p2) ?? "?"}`;
+                      const t2 = `${nameByOrder.get(match.team2p1) ?? "?"} / ${nameByOrder.get(match.team2p2) ?? "?"}`;
                       const court = courtForMatch(match.matchIndex);
+                      const hasSets = match.sets && match.sets.length > 0;
+                      const wins1 = hasSets
+                        ? match.sets!.filter((s) => s.s1 > s.s2).length
+                        : match.score1 !== null && match.score2 !== null && match.score1 > match.score2 ? 1 : 0;
+                      const wins2 = hasSets
+                        ? match.sets!.filter((s) => s.s2 > s.s1).length
+                        : match.score1 !== null && match.score2 !== null && match.score2 > match.score1 ? 1 : 0;
 
                       return (
                         <div key={match.id} className="px-4 py-4">
@@ -321,52 +291,35 @@ export default function TabSuper8({ tournamentId, registeredAthletes, courts }: 
                           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                             <div className="flex-1 space-y-1">
                               <div className="flex items-center gap-2">
-                                <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${isSaved && match.score1! > match.score2! ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>T1</span>
+                                <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${match.played && wins1 > wins2 ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>T1</span>
                                 <span className="text-sm text-gray-800">{t1}</span>
-                                {isSaved && <span className="text-sm font-bold text-gray-700 ml-auto">{match.score1}</span>}
+                                {match.played && (
+                                  <span className="text-sm font-bold text-gray-700 ml-auto">
+                                    {hasSets
+                                      ? match.sets!.map((s) => s.s1).join("/")
+                                      : match.score1}
+                                  </span>
+                                )}
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${isSaved && match.score2! > match.score1! ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>T2</span>
+                                <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${match.played && wins2 > wins1 ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>T2</span>
                                 <span className="text-sm text-gray-800">{t2}</span>
-                                {isSaved && <span className="text-sm font-bold text-gray-700 ml-auto">{match.score2}</span>}
+                                {match.played && (
+                                  <span className="text-sm font-bold text-gray-700 ml-auto">
+                                    {hasSets
+                                      ? match.sets!.map((s) => s.s2).join("/")
+                                      : match.score2}
+                                  </span>
+                                )}
                               </div>
                             </div>
 
-                            {isSaved ? (
-                              <button
-                                onClick={() => enterEdit(match.id)}
-                                className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold hover:bg-gray-200 transition-colors flex-shrink-0"
-                              >
-                                Editar
-                              </button>
-                            ) : (
-                              <div className="flex items-center gap-2 flex-shrink-0">
-                                <input
-                                  type="number"
-                                  min={0}
-                                  value={sc.s1}
-                                  onChange={(e) => setScores((prev) => ({ ...prev, [match.id]: { ...prev[match.id], s1: e.target.value } }))}
-                                  className="w-14 text-center px-2 py-1.5 border border-gray-200 rounded-lg text-sm font-bold text-gray-900 bg-white"
-                                  placeholder="0"
-                                />
-                                <span className="text-gray-400 font-bold">×</span>
-                                <input
-                                  type="number"
-                                  min={0}
-                                  value={sc.s2}
-                                  onChange={(e) => setScores((prev) => ({ ...prev, [match.id]: { ...prev[match.id], s2: e.target.value } }))}
-                                  className="w-14 text-center px-2 py-1.5 border border-gray-200 rounded-lg text-sm font-bold text-gray-900 bg-white"
-                                  placeholder="0"
-                                />
-                                <button
-                                  onClick={() => handleSaveScore(match)}
-                                  disabled={isSaving}
-                                  className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors disabled:opacity-60"
-                                >
-                                  {isSaving ? "..." : "Salvar"}
-                                </button>
-                              </div>
-                            )}
+                            <button
+                              onClick={() => setScoreModal(match)}
+                              className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold hover:bg-gray-200 transition-colors flex-shrink-0"
+                            >
+                              {match.played ? "Editar" : "Registrar"}
+                            </button>
                           </div>
                         </div>
                       );
@@ -427,5 +380,24 @@ export default function TabSuper8({ tournamentId, registeredAthletes, courts }: 
         </div>
       </details>
     </div>
+
+    {scoreModal && (
+      <ScoreModal
+        team1Name={`${nameByOrder.get(scoreModal.team1p1) ?? "?"} / ${nameByOrder.get(scoreModal.team1p2) ?? "?"}`}
+        team2Name={`${nameByOrder.get(scoreModal.team2p1) ?? "?"} / ${nameByOrder.get(scoreModal.team2p2) ?? "?"}`}
+        initialScore1={scoreModal.score1 ?? null}
+        initialScore2={scoreModal.score2 ?? null}
+        initialSets={scoreModal.sets}
+        onSave={async (payload) => {
+          await handleSaveScore(scoreModal, {
+            score1: payload.score1,
+            score2: payload.score2,
+            sets: payload.sets,
+          });
+        }}
+        onClose={() => setScoreModal(null)}
+      />
+    )}
+    </>
   );
 }

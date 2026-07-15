@@ -28,12 +28,17 @@ matchRoutes.patch(
     try {
       const data = scoreSchema.parse(req.body);
 
+      const lastSet =
+        data.sets && data.sets.length > 0
+          ? data.sets[data.sets.length - 1]
+          : null;
+
       // Salva o resultado
       const match = await prisma.match.update({
         where: { id: req.params.id },
         data: {
-          score1: data.score1,
-          score2: data.score2,
+          score1: lastSet ? lastSet.s1 : data.score1,
+          score2: lastSet ? lastSet.s2 : data.score2,
           wo: data.wo,
           sets: data.sets ?? undefined,
           played: true,

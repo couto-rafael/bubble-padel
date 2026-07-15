@@ -1,6 +1,21 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { requireAuth, AuthRequest } from "../middlewares/auth";
+import { z } from "zod";
+
+const super8ScoreSchema = z.object({
+  score1: z.number().int().min(0),
+  score2: z.number().int().min(0),
+  sets: z
+    .array(
+      z.object({
+        s1: z.number().int().min(0).max(99),
+        s2: z.number().int().min(0).max(99),
+      }),
+    )
+    .min(1)
+    .optional(),
+});
 
 export const super8Routes = Router();
 
@@ -98,17 +113,24 @@ super8Routes.put(
   async (req: AuthRequest, res, next) => {
     try {
       const { tournamentId, matchId } = req.params;
-      const { score1, score2 } = req.body as { score1: number; score2: number };
+      const data = super8ScoreSchema.parse(req.body);
 
       const match = await prisma.super8Match.findFirst({
         where: { id: matchId, tournamentId },
       });
       if (!match) return res.status(404).json({ error: "Partida não encontrada" });
 
+      const lastSet =
+        data.sets && data.sets.length > 0
+          ? data.sets[data.sets.length - 1]
+          : null;
+      const score1 = lastSet ? lastSet.s1 : data.score1;
+      const score2 = lastSet ? lastSet.s2 : data.score2;
+
       // Atualiza partida
       await prisma.super8Match.update({
         where: { id: matchId },
-        data: { score1, score2, played: true },
+        data: { score1, score2, played: true, sets: data.sets ?? undefined },
       });
 
       // Primeiro placar salvo → torneio vai para ONGOING
@@ -181,9 +203,23 @@ async function recalcRanking(tournamentId: string) {
 
   for (const m of matches) {
     if (m.score1 == null || m.score2 == null) continue;
-    const s1 = m.score1;
-    const s2 = m.score2;
-    const team1Won = s1 > s2;
+
+    const matchSets = m.sets as Array<{ s1: number; s2: number }> | null;
+    let team1Won: boolean;
+    let gf1: number;
+    let ga1: number;
+
+    if (matchSets && matchSets.length > 0) {
+      const wins1 = matchSets.filter((s) => s.s1 > s.s2).length;
+      const wins2 = matchSets.filter((s) => s.s2 > s.s1).length;
+      team1Won = wins1 > wins2;
+      gf1 = matchSets.reduce((acc, s) => acc + s.s1, 0);
+      ga1 = matchSets.reduce((acc, s) => acc + s.s2, 0);
+    } else {
+      team1Won = m.score1 > m.score2;
+      gf1 = m.score1;
+      ga1 = m.score2;
+    }
 
     // Time 1: players team1p1 + team1p2
     for (const idx of [m.team1p1, m.team1p2]) {
@@ -194,8 +230,8 @@ async function recalcRanking(tournamentId: string) {
         data: {
           wins: { increment: team1Won ? 1 : 0 },
           losses: { increment: team1Won ? 0 : 1 },
-          gamesFor: { increment: s1 },
-          gamesAgainst: { increment: s2 },
+          gamesFor: { increment: gf1 },
+          gamesAgainst: { increment: ga1 },
         },
       });
     }
@@ -209,8 +245,8 @@ async function recalcRanking(tournamentId: string) {
         data: {
           wins: { increment: team1Won ? 0 : 1 },
           losses: { increment: team1Won ? 1 : 0 },
-          gamesFor: { increment: s2 },
-          gamesAgainst: { increment: s1 },
+          gamesFor: { increment: ga1 },
+          gamesAgainst: { increment: gf1 },
         },
       });
     }

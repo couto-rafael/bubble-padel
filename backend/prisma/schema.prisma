@@ -412,6 +412,7 @@ model Super8Match {
   score1       Int?
   score2       Int?
   played       Boolean    @default(false)
+  sets         Json?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
