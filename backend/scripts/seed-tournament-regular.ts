@@ -43,7 +43,7 @@ function fmtDate(d: Date): string {
 }
 
 const TOURNAMENT_DEF = {
-  name: "Smoke Test Regular — Sprint 8.5",
+  name: process.env.TOURNAMENT_NAME ?? "Smoke Test Regular — Sprint 8.5",
   sport: "PADEL",
   startDate: fmtDate(TODAY),
   endDate: fmtDate(IN_7_DAYS),
