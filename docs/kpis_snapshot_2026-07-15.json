@@ -1,0 +1,28 @@
+{
+  "generatedAt": "2026-07-15T03:01:17.236Z",
+  "tournaments": {
+    "total": 5,
+    "completed": 2,
+    "completionRate": 0.4
+  },
+  "athletes": {
+    "unique": 50
+  },
+  "clubs": {
+    "withAtLeastOneTournament": 1
+  },
+  "posts": {
+    "total": 51,
+    "byType": {
+      "MANUAL": 4,
+      "TROPHY": 11,
+      "TOURNAMENT_JOIN": 0,
+      "MATCH_RESULT": 36
+    }
+  },
+  "nsm": {
+    "value": 0,
+    "month": "2026-07",
+    "note": "based on updatedAt proxy — consider adding completedAt field in a future sprint for precision"
+  }
+}

@@ -14,7 +14,8 @@
     "seed:tournament": "tsx scripts/seed-tournament-regular.ts",
     "seed:tournament:dry": "tsx scripts/seed-tournament-regular.ts --dry-run",
     "seed:scores": "tsx scripts/seed-tournament-scores.ts",
-    "seed:scores:dry": "tsx scripts/seed-tournament-scores.ts --dry-run"
+    "seed:scores:dry": "tsx scripts/seed-tournament-scores.ts --dry-run",
+    "kpi:snapshot": "tsx scripts/kpiSnapshot.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.2",
