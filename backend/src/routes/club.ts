@@ -152,6 +152,40 @@ router.delete(
   },
 );
 
+// GET /api/club/financial-summary
+router.get(
+  "/financial-summary",
+  requireAuth,
+  async (req: AuthRequest, res) => {
+    try {
+      const clubTournaments = await prisma.tournament.findMany({
+        where: { clubId: req.clubId! },
+        select: { id: true },
+      });
+      const tournamentIds = clubTournaments.map((t) => t.id);
+
+      const [agg, torneiosPagos] = await Promise.all([
+        prisma.reconciliation.aggregate({
+          where: { tournamentId: { in: tournamentIds } },
+          _sum: { totalBruto: true, valorRepasse: true },
+        }),
+        prisma.reconciliation.count({
+          where: { tournamentId: { in: tournamentIds } },
+        }),
+      ]);
+      res.json({
+        data: {
+          totalBruto: agg._sum?.totalBruto ?? 0,
+          valorRepasse: agg._sum?.valorRepasse ?? 0,
+          torneiosPagos,
+        },
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Erro ao calcular resumo financeiro" });
+    }
+  },
+);
+
 export { router as clubRoutes };
 
 // ─── ROTAS PÚBLICAS ───────────────────────────────────────────────────────────

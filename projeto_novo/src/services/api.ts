@@ -110,6 +110,21 @@ export const ClubService = {
     return handleResponse<ClubProfile>(res);
   },
 
+  getFinancialSummary: async (): Promise<{
+    totalBruto: number;
+    valorRepasse: number;
+    torneiosPagos: number;
+  }> => {
+    const res = await fetch(`${API_URL}/club/financial-summary`, {
+      headers: authHeaders(),
+    });
+    return handleResponse<{
+      totalBruto: number;
+      valorRepasse: number;
+      torneiosPagos: number;
+    }>(res);
+  },
+
   updateProfile: async (data: Partial<ClubProfile>): Promise<ClubProfile> => {
     const res = await fetch(`${API_URL}/club/profile`, {
       method: "PATCH",

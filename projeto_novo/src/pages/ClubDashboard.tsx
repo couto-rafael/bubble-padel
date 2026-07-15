@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import DashboardHeader from "../components/DashboardHeader";
 import { useTournaments } from "../hooks";
 import OnboardingChecklist from "../components/OnboardingChecklist";
+import { ClubService } from "../services/api";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS (preservados 100%)
@@ -93,6 +94,26 @@ const STATUS_CONFIG: Record<string, { bg: string; text: string; dot: string }> =
 const ClubDashboard = () => {
   const [selectedFilter, setSelectedFilter] = useState<string>("Todos");
   const { tournaments, loading } = useTournaments();
+
+  const [financialLoading, setFinancialLoading] = useState(true);
+  const [financial, setFinancial] = useState<{
+    totalBruto: number;
+    valorRepasse: number;
+    torneiosPagos: number;
+  } | null>(null);
+
+  useEffect(() => {
+    ClubService.getFinancialSummary()
+      .then((data) => setFinancial(data))
+      .catch(() => setFinancial(null))
+      .finally(() => setFinancialLoading(false));
+  }, []);
+
+  const formatBRL = (value: number) =>
+    new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value);
 
   // ── Derivações (lógica preservada) ────────────────────────────────────────
 
@@ -218,6 +239,58 @@ const ClubDashboard = () => {
                 </p>
               </div>
             ))}
+          </div>
+
+          {/* ── Total Arrecadado via Bubble ───────────────────────────────── */}
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 mb-6">
+            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">
+              Total Arrecadado via Bubble
+            </p>
+            {financialLoading ? (
+              <div className="flex gap-6">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex-1 space-y-2">
+                    <div className="h-6 bg-gray-100 rounded-lg animate-pulse" />
+                    <div className="h-3 bg-gray-100 rounded-lg w-3/4 animate-pulse" />
+                  </div>
+                ))}
+              </div>
+            ) : !financial || financial.torneiosPagos === 0 ? (
+              <div className="flex items-center gap-3 py-1">
+                <span className="text-2xl opacity-30">💰</span>
+                <p className="text-[13px] text-gray-400 font-normal">
+                  Nenhuma receita registrada ainda. Os valores aparecerão após
+                  o primeiro torneio pago ser concluído.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <p className="text-[24px] font-extrabold text-gray-900 tracking-tight leading-none mb-1">
+                    {formatBRL(financial.totalBruto)}
+                  </p>
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">
+                    Total Bruto
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[24px] font-extrabold text-green-600 tracking-tight leading-none mb-1">
+                    {formatBRL(financial.valorRepasse)}
+                  </p>
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">
+                    Repasse Líquido
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[24px] font-extrabold text-blue-600 tracking-tight leading-none mb-1">
+                    {financial.torneiosPagos}
+                  </p>
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">
+                    Torneios com Receita
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── Ações Rápidas ─────────────────────────────────────────────── */}
