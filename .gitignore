@@ -3,3 +3,9 @@ dist/
 .env
 *.zip
 .claude/settings.local.json
+
+# Artefatos temporários de smoke tests Windows
+**/C*Temp*.txt
+**/backend_log.txt
+**/backend_smoke*.txt
+**/frontend_smoke.txt
