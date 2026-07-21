@@ -85,22 +85,21 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/super8", super8Routes);
 
-app.get("/api/health", async (_req, res) => {
+app.get("/api/health", (_req, res) => {
+  res.json({
+    status: "ok",
+    uptime: process.uptime(),
+    timestamp: Date.now(),
+  });
+});
+
+// Deep DB check — usar manualmente, nunca como ping de uptime monitor
+app.get("/api/health/db", async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
-    res.json({
-      status: "ok",
-      db: "connected",
-      timestamp: new Date().toISOString(),
-    });
+    res.json({ status: "ok", db: "connected" });
   } catch {
-    res
-      .status(503)
-      .json({
-        status: "error",
-        db: "disconnected",
-        timestamp: new Date().toISOString(),
-      });
+    res.status(503).json({ status: "error", db: "disconnected" });
   }
 });
 
