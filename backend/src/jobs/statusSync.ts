@@ -11,7 +11,10 @@ import { createTrophyPost } from "../services/PostService";
  * Roda a cada 15 minutos.
  */
 export function startStatusSyncJob(): void {
-  cron.schedule("*/15 * * * *", async () => {
+  // Frequência reduzida para 60min (era 15min) pra reduzir consumo
+  // Neon free tier. Aumentar de volta se ativação de cobrança
+  // exigir sync mais rápido.
+  cron.schedule("0 * * * *", async () => {
     try {
       await syncTournamentStatuses();
     } catch (err) {
@@ -19,7 +22,7 @@ export function startStatusSyncJob(): void {
     }
   });
 
-  console.log("⏰ [cron] statusSync iniciado — roda a cada 15 minutos");
+  console.log("⏰ [cron] statusSync iniciado — roda a cada 60 minutos");
 }
 
 export async function syncTournamentStatuses(): Promise<void> {
