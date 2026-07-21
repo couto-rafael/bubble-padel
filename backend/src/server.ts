@@ -177,7 +177,10 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
   startStatusSyncJob();
-  startReminderJob();
+  // FIX 4: reminderJob desabilitado temporariamente (Sprint 10)
+  // Reativar quando houver clubes reais + torneios ativos
+  // Motivo: reduzir consumo Neon free tier
+  // startReminderJob();
 });
 
 export default app;
